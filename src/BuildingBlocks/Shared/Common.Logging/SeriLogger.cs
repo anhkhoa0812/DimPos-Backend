@@ -1,8 +1,9 @@
+using Microsoft.Extensions.Hosting;
 using Serilog;
 
-namespace DimPos.Catalog.Application.Common.Serilog;
+namespace Common.Logging;
 
-public static class SerilogConfiguration
+public static class SeriLogger
 {
     public static Action<HostBuilderContext, LoggerConfiguration> Configure =>
         (context, configuration) =>

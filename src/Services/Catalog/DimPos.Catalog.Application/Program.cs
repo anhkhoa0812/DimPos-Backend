@@ -1,10 +1,10 @@
-using DimPos.Catalog.Application.Common.Serilog;
+using Common.Logging;
 using DimPos.Catalog.Infrastructure;
 using DimPos.Catalog.Infrastructure.Persistence;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Host.UseSerilog(SerilogConfiguration.Configure);
+builder.Host.UseSerilog(SeriLogger.Configure);
 Log.Information("Starting Catalog API up");
 
 try

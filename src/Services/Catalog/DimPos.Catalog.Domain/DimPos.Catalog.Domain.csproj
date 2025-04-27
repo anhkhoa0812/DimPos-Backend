@@ -7,4 +7,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\BuildingBlocks\Shared\Common.Logging\Common.Logging.csproj" />
+    </ItemGroup>
+
 </Project>
