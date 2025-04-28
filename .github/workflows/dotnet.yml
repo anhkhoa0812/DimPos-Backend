@@ -23,6 +23,6 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build Capstone-DimPos-Backend.slnx --no-restore
+      run: dotnet build Capstone-DimPos-Backend.sln --no-restore
     - name: Test
-      run: dotnet test Capstone-DimPos-Backend.slnx --no-build --verbosity normal
+      run: dotnet test Capstone-DimPos-Backend.sln --no-build --verbosity normal
