@@ -4,6 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DimPos.Catalog.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Provides the Entity Framework Core configuration for the <see cref="BrandPriceHistory"/> entity.
+/// </summary>
+/// <remarks>
+/// Configures the primary key, property constraints, and relationships for the <see cref="BrandPriceHistory"/> entity.
+/// </remarks>
 public class BrandPriceHistoryConfiguration : IEntityTypeConfiguration<BrandPriceHistory>
 {
     public void Configure(EntityTypeBuilder<BrandPriceHistory> builder)

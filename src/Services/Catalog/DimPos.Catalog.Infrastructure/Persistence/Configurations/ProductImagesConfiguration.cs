@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DimPos.Catalog.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Provides the entity configuration for the <see cref="ProductImages"/> class in the database context.
+/// This configuration defines the primary key, property constraints, and relationships for the entity.
+/// </summary>
 public class ProductImagesConfiguration : IEntityTypeConfiguration<ProductImages>
 {
     public void Configure(EntityTypeBuilder<ProductImages> builder)

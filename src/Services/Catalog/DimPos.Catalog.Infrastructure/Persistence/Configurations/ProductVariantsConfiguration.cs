@@ -4,6 +4,15 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DimPos.Catalog.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Configures the entity properties, relationships, and constraints for the <see cref="ProductVariants"/> entity within the database context.
+/// </summary>
+/// <remarks>
+/// This configuration defines behavior such as primary keys, property precision, unique constraints,
+/// foreign key relationships, and cascade delete actions for the <see cref="ProductVariants"/> entity.
+/// </remarks>
+/// <seealso cref="ProductVariants"/>
+/// <seealso cref="IEntityTypeConfiguration{TEntity}"/>
 public class ProductVariantsConfiguration : IEntityTypeConfiguration<ProductVariants>
 {
     public void Configure(EntityTypeBuilder<ProductVariants> builder)

@@ -1,5 +1,6 @@
 using Common.Logging;
 using DimPos.Catalog.Infrastructure;
+using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
 using Serilog;
 
@@ -16,8 +17,7 @@ try
 
     if (app.Environment.IsDevelopment())
     {
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseScalar();
     }
     using (var scope = app.Services.CreateScope())
     {
@@ -33,6 +33,10 @@ try
             throw; 
         }
     }
+    app.UseAuthentication();
+
+    app.UseAuthorization();
+
     app.UseHttpsRedirection();
     app.Run();
 

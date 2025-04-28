@@ -1,4 +1,7 @@
+using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
+using DimPos.Catalog.Infrastructure.Repositories;
+using DimPos.Catalog.Infrastructure.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +18,11 @@ public static class ConfigureServices
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnectionString"),
                 builder => builder.MigrationsAssembly(typeof(CatalogContext).Assembly.FullName));
         });
+        services.AddScoped<IUnitOfWork<CatalogContext>, UnitOfWork<CatalogContext>>();
         services.AddScoped<CatalogContextSeed>();
+        services.AddSwagger();
+        services.AddAuthorization();
+        services.AddAuthentication();
         return services;
     }
 }

@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DimPos.Catalog.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Provides configuration for the <c>Products</c> entity in the Entity Framework.
+/// This class defines how the <c>Products</c> entity should be mapped to the underlying database schema.
+/// </summary>
 public class ProductsConfiguration : IEntityTypeConfiguration<Products>
 {
     public void Configure(EntityTypeBuilder<Products> builder)

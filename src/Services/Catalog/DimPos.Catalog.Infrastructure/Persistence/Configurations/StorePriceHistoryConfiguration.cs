@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DimPos.Catalog.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Provides the Entity Framework Core configuration for the <see cref="StorePriceHistory"/> entity.
+/// This configuration specifies the entity's key, property constraints, and relationships.
+/// </summary>
 public class StorePriceHistoryConfiguration : IEntityTypeConfiguration<StorePriceHistory>
 {
     public void Configure(EntityTypeBuilder<StorePriceHistory> builder)
