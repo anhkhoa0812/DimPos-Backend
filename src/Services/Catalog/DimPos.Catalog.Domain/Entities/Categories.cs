@@ -22,9 +22,5 @@ public class Categories : EntityAuditBase<Guid>
     public Guid? ParentId { get; set; }
     
     public Guid? BrandId { get; set; }
-    
-    public virtual Categories? Parent { get; set; }
-    
-    public virtual IEnumerable<Categories>? Childrens { get; set; } = new List<Categories>();
     public virtual IEnumerable<Products> Products { get; set; } = new List<Products>();
 }

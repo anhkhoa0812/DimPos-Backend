@@ -28,10 +28,5 @@ public class CategoriesConfiguration : IEntityTypeConfiguration<Categories>
         builder.Property(c => c.DisplayOrder);
         builder.Property(c => c.PictureUrl)
             .HasMaxLength(1000);
-        builder.HasOne(c => c.Parent)
-            .WithMany(c => c.Childrens)
-            .HasForeignKey(c => c.ParentId)
-            .OnDelete(DeleteBehavior.Restrict);
-
     }
 }

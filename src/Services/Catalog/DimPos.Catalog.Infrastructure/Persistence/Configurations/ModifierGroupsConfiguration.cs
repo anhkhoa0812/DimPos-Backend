@@ -1,4 +1,5 @@
 using DimPos.Catalog.Domain.Entities;
+using DimPos.Catalog.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,5 +14,10 @@ public class ModifierGroupsConfiguration : IEntityTypeConfiguration<ModifierGrou
             .HasMaxLength(200);
         builder.Property(mg => mg.Description)
             .HasMaxLength(1000);
+        builder.Property(mg => mg.SelectedType)
+            .HasConversion(
+                v => v.ToString(),
+                v => (ESelectedTypeModifier)Enum.Parse(typeof(ESelectedTypeModifier), v)
+            );
     }
 }

@@ -4,6 +4,7 @@ using DimPos.Catalog.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DimPos.Catalog.Infrastructure.Migrations
 {
     [DbContext(typeof(CatalogContext))]
-    partial class CatalogContextModelSnapshot : ModelSnapshot
+    [Migration("20250429105332_Change_Type_Of_SelectedType_In_Table_ModifierGroups")]
+    partial class Change_Type_Of_SelectedType_In_Table_ModifierGroups
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -141,6 +144,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
 
                     b.ToTable("Categories");
                 });
@@ -632,6 +637,16 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Navigation("BrandPrice");
                 });
 
+            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Categories", b =>
+                {
+                    b.HasOne("DimPos.Catalog.Domain.Entities.Categories", "Parent")
+                        .WithMany("Childrens")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Parent");
+                });
+
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ModifierOptions", b =>
                 {
                     b.HasOne("DimPos.Catalog.Domain.Entities.ModifierGroups", "ModifierGroup")
@@ -744,6 +759,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Categories", b =>
                 {
+                    b.Navigation("Childrens");
+
                     b.Navigation("Products");
                 });
 
