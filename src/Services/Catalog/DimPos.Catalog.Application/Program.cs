@@ -1,7 +1,11 @@
 using Common.Logging;
+using DimPos.Catalog.Application.Common.Behaviours;
+using DimPos.Catalog.Application.Common.Extensions;
+using DimPos.Catalog.Application.Common.Middlewares;
 using DimPos.Catalog.Infrastructure;
 using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
+using Mediator;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,12 +14,11 @@ Log.Information("Starting Catalog API up");
 
 try
 {
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
     builder.Services.AddInfrastructureServices(builder.Configuration);
+    builder.Services.AddApplicationServices();
     var app = builder.Build();
 
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() || app.Environment.IsProduction() || app.Environment.IsStaging())
     {
         app.UseScalar();
     }
@@ -33,10 +36,16 @@ try
             throw; 
         }
     }
+
+    app.UseMiddleware<GlobalException>();
+    app.UseCors(builder =>
+        builder.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .WithExposedHeaders("X-Pagination"));
     app.UseAuthentication();
-
     app.UseAuthorization();
-
+    app.MapControllers();
     app.UseHttpsRedirection();
     app.Run();
 

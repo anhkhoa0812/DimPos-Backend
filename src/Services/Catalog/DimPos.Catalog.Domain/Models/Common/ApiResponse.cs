@@ -1,0 +1,21 @@
+using System.Net;
+using System.Text.Json;
+
+namespace DimPos.Catalog.Domain.Models.Common;
+
+public class ApiResponse<T>
+{
+    public HttpStatusCode Status { get; set; }
+    public string? Message { get; set; } = string.Empty;
+    public T? Data { get; set; }
+
+    public override string ToString()
+    {
+        return JsonSerializer.Serialize(this);
+    }
+}
+
+public class ApiResponse : ApiResponse<object>
+{
+    public ApiResponse() { }
+}

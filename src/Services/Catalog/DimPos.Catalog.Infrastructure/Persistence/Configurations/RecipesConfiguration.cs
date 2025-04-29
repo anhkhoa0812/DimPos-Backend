@@ -18,9 +18,9 @@ public class RecipesConfiguration : IEntityTypeConfiguration<Recipes>
 
         builder.Property(r => r.Version)
             .HasMaxLength(50);
-        builder.HasOne(r => r.ProductVariant)
-            .WithMany(pv => pv.Recipes)
-            .HasForeignKey(r => r.ProductVariantId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // builder.HasOne(r => r.ProductVariant)
+        //     .WithMany(pv => pv.Recipes)
+        //     .HasForeignKey(r => r.ProductVariantId)
+        //     .OnDelete(DeleteBehavior.Restrict);
     }
 }

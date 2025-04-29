@@ -194,6 +194,80 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.ToTable("Ingredients");
                 });
 
+            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ModifierGroups", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BrandId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("SelectedType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ModifierGroups");
+                });
+
+            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ModifierOptions", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ModifierGroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal?>("PriceDelta")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<int?>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModifierGroupId");
+
+                    b.ToTable("ModifierOptions");
+                });
+
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductAttributes", b =>
                 {
                     b.Property<Guid>("Id")
@@ -246,11 +320,46 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.ToTable("ProductImages");
                 });
 
+            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductModifierGroups", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ModifierGroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModifierGroupId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductModifierGroups");
+                });
+
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductVariants", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AlternativeCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal?>("DiscountPercent")
                         .HasPrecision(5, 2)
@@ -260,13 +369,24 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<bool?>("IsMenuDisplay")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("IsProductPriceBasedOnVariant")
-                        .HasColumnType("bit");
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<decimal?>("Price")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal?>("PriceCOGS")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
@@ -276,18 +396,13 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<int?>("Status")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("VariantOptionId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId")
+                    b.HasIndex("Code")
                         .IsUnique()
-                        .HasFilter("[ProductId] IS NOT NULL");
+                        .HasFilter("[Code] IS NOT NULL");
 
-                    b.HasIndex("VariantOptionId")
-                        .IsUnique()
-                        .HasFilter("[VariantOptionId] IS NOT NULL");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("ProductVariants");
                 });
@@ -297,9 +412,6 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool?>("Active")
-                        .HasColumnType("bit");
 
                     b.Property<string>("AlternativeCode")
                         .HasMaxLength(100)
@@ -325,17 +437,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<int?>("DisplayOrder")
                         .HasColumnType("int");
 
-                    b.Property<string>("Introduction")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
                     b.Property<bool?>("IsAvailable")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("IsDefaultChildProduct")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("IsFixedPrice")
                         .HasColumnType("bit");
 
                     b.Property<bool?>("IsHasRecipe")
@@ -353,9 +455,6 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("MaxExtra")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -366,34 +465,19 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<int?>("NumOfUserVoted")
                         .HasColumnType("int");
 
-                    b.Property<int?>("PackagingId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PosX")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PosY")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Positon")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("PriceCOGS")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)");
-
                     b.Property<int?>("SaleType")
                         .HasColumnType("int");
 
                     b.Property<int?>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("WebContent")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL");
 
                     b.ToTable("Products");
                 });
@@ -540,71 +624,6 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.ToTable("StorePriceHistory");
                 });
 
-            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.VariantOptions", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int?>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int?>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Value")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid?>("VariantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VariantId");
-
-                    b.ToTable("VariantOptions");
-                });
-
-            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Variants", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("BrandId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int?>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Variants");
-                });
-
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.BrandPriceHistory", b =>
                 {
                     b.HasOne("DimPos.Catalog.Domain.Entities.BasePrice", "BrandPrice")
@@ -623,6 +642,16 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ModifierOptions", b =>
+                {
+                    b.HasOne("DimPos.Catalog.Domain.Entities.ModifierGroups", "ModifierGroup")
+                        .WithMany("ModifierOptions")
+                        .HasForeignKey("ModifierGroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ModifierGroup");
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductAttributes", b =>
@@ -645,6 +674,23 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductModifierGroups", b =>
+                {
+                    b.HasOne("DimPos.Catalog.Domain.Entities.ModifierGroups", "ModifierGroup")
+                        .WithMany("ProductModifierGroups")
+                        .HasForeignKey("ModifierGroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DimPos.Catalog.Domain.Entities.Products", "Product")
+                        .WithMany("ProductModifierGroups")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ModifierGroup");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductVariants", b =>
                 {
                     b.HasOne("DimPos.Catalog.Domain.Entities.Products", "Product")
@@ -652,14 +698,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("DimPos.Catalog.Domain.Entities.VariantOptions", "VariantOption")
-                        .WithMany("ProductVariants")
-                        .HasForeignKey("VariantOptionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Product");
-
-                    b.Navigation("VariantOption");
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Products", b =>
@@ -694,9 +733,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Recipes", b =>
                 {
                     b.HasOne("DimPos.Catalog.Domain.Entities.ProductVariants", "ProductVariant")
-                        .WithMany("Recipes")
-                        .HasForeignKey("ProductVariantId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId");
 
                     b.Navigation("ProductVariant");
                 });
@@ -709,16 +747,6 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("StorePrice");
-                });
-
-            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.VariantOptions", b =>
-                {
-                    b.HasOne("DimPos.Catalog.Domain.Entities.Variants", "Variant")
-                        .WithMany("VariantOptions")
-                        .HasForeignKey("VariantId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Variant");
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.BasePrice", b =>
@@ -738,9 +766,11 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Navigation("RecipeItems");
                 });
 
-            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductVariants", b =>
+            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ModifierGroups", b =>
                 {
-                    b.Navigation("Recipes");
+                    b.Navigation("ModifierOptions");
+
+                    b.Navigation("ProductModifierGroups");
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Products", b =>
@@ -748,6 +778,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Navigation("ProductAttributes");
 
                     b.Navigation("ProductImages");
+
+                    b.Navigation("ProductModifierGroups");
 
                     b.Navigation("ProductVariants");
                 });
@@ -760,16 +792,6 @@ namespace DimPos.Catalog.Infrastructure.Migrations
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.StorePrice", b =>
                 {
                     b.Navigation("StorePriceHistories");
-                });
-
-            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.VariantOptions", b =>
-                {
-                    b.Navigation("ProductVariants");
-                });
-
-            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Variants", b =>
-                {
-                    b.Navigation("VariantOptions");
                 });
 #pragma warning restore 612, 618
         }

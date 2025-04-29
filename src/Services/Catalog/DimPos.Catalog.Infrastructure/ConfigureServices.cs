@@ -20,9 +20,15 @@ public static class ConfigureServices
         });
         services.AddScoped<IUnitOfWork<CatalogContext>, UnitOfWork<CatalogContext>>();
         services.AddScoped<CatalogContextSeed>();
+        services.AddJWT(configuration);
         services.AddSwagger();
+        
+        services.AddControllers();
         services.AddAuthorization();
         services.AddAuthentication();
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+        services.AddCors();
         return services;
     }
 }
