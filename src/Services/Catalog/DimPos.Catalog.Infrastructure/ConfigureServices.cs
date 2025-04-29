@@ -1,3 +1,4 @@
+using DimPos.Catalog.Domain.Models.Settings;
 using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories;
@@ -22,7 +23,7 @@ public static class ConfigureServices
         services.AddScoped<CatalogContextSeed>();
         services.AddJWT(configuration);
         services.AddSwagger();
-        
+        services.Configure<S3CompatibleStorageSettings>(configuration.GetSection("S3CompatibleStorageSettings"));
         services.AddControllers();
         services.AddAuthorization();
         services.AddAuthentication();

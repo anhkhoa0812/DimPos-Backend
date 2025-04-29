@@ -5,7 +5,6 @@ using DimPos.Catalog.Application.Common.Middlewares;
 using DimPos.Catalog.Infrastructure;
 using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
-using Mediator;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);

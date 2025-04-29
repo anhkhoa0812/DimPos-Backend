@@ -1,5 +1,6 @@
 using System.Net;
 using DimPos.Catalog.Application.Common.Mapper;
+using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
@@ -12,12 +13,13 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
 {
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
-
+    private readonly IUploadService _uploadService;
     public CreateProductsCommandHandler(IUnitOfWork<CatalogContext> unitOfWork,
-        ILogger logger)
+        ILogger logger, IUploadService uploadService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _uploadService = uploadService;
     }
     public async ValueTask<ApiResponse> Handle(CreateProductsCommand request, CancellationToken cancellationToken)
     {
@@ -68,7 +70,6 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 DiscountPrice = request.DiscountPrice,
                 DisplayOrder = request.DisplayOrder,
             };
-            // await _unitOfWork.GetRepository<ProductVariants>().InsertAsync(productVariant);
             product.ProductVariants.Add(productVariant);
         }
 
@@ -90,6 +91,32 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                     await _unitOfWork.GetRepository<ProductModifierGroups>().InsertAsync(productModifierGroup);
                 }
             }
+        }
+
+        if (request.ProductImages != null)
+        {
+            if (request.ProductImages.Count(x => x.IsMainImage) != 1)
+            {
+                throw new BadHttpRequestException("Chỉ được chọn 1 ảnh chính");
+            }
+
+            await Parallel.ForEachAsync(request.ProductImages, cancellationToken, async (productImage, ct) =>
+            {
+                if(productImage.Image == null)
+                    throw new BadHttpRequestException("Hình ảnh không được để trống");
+                var entity = new ProductImages()
+                {
+                    Id = Guid.NewGuid(),
+                    IsMainImage = productImage.IsMainImage,
+                    AltText = productImage.AltText,
+                    ProductId = product.Id
+                };
+                
+                var url = await _uploadService.UploadImageAsync(productImage.Image);
+                if (!string.IsNullOrEmpty(url))
+                    entity.ImageUrl = url;
+                await _unitOfWork.GetRepository<ProductImages>().InsertAsync(entity);
+            });
         }
         await _unitOfWork.GetRepository<Domain.Entities.Products>().InsertAsync(product);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

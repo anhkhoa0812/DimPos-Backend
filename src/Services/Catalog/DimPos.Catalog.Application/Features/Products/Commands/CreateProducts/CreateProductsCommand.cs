@@ -21,6 +21,8 @@ public class CreateProductsCommand : IRequest<ApiResponse>
     public Guid? CategoryId { get; set; }
     public List<Guid>? ModifierGroupIds { get; set; }
     public List<CreateProductVariant>? ProductVariants { get; set; }
+    
+    public List<CreateProductImages>? ProductImages { get; set; }
 }
 
 public record CreateProductVariant
@@ -34,4 +36,11 @@ public record CreateProductVariant
     public decimal? PriceCOGS { get; set; }
     public int? DisplayOrder { get; set; }
     public int? Status { get; set; }
+}
+
+public record CreateProductImages
+{
+    public IFormFile Image { get; set; }
+    public bool IsMainImage { get; set; }
+    public string? AltText { get; set; }
 }
