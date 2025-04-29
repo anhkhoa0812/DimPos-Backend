@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DimPos.Catalog.Application.Controllers;
 
 [ApiController]
-[Route(ApiEndPointConstants.Product.ProductEndpoint)]
+[Route(ApiEndPointConstants.Products.ProductsEndpoint)]
 public class ProductController : BaseController<ProductController>
 {
     private readonly IMediator _mediator;
@@ -16,19 +16,19 @@ public class ProductController : BaseController<ProductController>
     {
         _mediator = mediator;
     }
-    [HttpPost(ApiEndPointConstants.Product.ProductEndpoint)]
+    [HttpPost(ApiEndPointConstants.Products.ProductsEndpoint)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ApiResponse> CreateProduct([FromBody] CreateProductsCommand createProductCommand)
+    public async Task<ApiResponse> CreateProduct([FromForm] CreateProductsCommand createProductCommand)
     {
         var result = await _mediator.Send(createProductCommand);
         return result;
     }
-    [HttpGet(ApiEndPointConstants.Product.ProductEndpoint)]
+    [HttpGet(ApiEndPointConstants.Products.ProductsEndpoint)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     public async Task<ApiResponse> GetAllProducts()
     {
-        var command = new GetAllProductsCommand();
+        var command = new GetAllProductsQueries();
         var result = await _mediator.Send(command);
         return result;
     }

@@ -77,7 +77,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         {
             foreach (var modifierGroupId in request.ModifierGroupIds)
             {
-                var modifierGroup = await _unitOfWork.GetRepository<ModifierGroups>().SingleOrDefaultAsync(
+                var modifierGroup = await _unitOfWork.GetRepository<Domain.Entities.ModifierGroups>().SingleOrDefaultAsync(
                     predicate: x => x.Id == modifierGroupId
                 );
                 if (modifierGroup != null)

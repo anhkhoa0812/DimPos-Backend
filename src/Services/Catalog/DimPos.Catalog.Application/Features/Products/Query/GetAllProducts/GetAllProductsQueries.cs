@@ -4,6 +4,6 @@ using Mediator;
 
 namespace DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;
 
-public class GetAllProductsCommand : IRequest<ApiResponse>
+public class GetAllProductsQueries : IRequest<ApiResponse>
 {
 }

@@ -6,8 +6,16 @@ public static class ApiEndPointConstants
     public const string ApiVersion = "/v1";
     public const string ApiEndpoint = RootEndPoint + ApiVersion;
     
-    public static class Product
+    public static class Products
     {
-        public const string ProductEndpoint = ApiEndpoint + "/products";
+        public const string ProductsEndpoint = ApiEndpoint + "/products";
+    }
+    public static class ModifierGroups
+    {
+        public const string ModifierGroupsEndpoint = ApiEndpoint + "/modifier-groups";
+    }
+    public static class Categories
+    {
+        public const string CategoriesEndpoint = ApiEndpoint + "/categories";
     }
 }

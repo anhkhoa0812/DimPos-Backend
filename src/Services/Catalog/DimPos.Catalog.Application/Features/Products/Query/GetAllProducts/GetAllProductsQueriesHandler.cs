@@ -8,15 +8,15 @@ using Mediator;
 
 namespace DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;
 
-public class GetAllProductsCommandHandler : IRequestHandler<GetAllProductsCommand, ApiResponse>
+public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQueries, ApiResponse>
 {
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
 
-    public GetAllProductsCommandHandler(IUnitOfWork<CatalogContext> unitOfWork)
+    public GetAllProductsQueriesHandler(IUnitOfWork<CatalogContext> unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
-    public async ValueTask<ApiResponse> Handle(GetAllProductsCommand request, CancellationToken cancellationToken)
+    public async ValueTask<ApiResponse> Handle(GetAllProductsQueries request, CancellationToken cancellationToken)
     {
         var products = await _unitOfWork.GetRepository<Domain.Entities.Products>().GetListAsync();
         var productResponse = ProductMapper.ToProductResponses(products.ToList());
