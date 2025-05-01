@@ -49,7 +49,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             {
                 return new ApiResponse()
                 {
-                    Status = HttpStatusCode.BadRequest,
+                    Status = (int) HttpStatusCode.BadRequest,
                     Message = "Giá sản phẩm không được để trống",
                 };
             }
@@ -125,14 +125,14 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         {
             return new ApiResponse()
             {
-                Status = HttpStatusCode.Created,
+                Status = (int) HttpStatusCode.Created,
                 Message = "Create product successfully",
                 Data = ProductMapper.ToProductResponse(product)
             };
         }
         return new ApiResponse()
         {
-            Status = HttpStatusCode.InternalServerError,
+            Status = (int) HttpStatusCode.InternalServerError,
             Message = "Create product failed",
         };
     }

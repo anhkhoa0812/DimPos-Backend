@@ -7,6 +7,7 @@ public class CreateProductsCommandValidator : AbstractValidator<CreateProductsCo
     public CreateProductsCommandValidator()
     {
         RuleFor(p => p.Code)
+            .NotNull().WithMessage("Mã của sản phẩm không được bỏ trống")
             .NotEmpty().WithMessage("Mã của sản phẩm không được bỏ trống")
             .MinimumLength(1).WithMessage("Mã của sản phẩm phải có ít nhất 1 ký tự")
             .MaximumLength(50).WithMessage("Mã của sản phẩm không được vượt quá 50 ký tự");

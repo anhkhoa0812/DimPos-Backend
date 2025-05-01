@@ -48,13 +48,13 @@ public class CreateModifierGroupsCommandHandler : IRequestHandler<CreateModifier
         {
             return new ApiResponse()
             {
-                Status = HttpStatusCode.Created,
+                Status =  (int) HttpStatusCode.Created,
                 Message = "Tạo nhóm tùy chọn thành công",
             };
         }
         return new ApiResponse()
         {
-            Status = HttpStatusCode.InternalServerError,
+            Status = (int) HttpStatusCode.InternalServerError,
             Message = "Tạo nhóm tùy chọn thất bại",
         };
     }

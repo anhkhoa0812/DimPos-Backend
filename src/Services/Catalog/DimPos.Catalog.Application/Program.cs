@@ -1,10 +1,11 @@
+using Carter;
 using Common.Logging;
-using DimPos.Catalog.Application.Common.Behaviours;
 using DimPos.Catalog.Application.Common.Extensions;
 using DimPos.Catalog.Application.Common.Middlewares;
 using DimPos.Catalog.Infrastructure;
 using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,11 @@ try
 {
     builder.Services.AddInfrastructureServices(builder.Configuration);
     builder.Services.AddApplicationServices();
+    builder.Services.AddCarter(new DependencyContextAssemblyCatalog([typeof(Program).Assembly]));
+    // builder.Services.Configure<ApiBehaviorOptions>(options =>
+    // {
+    //     options.SuppressModelStateInvalidFilter = true;
+    // });
     var app = builder.Build();
 
     if (app.Environment.IsDevelopment() || app.Environment.IsProduction() || app.Environment.IsStaging())
@@ -40,11 +46,10 @@ try
     app.UseCors(builder =>
         builder.AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader()
-            .WithExposedHeaders("X-Pagination"));
+            .AllowAnyHeader());
     app.UseAuthentication();
     app.UseAuthorization();
-    app.MapControllers();
+    app.MapCarter();
     app.UseHttpsRedirection();
     app.Run();
 
@@ -52,12 +57,12 @@ try
 catch (Exception ex)
 {
     string type = ex.GetType().Name;
+    Log.Fatal(ex, $"Unhandled: {ex.Message}");
     if (type.Equals("StopTheHostException", StringComparison.Ordinal))
     {
         throw;
     }
-
-    Log.Fatal(ex, $"Unhandled: {ex.Message}");
+    
 }
 finally
 {
