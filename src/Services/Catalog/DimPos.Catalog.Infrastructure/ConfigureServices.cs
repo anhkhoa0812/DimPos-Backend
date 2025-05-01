@@ -1,3 +1,5 @@
+using System.Reflection;
+using Carter;
 using DimPos.Catalog.Domain.Models.Settings;
 using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
@@ -24,7 +26,6 @@ public static class ConfigureServices
         services.AddJWT(configuration);
         services.AddSwagger();
         services.Configure<S3CompatibleStorageSettings>(configuration.GetSection("S3CompatibleStorageSettings"));
-        services.AddControllers();
         services.AddAuthorization();
         services.AddAuthentication();
         services.AddEndpointsApiExplorer();

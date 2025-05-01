@@ -1,6 +1,9 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
-using System.Text.Json;
 using DimPos.Catalog.Domain.Models.Common;
+using ValidationException = DimPos.Catalog.Application.Common.Exceptions.ValidationException;
+
+
 namespace DimPos.Catalog.Application.Common.Middlewares;
 
 public class GlobalException
@@ -19,39 +22,51 @@ public class GlobalException
         {
             await _next(context);
         }
+        catch (ValidationException ex)
+        {
+            await HandleValidationException(context, ex);
+        }
         catch (Exception ex)
         {
-            await HandleExceptionAsync(context, ex);
+            await HandleException(context, ex);
         }
     }
 
-    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static Task HandleValidationException(HttpContext context, ValidationException ex)
     {
+        var errors = ex.Errors.Select(error => new
+            {
+                PropertyName = error.Key, 
+                ErrorMessage = error.Value
+            })
+            .DistinctBy(error => error.PropertyName)
+            .ToArray();
+    
+        int statusCode = (int)HttpStatusCode.BadRequest;
+        var errorResponse = new ApiResponse()
+        {
+            Status = (int) HttpStatusCode.BadRequest,
+            Message = "Lỗi kiểm tra dữ liệu",
+            Data = errors
+        };
         context.Response.ContentType = "application/json";
-        var response = context.Response;
-        var errorResponse = new ApiResponse();
-        switch (exception)
-        {
-            //add more custom exception
-            //For example case AppException: do something
-            case BadHttpRequestException badRequestException:
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
-                errorResponse.Message = "Bad request.";
-                _logger.Error(badRequestException, "Bad request error");
-                break;
-            default:
-                //unhandled error
-                response.StatusCode = (int) HttpStatusCode.InternalServerError;
-                errorResponse.Status = HttpStatusCode.InternalServerError;
-                errorResponse.Message = "An unexpected error occurred.";
-                _logger.Error(exception, "Unhandled exception");
-                break;
-        }
-        var result = JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+        context.Response.StatusCode = statusCode;
 
-        await context.Response.WriteAsync(result);
+        return context.Response.WriteAsync(errorResponse.ToString()!);
+    }
+
+    private static Task HandleException(HttpContext context, Exception ex)
+    {
+        var statusCode = HttpStatusCode.InternalServerError;
+        var errorResponse = new ApiResponse()
+        {
+            Status = (int) statusCode,
+            Message = "Một lỗi không mong muốn đã xảy ra",
+            Data = ex.Message,
+        };
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = (int)statusCode;
+
+        return context.Response.WriteAsync(errorResponse.ToString()!);
     }
 }

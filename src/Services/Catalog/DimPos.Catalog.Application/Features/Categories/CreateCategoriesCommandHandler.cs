@@ -43,7 +43,7 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
                 return new ApiResponse()
                 {
                     Message = "Không tìm thấy danh mục cha",
-                    Status = HttpStatusCode.NotFound,
+                    Status = (int) HttpStatusCode.NotFound,
                 };
             }
         }
@@ -56,7 +56,7 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
                 return new ApiResponse()
                 {
                     Message = "Lỗi khi tải ảnh lên",
-                    Status = HttpStatusCode.InternalServerError,
+                    Status =  (int) HttpStatusCode.InternalServerError,
                 };
             }
             category.PictureUrl = imageUrl;
@@ -68,13 +68,13 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
         {
             return new ApiResponse()
             {
-                Status = HttpStatusCode.Created,
+                Status = (int) HttpStatusCode.Created,
                 Message = "Tạo danh mục thành công",
             };
         }
         return new ApiResponse()
         {
-            Status = HttpStatusCode.InternalServerError,
+            Status = (int) HttpStatusCode.InternalServerError,
             Message = "Tạo danh mục thất bại",
         };
     }

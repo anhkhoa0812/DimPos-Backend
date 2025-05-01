@@ -1,0 +1,34 @@
+using System.Net;
+using Carter;
+using DimPos.Catalog.Application.Common.Utils;
+using DimPos.Catalog.Application.Features.Categories;
+using DimPos.Catalog.Domain.Constants;
+using Mediator;
+using Microsoft.AspNetCore.Mvc;
+
+namespace DimPos.Catalog.Application.Endpoints;
+
+public class CategoriesEndpoints : ICarterModule
+{
+    public void AddRoutes(IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup(ApiEndPointConstants.Categories.CategoriesEndpoint).WithTags("Categories");
+
+        group.MapPost("", CreateCategory)
+            .DisableAntiforgery()
+            .WithName(nameof(CreateCategory))
+            .Produces<IResult>(StatusCodes.Status201Created)
+            .Produces<IResult>(StatusCodes.Status400BadRequest)
+            .Produces<IResult>(StatusCodes.Status500InternalServerError);
+    }
+    public async Task<IResult> CreateCategory(IMediator mediator, [FromBody] CreateCategoriesCommand command, ValidationUtil<CreateCategoriesCommand> validationUtil)
+    {
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Json(apiResponse);
+    }
+}

@@ -1,5 +1,8 @@
+using System.Net;
+using DimPos.Catalog.Domain.Models.Common;
 using FluentValidation;
 using Mediator;
+using ValidationException = DimPos.Catalog.Application.Common.Exceptions.ValidationException;
 
 namespace DimPos.Catalog.Application.Common.Behaviours;
 
@@ -7,9 +10,10 @@ public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TReque
     where TRequest : IRequest<TResponse>
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
-    
-    public ValidationBehaviour(IEnumerable<IValidator<TRequest>> validators)
+    private readonly ILogger _logger;
+    public ValidationBehaviour(IEnumerable<IValidator<TRequest>> validators, ILogger logger)
     {
+        _logger = logger;
         _validators = validators;
     }
     public async ValueTask<TResponse> Handle(TRequest request, CancellationToken cancellationToken, MessageHandlerDelegate<TRequest, TResponse> next)
@@ -28,7 +32,11 @@ public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TReque
 
         if (failures.Any())
         {
+            var errors = failures
+                .Select(e => new { e.PropertyName, e.ErrorMessage });
+            _logger.Warning("Validation errors occurred for request {RequestName}: {@Errors}", typeof(TRequest).Name, failures);
             throw new ValidationException(failures);
+            
         }
 
         return await next(request, cancellationToken);

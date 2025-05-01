@@ -22,7 +22,7 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
         var productResponse = ProductMapper.ToProductResponses(products.ToList());
         return new ApiResponse()
         {
-            Status = HttpStatusCode.OK,
+            Status = (int) HttpStatusCode.OK,
             Message = "Thành công",
             Data = productResponse
         };
