@@ -15,6 +15,8 @@ public static class ScalarConfig
         app.MapScalarApiReference(options =>
             {
                 options.EndpointPathPrefix = "/api/{documentName}";
+                options.Theme = ScalarTheme.DeepSpace;
+                options.Favicon = "/assets/images/dimposlogo.png";
             })
             .RequireAuthorization(options =>
             {

@@ -22,6 +22,10 @@ public class GlobalException
         {
             await _next(context);
         }
+        catch (BadHttpRequestException ex)
+        {
+            await HandleBadRequestException(context, ex);
+        }
         catch (ValidationException ex)
         {
             await HandleValidationException(context, ex);
@@ -51,6 +55,21 @@ public class GlobalException
         };
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = statusCode;
+
+        return context.Response.WriteAsync(errorResponse.ToString()!);
+    }
+    
+    private static Task HandleBadRequestException(HttpContext context, BadHttpRequestException ex)
+    {
+        var statusCode = HttpStatusCode.BadRequest;
+        var errorResponse = new ApiResponse()
+        {
+            Status = (int) statusCode,
+            Message = "Lỗi kiểm tra dữ liệu",
+            Data = ex.Message,
+        };
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = (int)statusCode;
 
         return context.Response.WriteAsync(errorResponse.ToString()!);
     }

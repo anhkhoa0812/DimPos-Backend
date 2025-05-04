@@ -41,7 +41,7 @@ try
             throw; 
         }
     }
-
+    app.UseStaticFiles();
     app.UseMiddleware<GlobalException>();
     app.UseCors(builder =>
         builder.AllowAnyOrigin()
