@@ -1,6 +1,0 @@
-@DimPos.MenuCombo.Application_HostAddress = http://localhost:5217
-
-GET {{DimPos.MenuCombo.Application_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

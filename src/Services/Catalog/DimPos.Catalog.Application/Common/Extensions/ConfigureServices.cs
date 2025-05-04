@@ -33,7 +33,7 @@ public static class ConfigureServices
         });
         
         services.AddScoped<IUploadService, UploadService>();
-        
+        services.AddHealthChecks();
         return services;
     }
 }
