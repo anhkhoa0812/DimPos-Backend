@@ -34,7 +34,7 @@ public class UploadService : IUploadService
             {
                 { "x-amz-acl", "public-read" }
             };
-            var objectName = $"{Guid.NewGuid().ToString()}{extension}";
+            var objectName = $"{Guid.CreateVersion7().ToString()}{extension}";
             var result = await minio.PutObjectAsync(new PutObjectArgs()
                 .WithBucket(_s3CompatibleStorageSettings.BucketName)
                 .WithObject(objectName)

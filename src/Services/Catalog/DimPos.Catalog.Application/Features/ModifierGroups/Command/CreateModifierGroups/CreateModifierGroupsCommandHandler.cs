@@ -22,7 +22,7 @@ public class CreateModifierGroupsCommandHandler : IRequestHandler<CreateModifier
     {
         _logger.Information($"BEGIN: {nameof(CreateModifierGroupsCommandHandler)} - {DateTime.UtcNow}");
         var modifierGroup = ModifierGroupsMapper.ToModifierGroups(request);
-        modifierGroup.Id = Guid.NewGuid();
+        modifierGroup.Id = Guid.CreateVersion7();
         
         if (request.ModifierOptions != null)
         {
@@ -31,7 +31,7 @@ public class CreateModifierGroupsCommandHandler : IRequestHandler<CreateModifier
             {
                 var modifierOption = new ModifierOptions()
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.CreateVersion7(),
                     Name = option.Name,
                     Description = option.Description,
                     Status = option.Status,

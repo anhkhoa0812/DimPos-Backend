@@ -13,7 +13,6 @@ builder.Host.UseSerilog(SeriLogger.Configure);
 Log.Information("Starting Catalog API up");
 try
 {
-    
     builder.Services.AddInfrastructureServices(builder.Configuration);
     builder.Services.AddApplicationServices();
     builder.Services.AddCarter(new DependencyContextAssemblyCatalog([typeof(Program).Assembly]));

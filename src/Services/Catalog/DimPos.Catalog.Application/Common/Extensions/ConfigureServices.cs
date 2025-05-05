@@ -31,7 +31,7 @@ public static class ConfigureServices
         {
             options.ThrowOnBadRequest = true;
         });
-        
+        services.AddOpenApi();
         services.AddScoped<IUploadService, UploadService>();
         services.AddHealthChecks();
         return services;
