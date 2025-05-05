@@ -24,7 +24,7 @@ public class ValidationUtil<T> where T : class
             var response = new ApiResponse()
             {
                 Status = (int)HttpStatusCode.BadRequest,
-                Message = "Validation Errors",
+                Message = "Lỗi kiểm tra dữ liệu",
                 Data = errors
             };
             return (false, response);

@@ -1,8 +1,10 @@
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
+using DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Models.Common;
+using DimPos.Catalog.Domain.Models.Product;
 using FluentValidation.Results;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +18,11 @@ public class ProductsEndpoints : ICarterModule
         var group = app.MapGroup(ApiEndPointConstants.Products.ProductsEndpoint).WithTags("Products");
         group.MapPost("", CreateProduct).WithName(nameof(CreateProduct))
             .DisableAntiforgery()
-            .Produces<IResult>(StatusCodes.Status201Created)
-            .Produces<IResult>(StatusCodes.Status400BadRequest)
-            .Produces<IResult>(StatusCodes.Status500InternalServerError);
-        
+            .Produces<ApiResponse>(StatusCodes.Status201Created)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("", GetProducts).WithName(nameof(GetProducts))
+            .Produces<ApiResponse<List<ProductResponse>>>(StatusCodes.Status200OK);
     }
     public async Task<IResult> CreateProduct(IMediator mediator,  [FromForm] CreateProductsCommand command, ValidationUtil<CreateProductsCommand> validationUtil)
     {
@@ -30,5 +33,12 @@ public class ProductsEndpoints : ICarterModule
         }
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);
+    }
+
+    public async Task<IResult> GetProducts(IMediator mediator)
+    {
+        var query = new GetAllProductsQueries();
+        var result = await mediator.Send(query);
+        return Results.Json(result);
     }
 }

@@ -26,7 +26,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         _logger.Information($"BEGIN: {nameof(CreateProductsCommandHandler)} - {DateTime.UtcNow}");
         
         var product = ProductMapper.ToProducts(request);
-        product.Id = Guid.NewGuid();
+        product.Id = Guid.CreateVersion7();
         product.IsMenuDisplay = false;
         product.IsMostOrdered = false;
         product.ProductVariants = new List<ProductVariants>();
@@ -35,7 +35,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             foreach (var productVariant in request.ProductVariants)
             {
                 var productVariants = ProductVariantMapper.ToPoProductVariants(productVariant);
-                productVariants.Id = Guid.NewGuid();
+                productVariants.Id = Guid.CreateVersion7();
                 productVariants.ProductId = product.Id;
                 productVariants.IsActive = false;
                 productVariants.IsMenuDisplay = false;
@@ -57,7 +57,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             //Chưa set Status
             var productVariant = new ProductVariants()
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 IsMenuDisplay = false,
                 Code = request.Code,
                 Name = request.Name,
@@ -84,7 +84,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 {
                     var productModifierGroup = new ProductModifierGroups()
                     {
-                        Id = Guid.NewGuid(),
+                        Id = Guid.CreateVersion7(),
                         ProductId = product.Id,
                         ModifierGroupId = modifierGroup.Id
                     };
@@ -106,7 +106,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                     throw new BadHttpRequestException("Hình ảnh không được để trống");
                 var entity = new ProductImages()
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.CreateVersion7(),
                     IsMainImage = productImage.IsMainImage,
                     AltText = productImage.AltText,
                     ProductId = product.Id

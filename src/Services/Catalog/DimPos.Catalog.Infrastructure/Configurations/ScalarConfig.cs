@@ -7,14 +7,13 @@ public static class ScalarConfig
 {
     public static void UseScalar(this WebApplication app)
     {
-        app.UseSwagger(options =>
-        {
-            options.RouteTemplate = "/openapi/{documentName}.json";
-        });
 
+        app.MapOpenApi();
         app.MapScalarApiReference(options =>
             {
                 options.EndpointPathPrefix = "/api/{documentName}";
+                options.Theme = ScalarTheme.DeepSpace;
+                options.Favicon = "/assets/images/dimposlogo.png";
             })
             .RequireAuthorization(options =>
             {

@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Configuration;
-
 var builder = DistributedApplication.CreateBuilder(args);
 var sql = builder.AddConnectionString("CatalogDb");
 

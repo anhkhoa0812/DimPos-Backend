@@ -25,7 +25,7 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
     {
         _logger.Information($"BEGIN: {nameof(CreateCategoriesCommandHandler)} - {DateTime.UtcNow}");
         var category = CategoriesMapper.ToCategories(request);
-        category.Id = Guid.NewGuid();
+        category.Id = Guid.CreateVersion7();
         category.HasChildCategory = false;
         if (request.ParentId != null)
         {

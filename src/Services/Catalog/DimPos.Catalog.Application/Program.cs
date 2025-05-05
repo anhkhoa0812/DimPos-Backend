@@ -5,13 +5,12 @@ using DimPos.Catalog.Application.Common.Middlewares;
 using DimPos.Catalog.Infrastructure;
 using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
 builder.Host.UseSerilog(SeriLogger.Configure);
 Log.Information("Starting Catalog API up");
-
 try
 {
     builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -27,12 +26,14 @@ try
     {
         app.UseScalar();
     }
+
+    app.UseHealthChecks("/health");
     using (var scope = app.Services.CreateScope())
     {
         try
         {
-            var orderContextSeed = scope.ServiceProvider.GetRequiredService<CatalogContextSeed>();
-            await orderContextSeed.InitializeAsync();
+            var catalogContextSeed = scope.ServiceProvider.GetRequiredService<CatalogContextSeed>();
+            await catalogContextSeed.InitializeAsync();
             // await orderContextSeed.SeedAsync(); 
         }
         catch (Exception e)
@@ -41,7 +42,7 @@ try
             throw; 
         }
     }
-
+    app.UseStaticFiles();
     app.UseMiddleware<GlobalException>();
     app.UseCors(builder =>
         builder.AllowAnyOrigin()
