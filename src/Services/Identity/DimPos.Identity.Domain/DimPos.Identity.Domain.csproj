@@ -7,4 +7,10 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\BuildingBlocks\DimPos.ServiceDefaults\DimPos.ServiceDefaults.csproj" />
+      <ProjectReference Include="..\..\..\BuildingBlocks\Shared\Common.Logging\Common.Logging.csproj" />
+      <ProjectReference Include="..\..\..\BuildingBlocks\Shared\SharedProject\SharedProject.csproj" />
+    </ItemGroup>
+
 </Project>

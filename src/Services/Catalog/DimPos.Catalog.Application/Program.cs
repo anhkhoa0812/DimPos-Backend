@@ -34,7 +34,7 @@ try
         {
             var catalogContextSeed = scope.ServiceProvider.GetRequiredService<CatalogContextSeed>();
             await catalogContextSeed.InitializeAsync();
-            // await orderContextSeed.SeedAsync(); 
+            // await catalogContextSeed.SeedAsync(); 
         }
         catch (Exception e)
         {
@@ -42,6 +42,8 @@ try
             throw; 
         }
     }
+
+    app.UseRouting();
     app.UseStaticFiles();
     app.UseMiddleware<GlobalException>();
     app.UseCors(builder =>
@@ -53,7 +55,6 @@ try
     app.MapCarter();
     app.UseHttpsRedirection();
     app.Run();
-
 }
 catch (Exception ex)
 {
@@ -63,7 +64,6 @@ catch (Exception ex)
     {
         throw;
     }
-    
 }
 finally
 {

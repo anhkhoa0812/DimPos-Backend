@@ -1,50 +1,65 @@
-using System;
-using System.Linq;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Common.Logging;
+using DimPos.Identity.Application.Common.Extensions;
+using DimPos.Identity.Infrastructure;
+using DimPos.Identity.Infrastructure.Configurations;
+using DimPos.Identity.Infrastructure.Persistence;
+using Serilog;
+
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+builder.AddServiceDefaults();
+builder.Host.UseSerilog(SeriLogger.Configure);
+Log.Information("Starting Identity API up");
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    builder.Services.AddInfrastructureServices(builder.Configuration);
+    builder.Services.AddApplicationServices(builder.Configuration);
+    var app = builder.Build();
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+    if (app.Environment.IsDevelopment() || app.Environment.IsStaging() || app.Environment.IsProduction())
     {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+        app.UseScalar();
+    }
 
-app.Run();
+    app.UseHealthChecks("/health");
+    
+    using (var scope = app.Services.CreateScope())
+    {
+        try
+        {
+            var identityContextSeed = scope.ServiceProvider.GetRequiredService<IdentityContextSeed>();
+            await identityContextSeed.InitializeAsync();
+            await identityContextSeed.SeedAsync();
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "An error occurred while seeding the database.");
+            throw; 
+        }
+    }
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+    app.UseStaticFiles();
+    app.UseRouting();
+    app.UseCors(builder =>
+        builder.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.UseHttpsRedirection();
+    app.Run();
+}
+catch (Exception ex)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    string type = ex.GetType().Name;
+    Log.Fatal(ex, $"Unhandled: {ex.Message}");
+    if (type.Equals("StopTheHostException", StringComparison.Ordinal))
+    {
+        throw;
+    }
+}
+finally
+{
+    Log.Information("Shut down Identity API complete");
+    Log.CloseAndFlush();
 }
