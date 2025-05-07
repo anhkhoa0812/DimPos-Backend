@@ -13,12 +13,15 @@
 
     <ItemGroup>
         <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.1" />
+        <PackageReference Include="Aspire.Hosting.Kafka" Version="9.2.1" />
         <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.2.1" />
         <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Services\Brand\DimPos.Brand.Application\DimPos.Brand.Application.csproj" />
       <ProjectReference Include="..\Services\Catalog\DimPos.Catalog.Application\DimPos.Catalog.Application.csproj" />
+      <ProjectReference Include="..\Services\Identity\DimPos.Identity.Application\DimPos.Identity.Application.csproj" />
     </ItemGroup>
 
 </Project>

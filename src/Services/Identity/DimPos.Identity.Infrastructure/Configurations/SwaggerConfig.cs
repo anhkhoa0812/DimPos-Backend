@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
-namespace DimPos.Catalog.Infrastructure.Configurations;
+namespace DimPos.Identity.Infrastructure.Configurations;
 
 public static class SwaggerConfig
 {
@@ -11,12 +11,12 @@ public static class SwaggerConfig
         {
             swagger.SwaggerDoc("v1", new()
             {
-                Title = "Catalog",
+                Title = "Identity",
                 Version = "v1",
-                Description = "Catalog API",
+                Description = "Identity API",
                 Contact = new OpenApiContact
                 {
-                    Name = "Catalog",
+                    Name = "DimPos - Ta Hoang Anh Khoa",
                     Email = "tahoanganhkhoa2014@gmail.com"
                 },
                 License = new OpenApiLicense

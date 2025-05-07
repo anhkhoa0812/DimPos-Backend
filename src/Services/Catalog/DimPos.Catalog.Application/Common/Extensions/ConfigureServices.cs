@@ -7,6 +7,8 @@ using DimPos.Catalog.Application.Services.Implement;
 using DimPos.Catalog.Application.Services.Interface;
 using FluentValidation;
 using Mediator;
+using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 
 namespace DimPos.Catalog.Application.Common.Extensions;
 
@@ -17,7 +19,7 @@ public static class ConfigureServices
         services
             .AddMediator( options =>
             {
-                options.Namespace = "DimPos.Catalog.Application.Controllers";
+                options.Namespace = "DimPos.Catalog.Application.Endpoints";
                 options.ServiceLifetime = ServiceLifetime.Scoped;
             })
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>))
@@ -31,7 +33,6 @@ public static class ConfigureServices
         {
             options.ThrowOnBadRequest = true;
         });
-        services.AddOpenApi();
         services.AddScoped<IUploadService, UploadService>();
         services.AddHealthChecks();
         return services;

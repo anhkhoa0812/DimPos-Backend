@@ -100,6 +100,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 throw new BadHttpRequestException("Chỉ được chọn 1 ảnh chính");
             }
 
+            //Lưu ảnh xuống local VPS, publish 1 event đến uploadService, để upload ảnh lên S3 và cập nhập lại data
             await Parallel.ForEachAsync(request.ProductImages, cancellationToken, async (productImage, ct) =>
             {
                 if(productImage.Image == null)

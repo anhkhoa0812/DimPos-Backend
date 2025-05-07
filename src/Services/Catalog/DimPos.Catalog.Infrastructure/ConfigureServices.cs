@@ -1,5 +1,3 @@
-using System.Reflection;
-using Carter;
 using DimPos.Catalog.Domain.Models.Settings;
 using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
@@ -24,12 +22,11 @@ public static class ConfigureServices
         services.AddScoped<IUnitOfWork<CatalogContext>, UnitOfWork<CatalogContext>>();
         services.AddScoped<CatalogContextSeed>();
         services.AddJWT(configuration);
-        services.AddSwagger();
+        services.AddOpenApiConfig();
         services.Configure<S3CompatibleStorageSettings>(configuration.GetSection("S3CompatibleStorageSettings"));
         services.AddAuthorization();
         services.AddAuthentication();
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
         services.AddCors();
         return services;
     }
