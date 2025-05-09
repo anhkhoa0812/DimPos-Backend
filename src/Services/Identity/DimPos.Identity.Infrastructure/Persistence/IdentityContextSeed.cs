@@ -1,4 +1,5 @@
 using DimPos.Identity.Domain.Entities;
+using DimPos.Identity.Domain.Enum;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -50,31 +51,31 @@ public class IdentityContextSeed
             await _context.Roles.AddRangeAsync(
                 new Role()
                 {
-                    Name = "SystemAdmin",
+                    Name = ERoleName.SystemAdmin,
                     Id = Guid.Parse("2cd9da9a-471b-46a4-b264-a5de9516f286"),
-                    ShortName = "SA"
+                    ShortName = "SYSA"
                 },
                 new Role()
                 {
-                    Name = "BrandAdmin",
+                    Name = ERoleName.BrandAdmin,
                     Id = Guid.Parse("e19907f5-9866-4fd5-a7a9-06889af49fa5"),
                     ShortName = "BA"
                 },
                 new Role()
                 {
-                    Name = "StoreAdmin",
+                    Name = ERoleName.StoreAdmin,
                     Id = Guid.Parse("fe7a18f0-22e7-4cbd-9f85-aba96965a2e2"),
                     ShortName = "SA"
                 },
                 new Role()
                 {
-                    Name = "Staff",
+                    Name = ERoleName.Staff,
                     Id = Guid.Parse("b954d3b7-4725-468d-9696-efff7f647686"),
                     ShortName = "S"
                 },
                 new Role()
                 {
-                    Name = "Customer",
+                    Name = ERoleName.Customer,
                     Id = Guid.Parse("eba956b1-57d5-44e1-b24a-ac9b28db8cb6"),
                     ShortName = "C"
                 }

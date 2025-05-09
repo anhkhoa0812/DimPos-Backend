@@ -37,7 +37,6 @@ try
             throw; 
         }
     }
-
     app.UseRouting();
     app.UseStaticFiles();
     app.UseCors(builder =>

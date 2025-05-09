@@ -1,3 +1,4 @@
+using DimPos.Identity.Domain.Models.Settings;
 using DimPos.Identity.Infrastructure.Configurations;
 using DimPos.Identity.Infrastructure.Persistence;
 using DimPos.Identity.Infrastructure.Repositories;
@@ -20,6 +21,7 @@ public static class ConfigureServices
         });
         services.AddScoped<IUnitOfWork<IdentityContext>, UnitOfWork<IdentityContext>>();
         services.AddScoped<IdentityContextSeed>();
+        services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
         services.AddJwt(configuration);
         services.AddOpenApiConfig();
         services.AddAuthorization();

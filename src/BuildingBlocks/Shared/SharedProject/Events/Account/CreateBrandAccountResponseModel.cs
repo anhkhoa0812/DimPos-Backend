@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using MassTransit;
 
 namespace SharedProject.Events.Account;
 
-public class CreateBrandAccountResponseModel
+public class CreateBrandAccountResponseModel : CorrelatedBy<Guid>
 {
-    [Required]
+    public Guid CorrelationId { get; set; }
     public Guid BrandId { get; set; }
     public Guid? AccountId { get; set; }
 }
