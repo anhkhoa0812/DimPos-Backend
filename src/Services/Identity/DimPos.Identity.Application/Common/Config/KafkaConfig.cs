@@ -26,6 +26,7 @@ public static class KafkaConfig
             {
                 configureRider.AddProducer<Null, CreateBrandAccountResponseModel>(kafkaOptions!.Topics.CreateBrandAccountResponse);
                 configureRider.AddProducer<Null, CreateBrandAccountErrorModel>(kafkaOptions!.Topics.CreateBrandAccountError);
+                configureRider.AddConsumer<CreateBrandAccountRequestConsumer>();
                 configureRider.UsingKafka(kafkaOptions.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, CreateBrandAccountModel>(

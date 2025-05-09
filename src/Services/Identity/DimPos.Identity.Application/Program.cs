@@ -1,3 +1,4 @@
+using Carter;
 using Common.Logging;
 using DimPos.Identity.Application.Common.Extensions;
 using DimPos.Identity.Infrastructure;
@@ -14,6 +15,7 @@ try
 {
     builder.Services.AddInfrastructureServices(builder.Configuration);
     builder.Services.AddApplicationServices(builder.Configuration);
+    builder.Services.AddCarter(new DependencyContextAssemblyCatalog([typeof(Program).Assembly]));
     var app = builder.Build();
 
     if (app.Environment.IsDevelopment() || app.Environment.IsStaging() || app.Environment.IsProduction())
@@ -46,6 +48,7 @@ try
             .AllowAnyHeader());
     app.UseAuthentication();
     app.UseAuthorization();
+    app.MapCarter();
     app.UseHttpsRedirection();
     app.Run();
 }

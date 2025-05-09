@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using DimPos.Brand.Application.Common.Mapper;
+using DimPos.Brand.Application.Common.Utils;
 using DimPos.Brand.Domain.Entities;
 using DimPos.Brand.Domain.Enums;
 using DimPos.Brand.Domain.Models.Common;
@@ -28,28 +29,37 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Api
         var brand = BrandMapper.ToBrands(request);
         brand.Id = Guid.CreateVersion7();
         brand.Status = EBrandStatus.Active;
-
         await _unitOfWork.GetRepository<Domain.Entities.Brands>().InsertAsync(brand);
 
+        var accountId = Guid.CreateVersion7();
+        var brandAccount = new BrandAccounts()
+        {
+            Id = Guid.CreateVersion7(),
+            BrandId = brand.Id,
+            AccountId = accountId
+        };
+        await _unitOfWork.GetRepository<BrandAccounts>().InsertAsync(brandAccount);
+        
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         if (isSuccess)
         {
+            var (hashPassword, saltPassword) = PasswordUtil.HashPassword(request.Password);
             var createBrandAccountModel = new CreateBrandAccountModel()
             {
+                CorrelationId = Guid.CreateVersion7(),
                 BrandId = brand.Id,
+                AccountId = accountId,
                 Code = brand.Code,
                 Email = brand.Email,
                 Username = request.Username,
-                Password = request.Password
+                HashPassword = hashPassword,
+                SaltPassword = saltPassword,
             };
             var correlationId = Guid.CreateVersion7();
             await _producer.Produce(
                 key: null,
                 createBrandAccountModel,
-                Pipe.Execute<KafkaSendContext>(p =>
-                {
-                    p.ConversationId = correlationId;
-                }), cancellationToken: cancellationToken
+                cancellationToken: cancellationToken
             );
             return new ApiResponse()
             {

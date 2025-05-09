@@ -26,8 +26,8 @@ public static class ServiceExtensions
                     .AddSagaStateMachine<CreateBrandSagaStateMachine, CreateBrandSagaState>().InMemoryRepository();
 
                 rider.AddProducer<Null, CreateBrandAccountModel>(kafkaOptions!.Topics.CreateBrandAccountRequest);
-                // rider.AddProducer<string, RollbackOrderEvent>(kafkaOptions!.Topics.RollbackOrder);
-                rider.UsingKafka(kafkaOptions.ClientConfig, (riderContext, kafkaConfig) =>
+                rider.AddProducer<Null, RollbackBrandAccountModel>(kafkaOptions!.Topics.RollbackBrandAccountRequest);
+                rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, CreateBrandAccountModel>(
                         topicName: kafkaOptions!.Topics.CreateBrandResponse,

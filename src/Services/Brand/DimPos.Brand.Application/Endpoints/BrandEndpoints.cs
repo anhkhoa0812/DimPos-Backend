@@ -1,4 +1,5 @@
 using Carter;
+using DimPos.Brand.Application.Common.Utils;
 using DimPos.Brand.Application.Features.Brands.Command;
 using DimPos.Brand.Domain.Constants;
 using DimPos.Brand.Domain.Models.Common;
@@ -20,8 +21,14 @@ public class BrandEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
-    public async Task<IResult> CreateBrand(IMediator mediator, [FromForm] CreateBrandCommand command)
+    public async Task<IResult> CreateBrand(IMediator mediator, [FromForm] CreateBrandCommand command, ValidationUtil<CreateBrandCommand> validationUtil)
     {
+        // Validate the command using the ValidationUtil
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);
     }

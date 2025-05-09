@@ -26,15 +26,17 @@ public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountMod
     public async Task Consume(ConsumeContext<CreateBrandAccountModel> context)
     {
         var role = await _unitOfWork.GetRepository<Role>().SingleOrDefaultAsync(
-            predicate: x => x.Name!.Equals("Brand")
+            predicate: x => x.Name == ERoleName.BrandAdmin
         );
         var account = new Accounts()
         {
-            Id = Guid.CreateVersion7(),
+            Id = context.Message.AccountId,
             Code = context.Message.Code,
             Email = context.Message.Email,
             Username = context.Message.Username,
             RoleId = role.Id,
+            PasswordHash = context.Message.HashPassword,
+            PasswordSalt = context.Message.SaltPassword,
             Status = EAccountStatus.Active,
         };
         await _unitOfWork.GetRepository<Accounts>().InsertAsync(account);
@@ -45,7 +47,8 @@ public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountMod
                 key: null,
                 value: new CreateBrandAccountResponseModel()
                 {
-                    AccountId = account.Id,
+                    CorrelationId = context.Message.CorrelationId,
+                    AccountId = context.Message.AccountId,
                     BrandId = context.Message.BrandId
                 },
                 cancellationToken: context.CancellationToken
@@ -57,7 +60,9 @@ public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountMod
                 key: null,
                 value: new CreateBrandAccountErrorModel()
                 {
-                    BrandId = context.Message.BrandId
+                    CorrelationId = context.Message.CorrelationId,
+                    BrandId = context.Message.BrandId,
+                    AccountId = context.Message.AccountId
                 },
                 cancellationToken: context.CancellationToken
             ).ConfigureAwait(false);
