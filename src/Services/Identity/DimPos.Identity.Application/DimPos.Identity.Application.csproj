@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+        <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
         <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
         <PackageReference Include="Mediator.SourceGenerator" Version="2.1.7">
           <PrivateAssets>all</PrivateAssets>
@@ -18,6 +20,12 @@
         </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\brand.proto" GrpcServices="Client">
+            <Link>Common\Protos\brand.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\DimPos.Identity.Infrastructure\DimPos.Identity.Infrastructure.csproj" />
     </ItemGroup>

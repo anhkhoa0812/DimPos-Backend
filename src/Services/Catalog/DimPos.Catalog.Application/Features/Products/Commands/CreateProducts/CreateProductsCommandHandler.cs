@@ -11,6 +11,7 @@ namespace DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 
 public class CreateProductsCommandHandler : IRequestHandler<CreateProductsCommand, ApiResponse>
 {
+    
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IUploadService _uploadService;

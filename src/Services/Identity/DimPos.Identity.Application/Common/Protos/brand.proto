@@ -1,0 +1,13 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Brand.Application.Common.Protos";
+
+service BrandGrpcService {
+  rpc GetBrandIdByAccountId (GetBrandIdByAccountIdRequest) returns (GetBrandIdByAccountIdResponse);
+}
+message GetBrandIdByAccountIdRequest {
+  string accountId = 1;
+}
+message GetBrandIdByAccountIdResponse {
+  string brandId = 1;
+}

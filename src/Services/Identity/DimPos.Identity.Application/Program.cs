@@ -6,7 +6,6 @@ using DimPos.Identity.Infrastructure.Configurations;
 using DimPos.Identity.Infrastructure.Persistence;
 using Serilog;
 
-
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Host.UseSerilog(SeriLogger.Configure);

@@ -1,5 +1,7 @@
+using DimPos.Brand.Application.Common.Protos;
 using DimPos.Identity.Application.Common.Utils;
 using DimPos.Identity.Application.Services.Interface;
+using DimPos.Identity.Domain.Enum;
 using DimPos.Identity.Domain.Models.Authentication;
 using DimPos.Identity.Domain.Models.Common;
 using DimPos.Identity.Infrastructure.Persistence;
@@ -13,15 +15,20 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
     private readonly ILogger _logger;
     private readonly IUnitOfWork<IdentityContext> _unitOfWork;
     private readonly IAuthenticationService _authenticationService;
-    public LoginCommandHandler(ILogger logger, IUnitOfWork<IdentityContext> unitOfWork, IAuthenticationService authenticationService)
+    private readonly BrandGrpcService.BrandGrpcServiceClient _brandGrpcService;
+    public LoginCommandHandler(ILogger logger, IUnitOfWork<IdentityContext> unitOfWork, 
+        IAuthenticationService authenticationService,
+        BrandGrpcService.BrandGrpcServiceClient brandGrpcService)
 
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+        _brandGrpcService = brandGrpcService ?? throw new ArgumentNullException(nameof(brandGrpcService));
     }
     public async ValueTask<ApiResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
+        _logger.Information($"BEGIN: {nameof(LoginCommandHandler)} - {DateTime.UtcNow}");
         var account = await _unitOfWork.GetRepository<Domain.Entities.Accounts>().SingleOrDefaultAsync(
             predicate: x => x.Username == request.Username
         );
@@ -44,7 +51,35 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
                 Data = null
             };
         }
-        var token = _authenticationService.GenerateAccessToken(account);
+
+        string token = String.Empty;
+        var role = await _unitOfWork.GetRepository<Domain.Entities.Role>().SingleOrDefaultAsync(
+            predicate: x => x.Id == account.RoleId
+        );
+        switch (role.Name)
+        {
+            case ERoleName.BrandAdmin:
+                var brandIdString = _brandGrpcService.GetBrandIdByAccountId(new GetBrandIdByAccountIdRequest()
+                {
+                    AccountId = account.Id.ToString()
+                }).BrandId;
+                
+                if (string.IsNullOrEmpty(brandIdString))
+                {
+                    return new ApiResponse()
+                    {
+                        Status = 404,
+                        Message = "Không tìm thấy thương hiệu",
+                        Data = null
+                    };
+                }
+                token = _authenticationService.GenerateAccessToken(account, brandIdString);
+                break;
+            default:
+                token = _authenticationService.GenerateAccessToken(account, brandId: null);
+                break;
+        }
+        // var token = _authenticationService.GenerateAccessToken(account);
         var refreshToken = _authenticationService.GenerateRefreshToken();
 
         var response = new ApiResponse()
@@ -59,6 +94,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
                 RefreshToken = refreshToken,
             }
         };
+        _logger.Information($"END: {nameof(LoginCommandHandler)} - {DateTime.UtcNow}");
         return response;
     }
 }

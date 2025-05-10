@@ -1,6 +1,7 @@
 using Carter;
 using Common.Logging;
 using DimPos.Brand.Application.Common.Extensions;
+using DimPos.Brand.Application.GrpcService;
 using DimPos.Brand.Infrastructure;
 using DimPos.Brand.Infrastructure.Configurations;
 using DimPos.Brand.Infrastructure.Persistence;
@@ -12,7 +13,6 @@ builder.Host.UseSerilog(SeriLogger.Configure);
 Log.Information("Starting Brands API up");
 try
 {
-
     builder.Services.AddInfrastructureServices(builder.Configuration);
     builder.Services.AddApplicationServices();
     builder.Services.AddCarter(new DependencyContextAssemblyCatalog([typeof(Program).Assembly]));
@@ -46,6 +46,7 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapCarter();
+    app.MapGrpcService<BrandGrpcService>();
     app.UseHttpsRedirection();
     app.Run();
 }
