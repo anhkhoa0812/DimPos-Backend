@@ -4,6 +4,6 @@ namespace DimPos.Identity.Application.Services.Interface;
 
 public interface IAuthenticationService
 {
-    string GenerateAccessToken(Accounts accounts);
+    string GenerateAccessToken(Accounts accounts, string? brandId);
     string GenerateRefreshToken();
 }

@@ -1,11 +1,18 @@
+using System.Net.Security;
+using System.Net.Sockets;
+using DimPos.Brand.Application.Common.Protos;
 using DimPos.Identity.Application.Common.Behaviours;
 using DimPos.Identity.Application.Common.Config;
 using DimPos.Identity.Application.Common.Utils;
 using DimPos.Identity.Application.Features.Authentication.Command.Login;
 using DimPos.Identity.Application.Services.Implement;
 using DimPos.Identity.Application.Services.Interface;
+using DimPos.Identity.Domain.Models.Settings;
 using FluentValidation;
+using Grpc.Core;
+using Grpc.Net.Client.Configuration;
 using Mediator;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 
@@ -31,9 +38,52 @@ public static class ConfigureServices
         services.AddCustomKafka(configuration);
 
         services.AddScoped<IAuthenticationService, AuthenticationService>();
-        
+        services.AddGrpcServices(configuration);
         services.AddHealthChecks();
         
         return services;
+    }
+    public static IServiceCollection AddGrpcServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var settings = configuration.GetSection("GrpcSettings")
+            .Get<GrpcSettings>();
+        if(settings == null || string.IsNullOrEmpty(settings.BrandUrl))
+            throw new ArgumentNullException("Grpc is not configured.");
+
+        services.AddGrpcClient<BrandGrpcService.BrandGrpcServiceClient>(
+            x =>
+            {
+                x.Address = new Uri(settings.BrandUrl);
+                x.ChannelOptionsActions.Add(channelOptions =>
+                {
+                    channelOptions.HttpVersion = System.Net.HttpVersion.Version20;
+                });
+            }
+        );
+        // services
+        //     .AddGrpcClient<BrandGrpcService.BrandGrpcServiceClient>(options =>
+        //     {
+        //         options.Address = new Uri(settings.BrandUrl);
+        //     }).ConfigureChannel(channelOptions =>
+        //     {
+        //         channelOptions.Credentials = ChannelCredentials.Insecure;
+        //         channelOptions.ServiceConfig = new ServiceConfig()
+        //         {
+        //             LoadBalancingConfigs =
+        //             {
+        //                 new RoundRobinConfig()
+        //             }
+        //         };
+        //         channelOptions.HttpHandler = new SocketsHttpHandler()
+        //         {
+        //             EnableMultipleHttp2Connections = true,
+        //             SslOptions = new SslClientAuthenticationOptions()
+        //             {
+        //                 RemoteCertificateValidationCallback = delegate { return true; }
+        //             }
+        //         };
+        //     });
+        return services;
+    
     }
 }

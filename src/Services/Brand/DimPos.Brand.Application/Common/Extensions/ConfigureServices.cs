@@ -1,6 +1,8 @@
 using DimPos.Brand.Application.Common.Behaviours;
+using DimPos.Brand.Application.Common.Protos;
 using DimPos.Brand.Application.Common.Utils;
 using DimPos.Brand.Application.Features.Brands.Command;
+using DimPos.Brand.Domain.Models.Settings;
 using FluentValidation;
 using Mediator;
 
@@ -24,8 +26,9 @@ public static class ConfigureServices
         {
             options.ThrowOnBadRequest = true;
         });
-        
+        services.AddGrpc();
         services.AddHealthChecks();
         return services;
     }
+
 }

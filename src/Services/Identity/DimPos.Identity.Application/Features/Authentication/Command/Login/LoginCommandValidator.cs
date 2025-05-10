@@ -6,6 +6,7 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
     public LoginCommandValidator()
     {
+        //todo: Cần check lại điều kiện của các trường
         RuleFor(x => x.Username)
             .NotEmpty().WithMessage("Tên đăng nhập không được bỏ trống")
             .MaximumLength(50).WithMessage("Tên đăng nhập không được vượt quá 50 ký tự");
