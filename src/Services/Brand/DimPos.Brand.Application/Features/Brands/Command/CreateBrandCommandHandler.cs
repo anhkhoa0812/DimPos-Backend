@@ -8,7 +8,7 @@ using DimPos.Brand.Infrastructure.Persistence;
 using DimPos.Brand.Infrastructure.Repositories.Interface;
 using MassTransit;
 using Mediator;
-using SharedProject.Events.Account;
+using SharedProject.Events.Brand;
 
 namespace DimPos.Brand.Application.Features.Brands.Command;
 

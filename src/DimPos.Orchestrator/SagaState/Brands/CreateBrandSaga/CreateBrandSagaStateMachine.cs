@@ -1,6 +1,6 @@
 using DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga.Activities;
 using MassTransit;
-using SharedProject.Events.Account;
+using SharedProject.Events.Brand;
 
 namespace DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga;
 

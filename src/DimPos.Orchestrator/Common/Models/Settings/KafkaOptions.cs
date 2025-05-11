@@ -15,4 +15,9 @@ public sealed record Topics
     public string CreateBrandAccountResponse { get; set; } = default!;
     public string CreateBrandAccountError { get; set; } = default!;
     public string RollbackBrandAccountRequest { get; set; } = default!;
+    public string CreateStoreResponse { get; set; } = default!;
+    public string CreateStoreAccountRequest { get; set; } = default!;
+    public string CreateStoreAccountResponse { get; set; } = default!;
+    public string CreateStoreAccountError { get; set; } = default!;
+    public string RollbackStoreAccountRequest { get; set; } = default!;
 }

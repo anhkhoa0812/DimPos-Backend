@@ -1,6 +1,6 @@
 using MassTransit;
 
-namespace SharedProject.Events.Account;
+namespace SharedProject.Events.Brand;
 
 public class CreateBrandAccountErrorModel : CorrelatedBy<Guid>
 {
