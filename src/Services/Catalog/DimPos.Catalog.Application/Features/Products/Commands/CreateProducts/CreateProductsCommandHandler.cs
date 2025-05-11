@@ -15,12 +15,14 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IUploadService _uploadService;
+    private readonly IClaimService _claimService;
     public CreateProductsCommandHandler(IUnitOfWork<CatalogContext> unitOfWork,
-        ILogger logger, IUploadService uploadService)
+        ILogger logger, IUploadService uploadService, IClaimService claimService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _uploadService = uploadService;
+        _claimService = claimService;
     }
     public async ValueTask<ApiResponse> Handle(CreateProductsCommand request, CancellationToken cancellationToken)
     {
@@ -31,6 +33,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         product.IsMenuDisplay = false;
         product.IsMostOrdered = false;
         product.ProductVariants = new List<ProductVariants>();
+        product.BrandId = _claimService.GetBrandId;
         if (request.ProductVariants != null)
         {
             foreach (var productVariant in request.ProductVariants)

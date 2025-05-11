@@ -18,6 +18,7 @@ public class ProductsEndpoints : ICarterModule
         var group = app.MapGroup(ApiEndPointConstants.Products.ProductsEndpoint).WithTags("Products");
         group.MapPost("", CreateProduct).WithName(nameof(CreateProduct))
             .DisableAntiforgery()
+            .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);

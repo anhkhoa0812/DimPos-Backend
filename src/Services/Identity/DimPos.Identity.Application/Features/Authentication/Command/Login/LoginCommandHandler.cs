@@ -73,10 +73,10 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
                         Data = null
                     };
                 }
-                token = _authenticationService.GenerateAccessToken(account, brandIdString);
+                token = _authenticationService.GenerateAccessToken(account, role.Name.Value, brandId: brandIdString);
                 break;
             default:
-                token = _authenticationService.GenerateAccessToken(account, brandId: null);
+                token = _authenticationService.GenerateAccessToken(account, role.Name.Value, brandId: null);
                 break;
         }
         // var token = _authenticationService.GenerateAccessToken(account);

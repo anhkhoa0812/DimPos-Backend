@@ -33,7 +33,9 @@ public static class ConfigureServices
         {
             options.ThrowOnBadRequest = true;
         });
+        services.AddHttpContextAccessor();
         services.AddScoped<IUploadService, UploadService>();
+        services.AddScoped<IClaimService, ClaimService>();
         services.AddHealthChecks();
         return services;
     }
