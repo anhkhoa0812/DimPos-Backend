@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Settings;
 using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
@@ -24,8 +26,12 @@ public static class ConfigureServices
         services.AddJWT(configuration);
         services.AddOpenApiConfig();
         services.Configure<S3CompatibleStorageSettings>(configuration.GetSection("S3CompatibleStorageSettings"));
-        services.AddAuthorization();
-        services.AddAuthentication();
+        services.AddAuthorization(options =>
+            {
+                options.AddPolicy("BrandPolicy", policy =>
+                    policy.RequireAuthenticatedUser().RequireRole(ClaimTypes.Role, "BrandAdmin"));
+            }
+        );
         services.AddEndpointsApiExplorer();
         services.AddCors();
         return services;

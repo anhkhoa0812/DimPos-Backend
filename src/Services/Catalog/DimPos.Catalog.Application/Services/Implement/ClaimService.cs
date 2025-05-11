@@ -1,0 +1,29 @@
+using System.Security.Claims;
+using DimPos.Catalog.Application.Common.Utils;
+using DimPos.Catalog.Application.Services.Interface;
+
+namespace DimPos.Catalog.Application.Services.Implement;
+
+public class ClaimService : IClaimService
+{
+    public ClaimService(IHttpContextAccessor httpContextAccessor)
+    {
+        var identity = httpContextAccessor.HttpContext?.User?.Identity as ClaimsIdentity;
+        var accountId = Guid.TryParse(JwtUtil.GetCurrentAccountId(identity), out var accountIdResult ) ? accountIdResult : Guid.Empty;
+        var email = JwtUtil.GetCurrentEmail(identity);
+        var username = JwtUtil.GetCurrentUsername(identity);
+        var role = JwtUtil.GetRole(identity);
+        var brandId = Guid.TryParse(JwtUtil.GetCurrentBrandId(identity), out var brandIdResult) ? brandIdResult : (Guid?)null;
+        GetCurrentUserId = accountId;
+        GetCurrentEmail = string.IsNullOrEmpty(email) ? "" : email;
+        GetCurrentUsername = string.IsNullOrEmpty(username) ? "" : username;
+        GetBrandId = brandId;
+        GetRole = string.IsNullOrEmpty(role) ? string.Empty : role;
+    }
+    public Guid GetCurrentUserId { get; }
+    public string GetCurrentEmail { get; }
+    public string GetCurrentUsername { get; }
+    public string GetRole { get; }
+    public Guid? GetBrandId { get; }
+    public Guid? GetStoreId { get; }
+}
