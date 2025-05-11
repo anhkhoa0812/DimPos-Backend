@@ -1,17 +1,16 @@
 using Carter;
 using Common.Logging;
-using DimPos.Brand.Application.Common.Extensions;
-using DimPos.Brand.Application.Common.Middlewares;
-using DimPos.Brand.Application.GrpcService;
-using DimPos.Brand.Infrastructure;
-using DimPos.Brand.Infrastructure.Configurations;
-using DimPos.Brand.Infrastructure.Persistence;
+using DimPos.Store.Application.Common.Extensions;
+using DimPos.Store.Application.Common.Middlewares;
+using DimPos.Store.Infrastructure;
+using DimPos.Store.Infrastructure.Configurations;
+using DimPos.Store.Infrastructure.Persistence;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Host.UseSerilog(SeriLogger.Configure);
-Log.Information("Starting Brands API up");
+Log.Information("Starting Store API up");
 try
 {
     builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -29,7 +28,7 @@ try
     {
         try
         {
-            var brandContextSeed = scope.ServiceProvider.GetRequiredService<BrandContextSeed>();
+            var brandContextSeed = scope.ServiceProvider.GetRequiredService<StoreContextSeed>();
             await brandContextSeed.InitializeAsync();
         }
         catch (Exception e)
@@ -40,17 +39,18 @@ try
     }
     app.UseRouting();
     app.UseStaticFiles();
-    app.UseMiddleware<GlobalException>();
     app.UseCors(builder =>
         builder.AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
+    app.UseMiddleware<GlobalException>();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapCarter();
-    app.MapGrpcService<BrandGrpcService>();
     app.UseHttpsRedirection();
     app.Run();
+
+
 }
 catch (Exception ex)
 {
@@ -63,6 +63,7 @@ catch (Exception ex)
 }
 finally
 {
-    Log.Information("Shut down Brands API complete");
+    Log.Information("Shut down Store API complete");
     Log.CloseAndFlush();
 }
+
