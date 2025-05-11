@@ -1,7 +1,9 @@
+using Confluent.Kafka;
 using DimPos.Store.Infrastructure.Kafka;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SharedProject.Events.Store.CreateStore;
 
 namespace DimPos.Store.Infrastructure.Configurations;
 
@@ -26,6 +28,7 @@ public static class KafkaConfig
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (context, k) =>
                 {
                 });
+                configureRider.AddProducer<Null, CreateStoreResponseModel>(kafkaOptions!.Topics.CreateStoreResponse);
             });
         });
         return services;

@@ -4,29 +4,30 @@ using DimPos.Identity.Domain.Enum;
 using DimPos.Identity.Infrastructure.Persistence;
 using DimPos.Identity.Infrastructure.Repositories.Interface;
 using MassTransit;
-using SharedProject.Events.Brand;
+using SharedProject.Events.Store.CreateStore;
 
 namespace DimPos.Identity.Application.Consumers;
 
-public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountModel>
+public class CreateStoreAccountRequestConsumer : IConsumer<CreateStoreAccountRequestModel>
 {
     private readonly IUnitOfWork<IdentityContext> _unitOfWork;
     private readonly ILogger _logger;
-    private readonly ITopicProducer<Null, CreateBrandAccountResponseModel> _successTopicProducer;
-    private readonly ITopicProducer<Null, CreateBrandAccountErrorModel> _errorTopicProducer;
-    public CreateBrandAccountRequestConsumer(IUnitOfWork<IdentityContext> unitOfWork, ILogger logger,
-        ITopicProducer<Null, CreateBrandAccountResponseModel> successTopicProducer,
-        ITopicProducer<Null, CreateBrandAccountErrorModel> errorTopicProducer)
+    private readonly ITopicProducer<Null, CreateStoreAccountResponseModel> _successTopicProducer;
+    private readonly ITopicProducer<Null, CreateStoreAccountErrorModel> _errorTopicProducer;
+    public CreateStoreAccountRequestConsumer(IUnitOfWork<IdentityContext> unitOfWork, ILogger logger,
+        ITopicProducer<Null, CreateStoreAccountResponseModel> successTopicProducer,
+        ITopicProducer<Null, CreateStoreAccountErrorModel> errorTopicProducer)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _successTopicProducer = successTopicProducer ?? throw new ArgumentNullException(nameof(successTopicProducer));
         _errorTopicProducer = errorTopicProducer ?? throw new ArgumentNullException(nameof(errorTopicProducer));
     }
-    public async Task Consume(ConsumeContext<CreateBrandAccountModel> context)
+    
+    public async Task Consume(ConsumeContext<CreateStoreAccountRequestModel> context)
     {
         var role = await _unitOfWork.GetRepository<Role>().SingleOrDefaultAsync(
-            predicate: x => x.Name == ERoleName.BrandAdmin
+            predicate: x => x.Name == ERoleName.StoreAdmin
         );
         var account = new Accounts()
         {
@@ -45,11 +46,11 @@ public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountMod
         {
             await _successTopicProducer.Produce(
                 key: null,
-                value: new CreateBrandAccountResponseModel()
+                value: new CreateStoreAccountResponseModel()
                 {
                     CorrelationId = context.Message.CorrelationId,
                     AccountId = context.Message.AccountId,
-                    BrandId = context.Message.BrandId
+                    StoreId = context.Message.StoreId
                 },
                 cancellationToken: context.CancellationToken
             ).ConfigureAwait(false);
@@ -58,11 +59,11 @@ public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountMod
         {
             await _errorTopicProducer.Produce(
                 key: null,
-                value: new CreateBrandAccountErrorModel()
+                value: new CreateStoreAccountErrorModel()
                 {
                     CorrelationId = context.Message.CorrelationId,
-                    BrandId = context.Message.BrandId,
-                    AccountId = context.Message.AccountId
+                    AccountId = context.Message.AccountId,
+                    StoreId = context.Message.StoreId
                 },
                 cancellationToken: context.CancellationToken
             ).ConfigureAwait(false);

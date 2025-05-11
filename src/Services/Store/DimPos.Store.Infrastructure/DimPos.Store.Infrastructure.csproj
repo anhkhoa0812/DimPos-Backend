@@ -23,12 +23,14 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
+      <PackageReference Include="Riok.Mapperly" Version="4.2.1" />
       <PackageReference Include="Scalar.AspNetCore" Version="2.2.7" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\BuildingBlocks\DimPos.ServiceDefaults\DimPos.ServiceDefaults.csproj" />
       <ProjectReference Include="..\..\..\BuildingBlocks\Shared\Common.Logging\Common.Logging.csproj" />
+      <ProjectReference Include="..\..\..\BuildingBlocks\Shared\SharedProject\SharedProject.csproj" />
       <ProjectReference Include="..\DimPos.Store.Domain\DimPos.Store.Domain.csproj" />
     </ItemGroup>
 

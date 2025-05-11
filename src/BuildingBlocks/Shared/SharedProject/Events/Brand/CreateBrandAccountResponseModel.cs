@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using MassTransit;
 
-namespace SharedProject.Events.Account;
+namespace SharedProject.Events.Brand;
 
 public class CreateBrandAccountResponseModel : CorrelatedBy<Guid>
 {

@@ -3,7 +3,7 @@ using DimPos.Brand.Infrastructure.Kafka;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SharedProject.Events.Account;
+using SharedProject.Events.Brand;
 
 namespace DimPos.Brand.Infrastructure.Configurations;
 

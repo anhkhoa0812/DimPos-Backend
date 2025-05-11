@@ -22,4 +22,8 @@
       <ProjectReference Include="..\DimPos.Store.Infrastructure\DimPos.Store.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Stores\Query\" />
+    </ItemGroup>
+
 </Project>

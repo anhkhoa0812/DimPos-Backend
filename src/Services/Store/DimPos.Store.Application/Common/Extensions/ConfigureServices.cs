@@ -1,5 +1,9 @@
 using DimPos.Store.Application.Common.Behaviours;
 using DimPos.Store.Application.Common.Utils;
+using DimPos.Store.Application.Features.Stores.Command.CreateStore;
+using DimPos.Store.Application.Services.Implement;
+using DimPos.Store.Application.Services.Interface;
+using FluentValidation;
 using Mediator;
 
 namespace DimPos.Store.Application.Common.Extensions;
@@ -16,11 +20,15 @@ public static class ConfigureServices
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>))
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddScoped(typeof(ValidationUtil<>));
-        
+        services.AddScoped<IValidator<CreateStoreCommand>, CreateStoreCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;
         });
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<IClaimService, ClaimService>();
+        
         services.AddHealthChecks();
         return services;
     }

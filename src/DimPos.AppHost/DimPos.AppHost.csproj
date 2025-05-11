@@ -23,6 +23,7 @@
       <ProjectReference Include="..\Services\Brand\DimPos.Brand.Application\DimPos.Brand.Application.csproj" />
       <ProjectReference Include="..\Services\Catalog\DimPos.Catalog.Application\DimPos.Catalog.Application.csproj" />
       <ProjectReference Include="..\Services\Identity\DimPos.Identity.Application\DimPos.Identity.Application.csproj" />
+      <ProjectReference Include="..\Services\Store\DimPos.Store.Application\DimPos.Store.Application.csproj" />
     </ItemGroup>
 
 </Project>

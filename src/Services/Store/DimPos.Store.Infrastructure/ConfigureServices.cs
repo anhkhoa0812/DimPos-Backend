@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using DimPos.Store.Infrastructure.Configurations;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories;
@@ -23,9 +24,12 @@ public static class ConfigureServices
         services.AddCustomKafka(configuration);
         services.AddJWT(configuration);
         services.AddOpenApiConfig();
-        services.AddAuthorization();
-        services.AddAuthentication();
-        services.AddEndpointsApiExplorer();
+        services.AddAuthorization(options =>
+            {
+                options.AddPolicy("BrandPolicy", policy =>
+                    policy.RequireAuthenticatedUser().RequireRole(ClaimTypes.Role, "BrandAdmin"));
+            }
+        );        services.AddEndpointsApiExplorer();
         services.AddCors();
         return services;
     }
