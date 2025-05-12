@@ -30,9 +30,6 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Api
     
     public async ValueTask<ApiResponse> Handle(CreateStoreCommand request, CancellationToken cancellationToken)
     {
-        var store = StoreMapper.ToStores(request);
-        store.Id = Guid.CreateVersion7();
-        store.Status = EStoreStatus.Active;
         var brandId = _claimService.GetBrandId;
         
         if (brandId.Equals(Guid.Empty))
@@ -44,7 +41,10 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Api
                 Data = null
             };
         }
-
+        
+        var store = StoreMapper.ToStores(request);
+        store.Id = Guid.CreateVersion7();
+        store.Status = EStoreStatus.Active;
         store.BrandId = brandId;
         await _unitOfWork.GetRepository<Domain.Entities.Store>().InsertAsync(store);
         var accountId = Guid.CreateVersion7();

@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DimPos.MenuCombo.Infrastructure.Persistence.Configurations;
 
-public class MenuItemsConfiguration : IEntityTypeConfiguration<MenuItems>
+public class BrandMenuItemsConfiguration : IEntityTypeConfiguration<BrandMenuItems>
 {
-    public void Configure(EntityTypeBuilder<MenuItems> builder)
+    public void Configure(EntityTypeBuilder<BrandMenuItems> builder)
     {
         builder.HasKey(mi => mi.Id);
         builder.Property(mi => mi.Description)
