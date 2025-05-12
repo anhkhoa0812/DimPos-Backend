@@ -28,8 +28,8 @@ try
     {
         try
         {
-            var brandContextSeed = scope.ServiceProvider.GetRequiredService<StoreContextSeed>();
-            await brandContextSeed.InitializeAsync();
+            var storeContextSeed = scope.ServiceProvider.GetRequiredService<StoreContextSeed>();
+            await storeContextSeed.InitializeAsync();
         }
         catch (Exception e)
         {
