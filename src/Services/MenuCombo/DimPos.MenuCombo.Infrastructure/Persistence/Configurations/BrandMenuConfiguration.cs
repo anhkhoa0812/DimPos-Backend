@@ -1,4 +1,5 @@
 using DimPos.MenuCombo.Domain.Entities;
+using DimPos.MenuCombo.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,10 +11,13 @@ public class BrandMenuConfiguration : IEntityTypeConfiguration<BrandMenu>
     {
         builder.HasKey(m => m.Id);
         builder.Property(m => m.Name)
-            .HasMaxLength(100);
+            .HasMaxLength(200);
         builder.Property(m => m.Description)
-            .HasMaxLength(255);
+            .HasMaxLength(1000);
         builder.Property(m => m.Type)
-            .HasMaxLength(50);
+            .HasConversion(
+                v => v.ToString(),
+                v => (EBrandMenuType)Enum.Parse(typeof(EBrandMenuType), v)
+            );
     }
 }
