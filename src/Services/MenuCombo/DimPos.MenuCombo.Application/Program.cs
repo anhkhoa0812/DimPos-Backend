@@ -14,7 +14,7 @@ Log.Information("Starting MenuCombo API up");
 try
 {
     builder.Services.AddInfrastructureServices(builder.Configuration);
-    builder.Services.AddApplicationServices();
+    builder.Services.AddApplicationServices(builder.Configuration);
     builder.Services.AddCarter(new DependencyContextAssemblyCatalog([typeof(Program).Assembly]));
     var app = builder.Build();
 

@@ -26,47 +26,59 @@ public class CreateStoreAccountRequestConsumer : IConsumer<CreateStoreAccountReq
     
     public async Task Consume(ConsumeContext<CreateStoreAccountRequestModel> context)
     {
-        var role = await _unitOfWork.GetRepository<Role>().SingleOrDefaultAsync(
-            predicate: x => x.Name == ERoleName.StoreAdmin
-        );
-        var account = new Accounts()
+        try
         {
-            Id = context.Message.AccountId,
-            Code = context.Message.Code,
-            Email = context.Message.Email,
-            Username = context.Message.Username,
-            RoleId = role.Id,
-            PasswordHash = context.Message.HashPassword,
-            PasswordSalt = context.Message.SaltPassword,
-            Status = EAccountStatus.Active,
-        };
-        await _unitOfWork.GetRepository<Accounts>().InsertAsync(account);
-        var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        if (isSuccess)
-        {
-            await _successTopicProducer.Produce(
-                key: null,
-                value: new CreateStoreAccountResponseModel()
-                {
-                    CorrelationId = context.Message.CorrelationId,
-                    AccountId = context.Message.AccountId,
-                    StoreId = context.Message.StoreId
-                },
-                cancellationToken: context.CancellationToken
-            ).ConfigureAwait(false);
+            var role = await _unitOfWork.GetRepository<Role>().SingleOrDefaultAsync(
+                predicate: x => x.Name == ERoleName.StoreAdmin
+            );
+            var account = new Accounts()
+            {
+                Id = context.Message.AccountId,
+                Code = context.Message.Code,
+                Email = context.Message.Email,
+                Username = context.Message.Username,
+                RoleId = role.Id,
+                PasswordHash = context.Message.HashPassword,
+                PasswordSalt = context.Message.SaltPassword,
+                Status = EAccountStatus.Active,
+            };
+            await _unitOfWork.GetRepository<Accounts>().InsertAsync(account);
+            var isSuccess = await _unitOfWork.CommitAsync() > 0;
+            if (isSuccess)
+            {
+                await _successTopicProducer.Produce(
+                    key: null,
+                    value: new CreateStoreAccountResponseModel()
+                    {
+                        CorrelationId = context.Message.CorrelationId,
+                        AccountId = context.Message.AccountId,
+                        StoreId = context.Message.StoreId
+                    },
+                    cancellationToken: context.CancellationToken
+                ).ConfigureAwait(false);
+            }
+            else
+            {
+                await ProduceErrorAsync(context);
+            }
         }
-        else
+        catch (Exception e)
         {
-            await _errorTopicProducer.Produce(
-                key: null,
-                value: new CreateStoreAccountErrorModel()
-                {
-                    CorrelationId = context.Message.CorrelationId,
-                    AccountId = context.Message.AccountId,
-                    StoreId = context.Message.StoreId
-                },
-                cancellationToken: context.CancellationToken
-            ).ConfigureAwait(false);
+            _logger.Error(e, "CreateStoreAccountRequestConsumer: {CorrelationId} - Failed", context.Message.CorrelationId);
+            await ProduceErrorAsync(context);
         }
+    }
+    private async Task ProduceErrorAsync(ConsumeContext<CreateStoreAccountRequestModel> context)
+    {
+        await _errorTopicProducer.Produce(
+            key: null,
+            value: new CreateStoreAccountErrorModel()
+            {
+                CorrelationId = context.Message.CorrelationId,
+                AccountId = context.Message.AccountId,
+                StoreId = context.Message.StoreId
+            },
+            cancellationToken: context.CancellationToken
+        ).ConfigureAwait(false);
     }
 }

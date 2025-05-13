@@ -1,0 +1,51 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Catalog.Application.Common.Protos";
+
+
+service CatalogGrpcService {
+  rpc GetProductVariantsByBrand (GetProductVariantsByBrandRequest) returns (GetProductVariantsByBrandResponse);
+  rpc CheckProductVariantInBrand (CheckProductVariantInBrandRequest) returns (CheckProductVariantInBrandResponse);
+
+}
+message GetProductVariantsByBrandRequest {
+  int32 page = 1;
+  int32 pageSize = 2;
+  optional string sortBy = 3;
+  bool isAsc = 4;
+  optional ProductVariantStatus status = 5;
+  string brandId = 6;
+}
+message GetProductVariantsByBrandResponse {
+  int32 total = 1;
+  int32 totalPages = 2;
+  repeated ProductVariant productVariants = 3;
+}
+message CheckProductVariantInBrandRequest {
+  string brandId = 1;
+  repeated string productVariantId = 2;
+}
+message CheckProductVariantInBrandResponse {
+  bool isValid = 1;
+}
+message ProductVariant {
+  string id = 1;
+  string code = 2;
+  string alternativeCode = 3;
+  string name = 4;
+  float discountPercent = 5;
+  float discountPrice = 6;
+  float price = 7;
+  float priceCOGS = 8;
+  bool isActive = 9;
+  bool isMenuDisplay = 10;
+  int32 displayOrder = 11;
+  ProductVariantStatus status = 12;
+}
+enum ProductVariantStatus {
+  Active = 0;
+  Inactive = 1;
+  Discontinued = 2;
+  Archived = 3;
+}
+

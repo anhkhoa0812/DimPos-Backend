@@ -1,4 +1,5 @@
 using DimPos.Catalog.Domain.Entities;
+using DimPos.Catalog.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -38,5 +39,10 @@ public class ProductVariantsConfiguration : IEntityTypeConfiguration<ProductVari
             .WithMany(p => p.ProductVariants)
             .HasForeignKey(pv => pv.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(pv => pv.Status)
+            .HasConversion(
+                v => v.ToString(),
+                v => (EProductVariantStatus)Enum.Parse(typeof(EProductVariantStatus), v)
+            );
     }
 }

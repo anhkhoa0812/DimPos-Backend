@@ -1,4 +1,5 @@
 using DimPos.Catalog.Domain.Entities.Common;
+using DimPos.Catalog.Domain.Enums;
 
 namespace DimPos.Catalog.Domain.Entities;
 
@@ -14,7 +15,7 @@ public class ProductVariants : EntityBase<Guid>
     public bool? IsActive { get; set; }
     public bool? IsMenuDisplay { get; set; }
     public int? DisplayOrder { get; set; }
-    public int? Status { get; set; }
+    public EProductVariantStatus? Status { get; set; }
     public Guid? ProductId { get; set; }
     public virtual Products? Product { get; set; }
     // public virtual IEnumerable<Recipes>? Recipes { get; set; }

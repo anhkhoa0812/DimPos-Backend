@@ -32,7 +32,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         product.Id = Guid.CreateVersion7();
         product.IsMenuDisplay = false;
         product.IsMostOrdered = false;
-        product.ProductVariants = new List<ProductVariants>();
+        product.ProductVariants = new List<Domain.Entities.ProductVariants>();
         product.BrandId = _claimService.GetBrandId;
         if (request.ProductVariants != null)
         {
@@ -59,7 +59,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             }
             product.IsHasVariants = false;
             //Chưa set Status
-            var productVariant = new ProductVariants()
+            var productVariant = new Domain.Entities.ProductVariants()
             {
                 Id = Guid.CreateVersion7(),
                 IsMenuDisplay = false,

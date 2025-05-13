@@ -16,7 +16,8 @@ var identityApi = builder.AddProject<Projects.DimPos_Identity_Application>("iden
 var brandApi = builder.AddProject<Projects.DimPos_Brand_Application>("brand-api");
     // .WithReference(kafka)
     // .WaitFor(kafka);
-    var storeApi = builder.AddProject<Projects.DimPos_Store_Application>("store-api");
+var storeApi = builder.AddProject<Projects.DimPos_Store_Application>("store-api");
+var menuComboApi = builder.AddProject<Projects.DimPos_MenuCombo_Application>("menu-combo-api");
 var orchestrator = builder.AddProject<Projects.DimPos_Orchestrator>("orchestrator")
         .WithReference(brandApi)
         .WithReference(catalogApi)
