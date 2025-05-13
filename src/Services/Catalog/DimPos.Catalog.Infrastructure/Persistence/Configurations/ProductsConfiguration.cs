@@ -1,4 +1,5 @@
 using DimPos.Catalog.Domain.Entities;
+using DimPos.Catalog.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -27,5 +28,10 @@ public class ProductsConfiguration : IEntityTypeConfiguration<Products>
             .WithMany(c => c.Products)
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(p => p.Status)
+            .HasConversion(
+                v => v.ToString(),
+                v => (EProductStatus)Enum.Parse(typeof(EProductStatus), v)
+            );
     }
 }

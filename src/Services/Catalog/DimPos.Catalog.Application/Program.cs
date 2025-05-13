@@ -2,6 +2,7 @@ using Carter;
 using Common.Logging;
 using DimPos.Catalog.Application.Common.Extensions;
 using DimPos.Catalog.Application.Common.Middlewares;
+using DimPos.Catalog.Application.GrpcService;
 using DimPos.Catalog.Infrastructure;
 using DimPos.Catalog.Infrastructure.Configurations;
 using DimPos.Catalog.Infrastructure.Persistence;
@@ -45,6 +46,7 @@ try
 
     app.UseRouting();
     app.UseStaticFiles();
+    app.MapGrpcService<CatalogGrpcService>();
     app.UseMiddleware<GlobalException>();
     app.UseCors(builder =>
         builder.AllowAnyOrigin()

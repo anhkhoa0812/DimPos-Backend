@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+        <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
         <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
         <PackageReference Include="Mediator.SourceGenerator" Version="2.1.7">
           <PrivateAssets>all</PrivateAssets>
@@ -24,7 +26,15 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\BrandMenu\Query\" />
+        <Protobuf Include=".\Common\Protos\catalog.proto" GrpcServices="Client">
+            <Link>Common\Protos\catalog.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\BrandMenuItems\Query\" />
+    </ItemGroup>
+    
 
 </Project>

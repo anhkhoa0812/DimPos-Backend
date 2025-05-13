@@ -1,6 +1,8 @@
 using Carter;
 using DimPos.MenuCombo.Application.Common.Utils;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Command.CreateBrandMenu;
+using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetBrandMenuByBrand;
+using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetProductVariantsByMenu;
 using DimPos.MenuCombo.Domain.Constants;
 using DimPos.MenuCombo.Domain.Models.Common;
 using Mediator;
@@ -21,6 +23,16 @@ public class BrandMenuEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("", GetBrandMenu).RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetBrandMenu))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status404NotFound)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/{brandMenuId}/product-variants", GetProductVariantsByMenu).RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetProductVariantsByMenu))
+            .Produces<ApiResponse>(StatusCodes.Status200OK);
     }
 
     public async Task<IResult> CreateBrandMenu(IMediator mediator, [FromBody] CreateBrandMenuCommand command, 
@@ -32,6 +44,36 @@ public class BrandMenuEndpoints : ICarterModule
         {
             return Results.BadRequest(response);
         }
+        var apiResponse = await mediator.Send(command);
+        return Results.Json(apiResponse);
+    }
+
+    public async Task<IResult> GetBrandMenu(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int pageSize = 30,
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var command = new GetBrandMenuByBrandQuery()
+        {
+            Page = page,
+            Size = pageSize,
+            SortBy = sortBy,
+            IsAsc = isAsc
+        };
+        var apiResponse = await mediator.Send(command);
+        return Results.Json(apiResponse);
+    }
+
+    public async Task<IResult> GetProductVariantsByMenu(IMediator mediator, [FromRoute] Guid brandMenuId, [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 30,
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var command = new GetProductVariantsByMenuQuery()
+        {
+            Page = page,
+            Size = pageSize,
+            SortBy = sortBy,
+            IsAsc = isAsc,
+            BrandMenuId = brandMenuId
+        };
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);
     }

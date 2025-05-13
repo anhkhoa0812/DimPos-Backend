@@ -86,18 +86,30 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return await query.Select(selector).ToListAsync();
     }
 
-    public Task<IPaginate<T>> GetPagingListAsync(Expression<Func<T, bool>> predicate = null,
-        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, int page = 1,
-        int size = 10)
+    public async Task<IPaginate<T>> GetPagingListAsync(Expression<Func<T, bool>> predicate = null, IFilter<T> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
+        int page = 1, int size = 10, string sortBy = null, bool isAsc = true)
     {
         IQueryable<T> query = _dbSet;
-        if (include != null) query = include(query);
-        if (predicate != null) query = query.Where(predicate);
-        if (orderBy != null) return orderBy(query).ToPaginateAsync(page, size, 1);
-        return query.AsNoTracking().ToPaginateAsync(page, size, 1);
-    }
 
+        if (filter != null)
+        {
+            var filterExpression = filter.ToExpression();
+            query = query.Where(filterExpression);
+        }
+
+        if (predicate != null) query = query.Where(predicate);
+        if (include != null) query = include(query);
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            query = ApplySort(query, sortBy, isAsc);
+        }
+        else if (orderBy != null)
+        {
+            query = orderBy(query);
+        }
+
+        return await query.AsNoTracking().ToPaginateAsync(page, size, 1);
+    }
     public async Task<IPaginate<TResult>> GetPagingListAsync<TResult>(Expression<Func<T, TResult>> selector,
         IFilter<T> filter, Expression<Func<T, bool>> predicate = null,
         Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
