@@ -3,6 +3,7 @@ using DimPos.MenuCombo.Application.Common.Utils;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Command.CreateBrandMenu;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetBrandMenuByBrand;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetProductVariantsByMenu;
+using DimPos.MenuCombo.Application.Features.BrandMenuItems.Command.UpdateBrandMenuItems;
 using DimPos.MenuCombo.Domain.Constants;
 using DimPos.MenuCombo.Domain.Models.Common;
 using Mediator;
@@ -33,6 +34,12 @@ public class BrandMenuEndpoints : ICarterModule
         group.MapGet("/{brandMenuId}/product-variants", GetProductVariantsByMenu).RequireAuthorization("BrandPolicy")
             .WithName(nameof(GetProductVariantsByMenu))
             .Produces<ApiResponse>(StatusCodes.Status200OK);
+        group.MapPatch("/{brandMenuId}/product-variants", UpdateProductVariantsInMenu).RequireAuthorization("BrandPolicy")
+            .WithName(nameof(UpdateProductVariantsInMenu))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> CreateBrandMenu(IMediator mediator, [FromBody] CreateBrandMenuCommand command, 
@@ -73,6 +80,17 @@ public class BrandMenuEndpoints : ICarterModule
             SortBy = sortBy,
             IsAsc = isAsc,
             BrandMenuId = brandMenuId
+        };
+        var apiResponse = await mediator.Send(command);
+        return Results.Json(apiResponse);
+    }
+
+    public async Task<IResult> UpdateProductVariantsInMenu(IMediator mediator, [FromRoute] Guid brandMenuId, [FromBody] UpdateBrandMenuItemsRequest request)
+    {
+        var command = new UpdateBrandMenuItemsCommand()
+        {
+            BrandMenuId = brandMenuId,
+            UpdateBrandMenuItemsRequest = request
         };
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);

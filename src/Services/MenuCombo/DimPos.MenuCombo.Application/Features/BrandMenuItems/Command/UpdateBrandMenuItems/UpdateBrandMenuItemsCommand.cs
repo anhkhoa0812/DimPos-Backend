@@ -5,6 +5,11 @@ namespace DimPos.MenuCombo.Application.Features.BrandMenuItems.Command.UpdateBra
 
 public class UpdateBrandMenuItemsCommand : IRequest<ApiResponse>
 {
-    public List<Guid> ProductVariantIds { get; set; }
+    public UpdateBrandMenuItemsRequest UpdateBrandMenuItemsRequest { get; set; } = new();
     public Guid BrandMenuId { get; set; }
+}
+
+public record UpdateBrandMenuItemsRequest
+{
+    public List<Guid>? ProductVariantIds { get; set; }
 }

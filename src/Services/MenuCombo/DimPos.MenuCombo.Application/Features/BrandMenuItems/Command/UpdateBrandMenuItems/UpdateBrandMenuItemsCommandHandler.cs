@@ -1,38 +1,123 @@
-// using DimPos.MenuCombo.Application.Services.Interface;
-// using DimPos.MenuCombo.Domain.Models.Common;
-// using DimPos.MenuCombo.Infrastructure.Persistence;
-// using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
-// using Mediator;
-//
-// namespace DimPos.MenuCombo.Application.Features.BrandMenuItems.Command.UpdateBrandMenuItems;
-//
-// public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMenuItemsCommand, ApiResponse>
-// {
-//     private readonly IUnitOfWork<MenuComboContext> _unitOfWork;
-//     private readonly ILogger _logger;
-//     private readonly IClaimService _claimService;
-//     public UpdateBrandMenuItemsCommandHandler(IUnitOfWork<MenuComboContext> unitOfWork,
-//         ILogger logger, IClaimService claimService)
-//     {
-//         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-//         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-//         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
-//     }
-//     
-//     public async ValueTask<ApiResponse> Handle(UpdateBrandMenuItemsCommand request, CancellationToken cancellationToken)
-//     {
-//         var brandId = _claimService.GetBrandId;
-//         if (brandId == Guid.Empty)
-//         {
-//             throw new BadHttpRequestException("Không tìm thấy brandId");
-//         }
-//         var brandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().SingleOrDefaultAsync(
-//             predicate: x => x.BrandId == brandId && x.Id == request.BrandMenuId
-//         );
-//         if (brandMenu == null)
-//         {
-//             throw new BadHttpRequestException("Không tìm thấy BrandMenu");
-//         }
-//         
-//     }
-// }
+using DimPos.Catalog.Application.Common.Protos;
+using DimPos.MenuCombo.Application.Services.Interface;
+using DimPos.MenuCombo.Domain.Models.Common;
+using DimPos.MenuCombo.Infrastructure.Persistence;
+using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
+using Google.Protobuf.Collections;
+using Mediator;
+
+namespace DimPos.MenuCombo.Application.Features.BrandMenuItems.Command.UpdateBrandMenuItems;
+
+public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMenuItemsCommand, ApiResponse>
+{
+    private readonly IUnitOfWork<MenuComboContext> _unitOfWork;
+    private readonly ILogger _logger;
+    private readonly IClaimService _claimService;
+    private readonly CatalogGrpcService.CatalogGrpcServiceClient _catalogGrpcService;
+    public UpdateBrandMenuItemsCommandHandler(IUnitOfWork<MenuComboContext> unitOfWork,
+        ILogger logger, IClaimService claimService,
+        CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService)
+    {
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
+        _catalogGrpcService = catalogGrpcService ?? throw new ArgumentNullException(nameof(catalogGrpcService));
+    }
+    
+    public async ValueTask<ApiResponse> Handle(UpdateBrandMenuItemsCommand request, CancellationToken cancellationToken)
+    {
+        var brandId = _claimService.GetBrandId;
+        if (brandId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy brandId");
+        }
+        var brandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().SingleOrDefaultAsync(
+            predicate: x => x.BrandId == brandId && x.Id == request.BrandMenuId
+        );
+        if (brandMenu == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy BrandMenu");
+        }
+        
+        var requestedIdStrings = request.UpdateBrandMenuItemsRequest.ProductVariantIds
+            .Select(x => x.ToString())
+            .ToList();
+        var isValidProductVariants = _catalogGrpcService.CheckProductVariantInBrand(
+            new CheckProductVariantInBrandRequest()
+            {
+                BrandId = brandId.ToString(),
+                ListProductVariantId = new ListProductVariantId()
+                {
+                    ProductVariantId =
+                    {
+                        requestedIdStrings
+                    }
+                }
+            }
+        );
+        if (!isValidProductVariants.IsValid)
+        {
+            throw new BadHttpRequestException("Một hoặc nhiều sản phẩm không hợp lệ");
+        }
+        var existingProductVariants = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
+            selector: x => x.Id,
+            predicate: x => x.MenuId == request.BrandMenuId
+        );
+        
+        var existingProductVariantsSet = existingProductVariants.ToHashSet();
+        var newProductVariantIds = new HashSet<Guid>(request.UpdateBrandMenuItemsRequest.ProductVariantIds);
+        newProductVariantIds.ExceptWith(existingProductVariants);
+        var removeProductVariantIds = new HashSet<Guid>(existingProductVariantsSet);
+        removeProductVariantIds.ExceptWith(request.UpdateBrandMenuItemsRequest.ProductVariantIds);
+        // var newProductVariantIds = request.ProductVariantIds.Except(existingProductVariantsSet).ToList();
+        // var removeProductVariantIds = existingProductVariantsSet.Except(request.ProductVariantIds).ToList();
+        if (newProductVariantIds.Any())
+        {
+            var newBrandMenuItems = new List<Domain.Entities.BrandMenuItems>();
+            foreach (var productVariantId in newProductVariantIds)
+            {
+                var brandMenuItem = new Domain.Entities.BrandMenuItems()
+                {
+                    Id = Guid.CreateVersion7(),
+                    MenuId = request.BrandMenuId,
+                    ProductVariantId = productVariantId,
+                    DisplayOrder = 0,
+                    Description = null,
+                };
+                newBrandMenuItems.Add(brandMenuItem);
+            }
+            await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().InsertRangeAsync(newBrandMenuItems);
+        }
+
+        if (removeProductVariantIds.Any())
+        {
+            var removeBrandMenuItems = new List<Domain.Entities.BrandMenuItems>();
+            foreach (var productVariantId in removeProductVariantIds)
+            {
+                var brandMenuItem = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>()
+                    .SingleOrDefaultAsync(
+                        predicate: x => x.Id == productVariantId
+                    );
+                removeBrandMenuItems.Add(brandMenuItem);
+            }
+            _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().DeleteRangeAsync(removeBrandMenuItems);
+        }
+
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (isSuccess)
+        {
+            return new ApiResponse()
+            {
+                Status = 200,
+                Message = "Cập nhật thành công",
+                Data = null
+            };
+        }
+        return new ApiResponse()
+        {
+            Status = 500,
+            Message = "Cập nhật sản phẩm thất bại",
+            Data = null
+        };
+    }
+}
