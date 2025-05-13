@@ -57,5 +57,33 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         _logger.Information($"END: {nameof(GetProductVariantsByBrand)} - {DateTime.UtcNow}");
         return response;
     }
-    
+
+    public override async Task<CheckProductVariantInBrandResponse> CheckProductVariantInBrand(CheckProductVariantInBrandRequest request, ServerCallContext context)
+    {
+        _logger.Information($"BEGIN: {nameof(CheckProductVariantInBrand)} - {DateTime.UtcNow}");
+        var productVariantIds = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
+            selector: x => x.Id,
+            predicate: x => x.Product.BrandId == Guid.Parse(request.BrandId),
+            include: x => x.Include(x => x.Product)
+        );
+        var requestedIds = request.ListProductVariantId.ProductVariantId
+            .Select(Guid.Parse)
+            .ToList();
+        var variantSet = new HashSet<Guid>(productVariantIds);
+        bool allExist = requestedIds.All(variantSet.Contains);
+        _logger.Information($"END: {nameof(CheckProductVariantInBrand)} - {DateTime.UtcNow}");
+
+        if (!allExist)
+        {
+            return new CheckProductVariantInBrandResponse()
+            {
+                IsValid = false,
+            };
+        }
+        return new CheckProductVariantInBrandResponse()
+        {
+            IsValid = true
+        };
+        
+    }
 }

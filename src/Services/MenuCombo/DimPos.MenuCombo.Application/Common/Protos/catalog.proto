@@ -5,6 +5,8 @@ option csharp_namespace = "DimPos.Catalog.Application.Common.Protos";
 
 service CatalogGrpcService {
   rpc GetProductVariantsByBrand (GetProductVariantsByBrandRequest) returns (GetProductVariantsByBrandResponse);
+  rpc CheckProductVariantInBrand (CheckProductVariantInBrandRequest) returns (CheckProductVariantInBrandResponse);
+
 }
 message GetProductVariantsByBrandRequest {
   int32 page = 1;
@@ -18,6 +20,16 @@ message GetProductVariantsByBrandResponse {
   int32 total = 1;
   int32 totalPages = 2;
   repeated ProductVariant productVariants = 3;
+}
+message CheckProductVariantInBrandRequest {
+  string brandId = 1;
+  ListProductVariantId listProductVariantId = 2;
+}
+message ListProductVariantId {
+  repeated string productVariantId = 1;
+}
+message CheckProductVariantInBrandResponse {
+  bool isValid = 1;
 }
 message ProductVariant {
   string id = 1;

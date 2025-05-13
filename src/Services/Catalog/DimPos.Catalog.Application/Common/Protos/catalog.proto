@@ -23,7 +23,10 @@ message GetProductVariantsByBrandResponse {
 }
 message CheckProductVariantInBrandRequest {
   string brandId = 1;
-  repeated string productVariantId = 2;
+  ListProductVariantId listProductVariantId = 2;
+}
+message ListProductVariantId {
+  repeated string productVariantId = 1;
 }
 message CheckProductVariantInBrandResponse {
   bool isValid = 1;
