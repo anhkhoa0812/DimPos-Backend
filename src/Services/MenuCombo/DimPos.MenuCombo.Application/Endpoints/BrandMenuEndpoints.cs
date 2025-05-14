@@ -3,7 +3,9 @@ using DimPos.MenuCombo.Application.Common.Utils;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Command.CreateBrandMenu;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetBrandMenuByBrand;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetProductVariantsByMenu;
+using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetStoresByMenu;
 using DimPos.MenuCombo.Application.Features.BrandMenuItems.Command.UpdateBrandMenuItems;
+using DimPos.MenuCombo.Application.Features.StoreMenuAssignments.Command.AssignStoreMenu;
 using DimPos.MenuCombo.Domain.Constants;
 using DimPos.MenuCombo.Domain.Models.Common;
 using Mediator;
@@ -13,6 +15,10 @@ namespace DimPos.MenuCombo.Application.Endpoints;
 
 public class BrandMenuEndpoints : ICarterModule
 {
+    public BrandMenuEndpoints()
+    {
+    }
+
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ApiEndpointConstants.BrandMenus.BrandMenusEndpoint).WithTags("BrandMenus");
@@ -36,6 +42,15 @@ public class BrandMenuEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status200OK);
         group.MapPatch("/{brandMenuId}/product-variants", UpdateProductVariantsInMenu).RequireAuthorization("BrandPolicy")
             .WithName(nameof(UpdateProductVariantsInMenu))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/{brandMenuId}/stores", GetStoresByMenu).RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetStoresByMenu))
+            .Produces<ApiResponse>(StatusCodes.Status200OK);
+        group.MapPatch("/{brandMenuId}/stores", AssignMenuToStore).RequireAuthorization("BrandPolicy")
+            .WithName(nameof(AssignMenuToStore))
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
@@ -91,6 +106,31 @@ public class BrandMenuEndpoints : ICarterModule
         {
             BrandMenuId = brandMenuId,
             UpdateBrandMenuItemsRequest = request
+        };
+        var apiResponse = await mediator.Send(command);
+        return Results.Json(apiResponse);
+    }
+    public async Task<IResult> GetStoresByMenu(IMediator mediator, [FromRoute] Guid brandMenuId, [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 30,
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var command = new GetStoresByMenuQuery()
+        {
+            Page = page,
+            Size = pageSize,
+            SortBy = sortBy,
+            IsAsc = isAsc,
+            BrandMenuId = brandMenuId
+        };
+        var apiResponse = await mediator.Send(command);
+        return Results.Json(apiResponse);
+    }
+    public async Task<IResult> AssignMenuToStore(IMediator mediator, [FromRoute] Guid brandMenuId, [FromBody] List<AssignStoreMenuRequest> request)
+    {
+        var command = new AssignStoreMenuCommand()
+        {
+            BrandMenuId = brandMenuId,
+            AssignStoreMenuRequests= request
         };
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);

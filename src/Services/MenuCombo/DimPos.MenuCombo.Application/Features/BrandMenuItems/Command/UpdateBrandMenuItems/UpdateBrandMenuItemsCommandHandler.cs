@@ -73,6 +73,10 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
         // var removeProductVariantIds = existingProductVariantsSet.Except(request.ProductVariantIds).ToList();
         if (newProductVariantIds.Any())
         {
+            var storeMenuItemAvailabilityList = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuItemAvailability>().GetListAsync(
+                predicate: x => x.StoreMenuAssignment.BrandMenuId == request.BrandMenuId
+            );
+            var newStoreMenuItemAvailability = new List<Domain.Entities.StoreMenuItemAvailability>();
             var newBrandMenuItems = new List<Domain.Entities.BrandMenuItems>();
             foreach (var productVariantId in newProductVariantIds)
             {
@@ -85,13 +89,22 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
                     Description = null,
                 };
                 newBrandMenuItems.Add(brandMenuItem);
+                var storeMenuItemAvailability = new Domain.Entities.StoreMenuItemAvailability()
+                {
+                    Id = Guid.CreateVersion7(),
+                    BrandMenuItemId = brandMenuItem.Id,
+                    IsActiveAtStore = false,
+                };
+                newStoreMenuItemAvailability.Add(storeMenuItemAvailability);
             }
             await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().InsertRangeAsync(newBrandMenuItems);
+            await _unitOfWork.GetRepository<Domain.Entities.StoreMenuItemAvailability>().InsertRangeAsync(newStoreMenuItemAvailability);
         }
 
         if (removeProductVariantIds.Any())
         {
             var removeBrandMenuItems = new List<Domain.Entities.BrandMenuItems>();
+            var removeStoreMenuItemAvailability = new List<Domain.Entities.StoreMenuItemAvailability>();
             foreach (var productVariantId in removeProductVariantIds)
             {
                 var brandMenuItem = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>()
@@ -99,8 +112,14 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
                         predicate: x => x.Id == productVariantId
                     );
                 removeBrandMenuItems.Add(brandMenuItem);
+                var storeMenuItemAvailability = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuItemAvailability>()
+                    .SingleOrDefaultAsync(
+                        predicate: x => x.BrandMenuItemId == brandMenuItem.Id
+                    );
+                removeStoreMenuItemAvailability.Add(storeMenuItemAvailability);
             }
             _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().DeleteRangeAsync(removeBrandMenuItems);
+            _unitOfWork.GetRepository<Domain.Entities.StoreMenuItemAvailability>().DeleteRangeAsync(removeStoreMenuItemAvailability);
         }
 
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

@@ -2,6 +2,7 @@ using Carter;
 using Common.Logging;
 using DimPos.Store.Application.Common.Extensions;
 using DimPos.Store.Application.Common.Middlewares;
+using DimPos.Store.Application.GrpcServices;
 using DimPos.Store.Infrastructure;
 using DimPos.Store.Infrastructure.Configurations;
 using DimPos.Store.Infrastructure.Persistence;
@@ -43,6 +44,7 @@ try
         builder.AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
+    app.MapGrpcService<StoreGrpcService>();
     app.UseMiddleware<GlobalException>();
     app.UseAuthentication();
     app.UseAuthorization();
