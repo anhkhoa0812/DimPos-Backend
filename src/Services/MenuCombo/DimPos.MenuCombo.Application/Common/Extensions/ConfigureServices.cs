@@ -5,6 +5,7 @@ using DimPos.MenuCombo.Application.Features.BrandMenu.Command.CreateBrandMenu;
 using DimPos.MenuCombo.Application.Services.Implement;
 using DimPos.MenuCombo.Application.Services.Interface;
 using DimPos.MenuCombo.Domain.Models.Settings;
+using DimPos.Store.Application.Common.Protos;
 using FluentValidation;
 using Mediator;
 
@@ -51,6 +52,14 @@ public static class ConfigureServices
                 });
             }
         );
+        services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.StoreUrl);
+            x.ChannelOptionsActions.Add(channelOptions =>
+            {
+                channelOptions.HttpVersion = System.Net.HttpVersion.Version20;
+            });
+        });
 
         return services;
     }

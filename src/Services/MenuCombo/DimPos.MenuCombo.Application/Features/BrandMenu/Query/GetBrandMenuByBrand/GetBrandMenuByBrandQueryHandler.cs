@@ -1,5 +1,6 @@
 using DimPos.MenuCombo.Application.Common.Mapper;
 using DimPos.MenuCombo.Application.Services.Interface;
+using DimPos.MenuCombo.Domain.Models.BrandMenu;
 using DimPos.MenuCombo.Domain.Models.Common;
 using DimPos.MenuCombo.Infrastructure.Persistence;
 using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
@@ -28,6 +29,16 @@ public class GetBrandMenuByBrandQueryHandler : IRequestHandler<GetBrandMenuByBra
         var brandMenus = await _unitOfWork
             .GetRepository<Domain.Entities.BrandMenu>()
             .GetPagingListAsync(
+                selector: x => new BrandMenuResponse()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description,
+                    IsActiveByBrand =  x.IsActiveByBrand,
+                    Type = x.Type,
+                    ValidFrom = x.ValidFrom,
+                    ValidTo = x.ValidTo
+                },
                 predicate: x => x.BrandId == brandId, 
                 page: request.Page,
                 size: request.Size,
@@ -35,12 +46,11 @@ public class GetBrandMenuByBrandQueryHandler : IRequestHandler<GetBrandMenuByBra
                 sortBy: request.SortBy,
                 isAsc: request.IsAsc
             );
-        var response = BrandMenuMapper.ToBrandMenuResponsePaginate(brandMenus);
         return new ApiResponse
         {
             Status = 200,
             Message = "Lấy danh sách menu thành công",
-            Data = response
+            Data = brandMenus
         };
     }
 }
