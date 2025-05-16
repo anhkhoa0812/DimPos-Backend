@@ -19,11 +19,19 @@ public class CategoriesConfiguration : IEntityTypeConfiguration<Categories>
 
         builder.Property(c => c.Code)
             .HasMaxLength(50);
+        builder.HasIndex(c => c.Code)
+            .IsUnique();
+        builder.Property(c => c.BrandId)
+            .IsRequired();
+        builder.Property(c => c.HasChildCategory)
+            .IsRequired();
         builder.Property(c => c.Name)
+            .IsRequired()
             .HasMaxLength(200);
         builder.Property(c => c.Description)
             .HasMaxLength(1000);
         builder.Property(c => c.Type)
+            .IsRequired()
             .HasMaxLength(50);
         builder.Property(c => c.DisplayOrder);
         builder.Property(c => c.PictureUrl)

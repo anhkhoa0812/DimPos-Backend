@@ -12,8 +12,10 @@ public class StoreConfiguration : IEntityTypeConfiguration<Domain.Entities.Store
         builder.HasIndex(s => s.Code)
             .IsUnique();
         builder.Property(s => s.Code)
+            .IsRequired()
             .HasMaxLength(50);
         builder.Property(s => s.Name)
+            .IsRequired()
             .HasMaxLength(500);
         builder.Property(s => s.ShortName)
             .HasMaxLength(100);
@@ -24,8 +26,12 @@ public class StoreConfiguration : IEntityTypeConfiguration<Domain.Entities.Store
         builder.Property(s => s.Description)
             .HasMaxLength(1000);
         builder.Property(s => s.Address)
+            .IsRequired()
             .HasMaxLength(1000);
+        builder.Property(s => s.BrandId)
+            .IsRequired();
         builder.Property(s => s.Type)
+            .IsRequired()
             .HasConversion(
                 v => v.ToString(),
                 v => (EStoreType)Enum.Parse(typeof(EStoreType), v)
@@ -35,5 +41,6 @@ public class StoreConfiguration : IEntityTypeConfiguration<Domain.Entities.Store
                 v => v.ToString(),
                 v => (EStoreStatus)Enum.Parse(typeof(EStoreStatus), v)
             );
+        
     }
 }

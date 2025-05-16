@@ -9,5 +9,11 @@ public class StoreMenuItemAvailabilityConfiguration : IEntityTypeConfiguration<S
     public void Configure(EntityTypeBuilder<StoreMenuItemAvailability> builder)
     {
         builder.HasKey(smia => smia.Id);
+        builder.Property(smia => smia.StoreMenuAssignmentId)
+            .IsRequired();
+        builder.Property(smia => smia.BrandMenuItemId)
+            .IsRequired();
+        builder.Property(smia => smia.IsActiveAtStore)
+            .IsRequired();
     }
 }

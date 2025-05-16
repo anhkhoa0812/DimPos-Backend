@@ -10,6 +10,14 @@ public class FranchiseAgreementConfiguration: IEntityTypeConfiguration<Franchise
     public void Configure(EntityTypeBuilder<FranchiseAgreement> builder)
     {
         builder.HasKey(fa => fa.Id);
+        builder.Property(fa => fa.StoreId)
+            .IsRequired();
+        builder.Property(fa => fa.BrandId)
+            .IsRequired();
+        builder.Property(fa => fa.StartDate)
+            .IsRequired();
+        builder.Property(fa => fa.EndDate)
+            .IsRequired();
         builder.Property(fa => fa.InitialFeeCents)
             .HasPrecision(10, 2);
         builder.Property(fa => fa.RoyaltyPercentage)
@@ -19,6 +27,7 @@ public class FranchiseAgreementConfiguration: IEntityTypeConfiguration<Franchise
             .HasForeignKey(fa => fa.BrandId)
             .OnDelete(DeleteBehavior.Restrict);
         builder.Property(mg => mg.Status)
+            .IsRequired()
             .HasConversion(
                 v => v.ToString(),
                 v => (EFranchiseAgreementStatus)Enum.Parse(typeof(EFranchiseAgreementStatus), v)

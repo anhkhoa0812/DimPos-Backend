@@ -41,11 +41,11 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 var productVariantResponse = new ProductVariant()
                 {
                     Id = productVariant.Id.ToString(),
-                    Code = productVariant.Code ?? String.Empty,
-                    Name = productVariant.Name ?? String.Empty,
+                    Code = productVariant.Code,
+                    Name = productVariant.Name,
                     AlternativeCode = productVariant.AlternativeCode ?? String.Empty,
-                    Status = (ProductVariantStatus)productVariant.Status,
-                    IsActive = productVariant.IsActive ?? false,
+                    Status = (ProductVariantStatus) productVariant.Status,
+                    IsActive = productVariant.IsActive,
                     IsMenuDisplay = productVariant.IsMenuDisplay ?? false,
                     DisplayOrder = productVariant.DisplayOrder ?? 0,
                     Price = (float)productVariant.Price,
@@ -96,6 +96,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
         var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
             predicate: x =>
+                x.Status == ECategoryStatus.Active &&
                 x.Products.Any(p => p.ProductVariants
                     .Any(v => variantIds.Contains(v.Id) && v.Status == EProductVariantStatus.Active && v.IsActive == true)),
             include: x => x.Include(c => c.Products.Where(p => p.ProductVariants.Any(v => variantIds.Contains(v.Id))))
@@ -114,17 +115,17 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             };
             foreach (var product in category.Products)
             {
-                if (!product.IsHasVariants.Value)
+                if (!product.IsHasVariants)
                 {
                     var variant = product.ProductVariants.FirstOrDefault(pv => pv.ProductId == product.Id);
                     var productItem = new ProductResponse()
                     {
                         Id = variant.Id.ToString(),
-                        Code = variant.Code ?? String.Empty,
-                        Name = variant.Name ?? String.Empty,
+                        Code = variant.Code,
+                        Name = variant.Name,
                         AlternativeCode = variant.AlternativeCode ?? String.Empty,
                         ImageUrl = String.Empty,
-                        Description = product.Description ?? String.Empty,
+                        Description = product.Description,
                         ProductVariants = null
                     };
                     categoryItem.Products.Add(productItem);
@@ -134,31 +135,31 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     var productItem = new ProductResponse()
                     {
                         Id = product.Id.ToString(),
-                        Code = product.Code ?? String.Empty,
-                        Name = product.Name ?? String.Empty,
+                        Code = product.Code,
+                        Name = product.Name,
                         AlternativeCode = product.AlternativeCode ?? String.Empty,
                         ImageUrl = "",
-                        Description = product.Description ?? String.Empty,
-                        ProductVariants = product.ProductVariants != null ? new ListProductVariant()
+                        Description = product.Description,
+                        ProductVariants = new ListProductVariant()
                         {
                             ProductVariants =
                             {
                                 product.ProductVariants?.Select(pv => new ProductVariantResponse()
                                 {
                                     Id = pv.Id.ToString(),
-                                    Code = pv.Code ?? String.Empty,
-                                    Name = pv.Name ?? String.Empty,
+                                    Code = pv.Code,
+                                    Name = pv.Name,
                                     AlternativeCode = pv.AlternativeCode ?? String.Empty,
                                     DisplayOrder = pv.DisplayOrder ?? 0,
                                     DiscountPercent = (float) pv.DiscountPercent,
                                     DiscountPrice = (float)pv.DiscountPrice,
                                     Price = (float)pv.Price,
                                     PriceCOGS = (float)pv.PriceCOGS,
-                                    IsActive = pv.IsActive ?? false,
+                                    IsActive = pv.IsActive,
                                     IsMenuDisplay = pv.IsMenuDisplay ?? false
                                 }).ToList()
                             }
-                        } : null
+                        }
                     };
                     categoryItem.Products.Add(productItem);
                 }

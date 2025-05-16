@@ -32,7 +32,8 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
     public async ValueTask<ApiResponse> Handle(CreateProductsCommand request, CancellationToken cancellationToken)
     {
         _logger.Information($"BEGIN: {nameof(CreateProductsCommandHandler)} - {DateTime.UtcNow}");
-        var brandId = _claimService.GetBrandId;
+        
+        var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if (brandId == Guid.Empty)
         {
             throw new BadHttpRequestException("Không tìm thấy brandId");
@@ -41,6 +42,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         product.Id = Guid.CreateVersion7();
         product.IsMenuDisplay = false;
         product.IsMostOrdered = false;
+        product.IsHasRecipe = false; //Need to check again
         product.ProductVariants = new List<ProductVariants>();
         product.BrandId = brandId;
         product.Status = EProductStatus.Active;
@@ -82,13 +84,13 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         }
         else
         {
-            if (request.BrandPrice == null)
+            if(request.Price == null)
             {
-                throw new BadHttpRequestException("Giá sản phẩm không được để trống");
+                throw new BadHttpRequestException("Giá không được để trống");
             }
             product.IsHasVariants = false;
             //Chưa set Status
-            var productVariant = new Domain.Entities.ProductVariants()
+            var productVariant = new ProductVariants()
             {
                 Id = Guid.CreateVersion7(),
                 IsMenuDisplay = false,
@@ -96,7 +98,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 Name = request.Name,
                 AlternativeCode = request.AlternativeCode,
                 ProductId = product.Id,
-                Price = request.BrandPrice,
+                Price = request.Price ?? 0,
                 PriceCOGS = request.PriceCOGS,
                 IsActive = false,
                 DiscountPercent = request.DiscountPercent,
@@ -108,7 +110,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             {
                 Id = Guid.CreateVersion7(),
                 ProductVariantId = productVariant.Id,
-                Price = request.BrandPrice,
+                Price = request.Price ?? 0,
                 BrandId = brandId,
                 BrandPriceHistories = new List<BrandPriceHistory>()
                 {
@@ -116,7 +118,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                     {
                         Id = Guid.CreateVersion7(),
                         OldPrice = 0,
-                        NewPrice = request.BrandPrice,
+                        NewPrice = request.Price ?? 0,
                         ChangedAt = DateTime.UtcNow,
                         ChangedBy = brandId,
                     }

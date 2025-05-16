@@ -9,6 +9,10 @@ public class CollectionItemsConfiguration : IEntityTypeConfiguration<CollectionI
     public void Configure(EntityTypeBuilder<CollectionItems> builder)
     {
         builder.HasKey(ci => ci.Id);
+        builder.Property(ci => ci.ProductVariantId)
+            .IsRequired();
+        builder.Property(ci => ci.CollectionId)
+            .IsRequired();
         builder.HasOne(ci => ci.Collection)
             .WithMany(c => c.CollectionItems)
             .HasForeignKey(ci => ci.CollectionId)

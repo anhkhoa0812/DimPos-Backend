@@ -5,10 +5,10 @@ namespace DimPos.Identity.Domain.Entities;
 
 public class Accounts : EntityAuditBase<Guid>
 {
-    public string? Code { get; set; }
-    public string? Username { get; set; }
-    public string? PasswordHash { get; set; }
-    public string? PasswordSalt { get; set; }
+    public string Code { get; set; }
+    public string Username { get; set; }
+    public string PasswordHash { get; set; }
+    public string PasswordSalt { get; set; }
     public string? Email { get; set; }
     public EAccountStatus Status { get; set; }
     

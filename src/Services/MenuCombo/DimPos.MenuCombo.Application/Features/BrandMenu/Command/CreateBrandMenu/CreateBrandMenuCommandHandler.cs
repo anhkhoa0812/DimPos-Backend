@@ -20,7 +20,7 @@ public class CreateBrandMenuCommandHandler: IRequestHandler<CreateBrandMenuComma
     }
     public async ValueTask<ApiResponse> Handle(CreateBrandMenuCommand request, CancellationToken cancellationToken)
     {
-        var brandId = _claimService.GetBrandId;
+        var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if (brandId == Guid.Empty)
         {
             return new ApiResponse

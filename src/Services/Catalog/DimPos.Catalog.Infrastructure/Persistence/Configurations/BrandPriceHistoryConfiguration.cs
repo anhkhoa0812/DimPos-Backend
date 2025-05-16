@@ -16,11 +16,22 @@ public class BrandPriceHistoryConfiguration : IEntityTypeConfiguration<BrandPric
     {
         builder.HasKey(bph => bph.Id);
         builder.Property(bph => bph.CurrencyCode)
+            .IsRequired()
             .HasMaxLength(10);
         builder.Property(bph => bph.OldPrice)
+            .IsRequired()
             .HasPrecision(18,4);
         builder.Property(bph => bph.NewPrice)
+            .IsRequired()
             .HasPrecision(18,4);
+        builder.Property(bph => bph.ChangedAt)
+            .IsRequired();
+        builder.Property(bph => bph.ChangedBy)
+            .IsRequired();
+        builder.Property(bph => bph.BrandPriceId)
+            .IsRequired();
+        builder.Property(bph => bph.ProductVariantId)
+            .IsRequired();
         builder.HasOne(bph => bph.BrandPrice)
             .WithMany(bp => bp.BrandPriceHistories)
             .HasForeignKey(bph => bph.BrandPriceId)

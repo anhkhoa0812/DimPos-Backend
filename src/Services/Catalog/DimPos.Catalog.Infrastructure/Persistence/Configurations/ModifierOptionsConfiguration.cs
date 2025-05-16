@@ -15,6 +15,10 @@ public class ModifierOptionsConfiguration : IEntityTypeConfiguration<ModifierOpt
             .HasMaxLength(1000);
         builder.Property(mo => mo.PriceDelta)
             .HasPrecision(18, 4);
+        builder.Property(mo => mo.Status)
+            .IsRequired();
+        builder.Property(mo => mo.ModifierGroupId)
+            .IsRequired();
         builder.HasOne(mo => mo.ModifierGroup)
             .WithMany(mg => mg.ModifierOptions)
             .HasForeignKey(mo => mo.ModifierGroupId)

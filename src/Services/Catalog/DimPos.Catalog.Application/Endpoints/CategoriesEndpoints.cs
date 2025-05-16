@@ -1,9 +1,10 @@
-using System.Net;
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
-using DimPos.Catalog.Application.Features.Categories;
+using DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
+using DimPos.Catalog.Application.Features.Categories.Query.GetCategoriesByBrand;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Models.Common;
+using DimPos.Catalog.Infrastructure.Filter.FilterModel;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +23,12 @@ public class CategoriesEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("", GetCategoriesByBrand)
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetCategoriesByBrand))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     public async Task<IResult> CreateCategory(IMediator mediator, [FromBody] CreateCategoriesCommand command, ValidationUtil<CreateCategoriesCommand> validationUtil)
     {
@@ -33,4 +40,20 @@ public class CategoriesEndpoints : ICarterModule
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);
     }
+
+    public async Task<IResult> GetCategoriesByBrand(IMediator mediator, [FromQuery] int size, [FromQuery] int page,
+        [FromQuery] string? sortBy, [FromQuery] bool isAsc, [FromQuery] string? name)
+    {
+        var query = new GetCategoriesByBrandQuery()
+        {
+            Size = size,
+            Page = page,
+            SortBy = sortBy,
+            IsAsc = isAsc,
+            Name = name
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Json(apiResponse);
+    }
+
 }

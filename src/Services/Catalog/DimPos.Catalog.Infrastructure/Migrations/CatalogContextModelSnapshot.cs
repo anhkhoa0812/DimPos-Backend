@@ -28,27 +28,28 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BrandId")
+                    b.Property<Guid>("BrandId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("CurrencyCode")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<DateTime?>("EffectiveFrom")
+                    b.Property<DateTime>("EffectiveFrom")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<Guid?>("ProductVariantId")
+                    b.Property<Guid>("ProductVariantId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -62,28 +63,29 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BrandPriceId")
+                    b.Property<Guid>("BrandPriceId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("ChangedAt")
+                    b.Property<DateTime>("ChangedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("ChangedBy")
+                    b.Property<Guid>("ChangedBy")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CurrencyCode")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<decimal?>("NewPrice")
+                    b.Property<decimal>("NewPrice")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<decimal?>("OldPrice")
+                    b.Property<decimal>("OldPrice")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<Guid?>("ProductVariantId")
+                    b.Property<Guid>("ProductVariantId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -99,7 +101,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BrandId")
+                    b.Property<Guid>("BrandId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Code")
@@ -116,13 +118,14 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<int?>("DisplayOrder")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("HasChildCategory")
+                    b.Property<bool>("HasChildCategory")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -133,14 +136,19 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int?>("Status")
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<string>("Type")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL");
 
                     b.ToTable("Categories");
                 });
@@ -198,7 +206,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BrandId")
+                    b.Property<Guid>("BrandId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedDate")
@@ -215,13 +223,15 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("SelectedType")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("Status")
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -245,7 +255,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("ModifierGroupId")
+                    b.Property<Guid>("ModifierGroupId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
@@ -256,7 +266,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<int?>("Status")
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -273,11 +283,10 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Key")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<Guid?>("ProductId")
+                    b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Value")
@@ -302,13 +311,14 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<bool?>("IsMainImage")
+                    b.Property<bool>("IsMainImage")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("ProductId")
+                    b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -330,10 +340,10 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("ModifierGroupId")
+                    b.Property<Guid>("ModifierGroupId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ProductId")
+                    b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -356,6 +366,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Code")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -370,17 +381,18 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<int?>("DisplayOrder")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("IsActive")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<bool?>("IsMenuDisplay")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
@@ -388,17 +400,17 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<Guid?>("ProductId")
+                    b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
-                        .IsUnique()
-                        .HasFilter("[Code] IS NOT NULL");
+                        .IsUnique();
 
                     b.HasIndex("ProductId");
 
@@ -415,13 +427,14 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<Guid?>("BrandId")
+                    b.Property<Guid>("BrandId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("CategoryId")
+                    b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Code")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -429,31 +442,33 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<int?>("DisplayOrder")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("IsAvailable")
+                    b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("IsHasRecipe")
+                    b.Property<bool>("IsHasRecipe")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("IsHasVariants")
+                    b.Property<bool>("IsHasVariants")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("IsMenuDisplay")
+                    b.Property<bool>("IsMenuDisplay")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("IsMostOrdered")
+                    b.Property<bool>("IsMostOrdered")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -463,10 +478,12 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<int?>("NumOfUserVoted")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SaleType")
-                        .HasColumnType("int");
+                    b.Property<string>("SaleType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -474,8 +491,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("Code")
-                        .IsUnique()
-                        .HasFilter("[Code] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("Products");
                 });
@@ -555,26 +571,27 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("CurrencyCode")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<DateTime?>("EffectiveFrom")
+                    b.Property<DateTime>("EffectiveFrom")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool?>("IsActiveAtStore")
+                    b.Property<bool>("IsActiveAtStore")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("OverridePrice")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<Guid?>("ProductVariantId")
+                    b.Property<Guid>("ProductVariantId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("StoreId")
+                    b.Property<Guid>("StoreId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -588,31 +605,32 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("ChangedAt")
+                    b.Property<DateTime>("ChangedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("ChangedBy")
+                    b.Property<Guid>("ChangedBy")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CurrencyCode")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<decimal?>("NewPrice")
+                    b.Property<decimal>("NewPrice")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<decimal?>("OldPrice")
+                    b.Property<decimal>("OldPrice")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<Guid?>("ProductVariantId")
+                    b.Property<Guid>("ProductVariantId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("StoreId")
+                    b.Property<Guid>("StoreId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("StorePriceId")
+                    b.Property<Guid>("StorePriceId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -627,7 +645,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasOne("DimPos.Catalog.Domain.Entities.BasePrice", "BrandPrice")
                         .WithMany("BrandPriceHistories")
                         .HasForeignKey("BrandPriceId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("BrandPrice");
                 });
@@ -637,7 +656,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasOne("DimPos.Catalog.Domain.Entities.ModifierGroups", "ModifierGroup")
                         .WithMany("ModifierOptions")
                         .HasForeignKey("ModifierGroupId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("ModifierGroup");
                 });
@@ -647,7 +667,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasOne("DimPos.Catalog.Domain.Entities.Products", "Product")
                         .WithMany("ProductAttributes")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Product");
                 });
@@ -657,7 +678,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasOne("DimPos.Catalog.Domain.Entities.Products", "Product")
                         .WithMany("ProductImages")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Product");
                 });
@@ -667,12 +689,14 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasOne("DimPos.Catalog.Domain.Entities.ModifierGroups", "ModifierGroup")
                         .WithMany("ProductModifierGroups")
                         .HasForeignKey("ModifierGroupId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("DimPos.Catalog.Domain.Entities.Products", "Product")
                         .WithMany("ProductModifierGroups")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("ModifierGroup");
 
@@ -684,7 +708,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasOne("DimPos.Catalog.Domain.Entities.Products", "Product")
                         .WithMany("ProductVariants")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Product");
                 });
@@ -694,7 +719,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasOne("DimPos.Catalog.Domain.Entities.Categories", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Category");
                 });
@@ -732,7 +758,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasOne("DimPos.Catalog.Domain.Entities.StorePrice", "StorePrice")
                         .WithMany("StorePriceHistories")
                         .HasForeignKey("StorePriceId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("StorePrice");
                 });

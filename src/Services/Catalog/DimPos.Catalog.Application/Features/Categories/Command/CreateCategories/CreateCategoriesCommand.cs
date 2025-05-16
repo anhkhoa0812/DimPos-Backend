@@ -1,7 +1,8 @@
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using Mediator;
 
-namespace DimPos.Catalog.Application.Features.Categories;
+namespace DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
 
 public class CreateCategoriesCommand : IRequest<ApiResponse>
 {
@@ -11,7 +12,7 @@ public class CreateCategoriesCommand : IRequest<ApiResponse>
     public string Type { get; set; }
     public int? DisplayOrder { get; set; }
     public IFormFile? Image { get; set; }
-    public int Status { get; set; }
+    public ECategoryStatus Status { get; set; }
     
     public Guid? ParentId { get; set; }
 }

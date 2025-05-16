@@ -28,7 +28,7 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BrandId")
+                    b.Property<Guid>("BrandId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedDate")
@@ -38,13 +38,14 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<bool?>("IsActiveByBrand")
+                    b.Property<bool>("IsActiveByBrand")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -78,17 +79,13 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                     b.Property<int?>("DisplayOrder")
                         .HasColumnType("int");
 
-                    b.Property<string>("ItemType")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("MenuId")
+                    b.Property<Guid>("MenuId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ProductVariantId")
+                    b.Property<Guid>("ProductVariantId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -104,7 +101,7 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("CollectionId")
+                    b.Property<Guid>("CollectionId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("DisplayOrder")
@@ -113,7 +110,7 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                     b.Property<bool?>("IsMandatory")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("ProductVariantId")
+                    b.Property<Guid>("ProductVariantId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("Quantity")
@@ -132,7 +129,7 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BrandId")
+                    b.Property<Guid>("BrandId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedDate")
@@ -142,13 +139,14 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<bool?>("IsActiveByBrand")
+                    b.Property<bool>("IsActiveByBrand")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -167,7 +165,7 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BrandMenuId")
+                    b.Property<Guid>("BrandMenuId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedDate")
@@ -179,13 +177,13 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                     b.Property<DateTime?>("EffectiveEnd")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool?>("IsActiveAtStore")
+                    b.Property<bool>("IsActiveAtStore")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("StoreId")
+                    b.Property<Guid>("StoreId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -199,7 +197,7 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BrandMenuItemId")
+                    b.Property<Guid>("BrandMenuItemId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedDate")
@@ -211,13 +209,13 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                     b.Property<DateTime?>("EffectiveEnd")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool?>("IsActiveAtStore")
+                    b.Property<bool>("IsActiveAtStore")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("StoreMenuAssignmentId")
+                    b.Property<Guid>("StoreMenuAssignmentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -232,7 +230,8 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                     b.HasOne("DimPos.MenuCombo.Domain.Entities.BrandMenu", "Menu")
                         .WithMany("MenuItems")
                         .HasForeignKey("MenuId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Menu");
                 });
@@ -242,7 +241,8 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                     b.HasOne("DimPos.MenuCombo.Domain.Entities.Collections", "Collection")
                         .WithMany("CollectionItems")
                         .HasForeignKey("CollectionId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Collection");
                 });
@@ -251,7 +251,9 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                 {
                     b.HasOne("DimPos.MenuCombo.Domain.Entities.StoreMenuAssignments", "StoreMenuAssignment")
                         .WithMany("StoreMenuItemAvailability")
-                        .HasForeignKey("StoreMenuAssignmentId");
+                        .HasForeignKey("StoreMenuAssignmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("StoreMenuAssignment");
                 });

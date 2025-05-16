@@ -1,4 +1,4 @@
-using DimPos.Catalog.Application.Features.Categories;
+using DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
 using DimPos.Catalog.Domain.Entities;
 using Riok.Mapperly.Abstractions;
 

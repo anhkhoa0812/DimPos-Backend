@@ -14,10 +14,10 @@ public class ClaimService : IClaimService
         var username = JwtUtil.GetCurrentUsername(identity);
         var role = JwtUtil.GetRole(identity);
         var brandId = Guid.TryParse(JwtUtil.GetCurrentBrandId(identity), out var brandIdResult) ? brandIdResult : (Guid?)null;
-        GetCurrentUserId = accountId;
+        GetCurrentUserId = accountId == Guid.Empty ? Guid.Empty : accountId;
         GetCurrentEmail = string.IsNullOrEmpty(email) ? "" : email;
         GetCurrentUsername = string.IsNullOrEmpty(username) ? "" : username;
-        GetBrandId = brandId;
+        GetBrandId = brandId == Guid.Empty ? Guid.Empty : brandId;
         GetRole = string.IsNullOrEmpty(role) ? string.Empty : role;
     }
     public Guid GetCurrentUserId { get; }

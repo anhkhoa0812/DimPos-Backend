@@ -10,10 +10,13 @@ public class CollectionsConfiguration : IEntityTypeConfiguration<Collections>
     {
         builder.HasKey(c => c.Id);
         builder.Property(c => c.Name)
+            .IsRequired()
             .HasMaxLength(100);
         builder.Property(c => c.Description)
             .HasMaxLength(255);
         builder.Property(c => c.SKU)
             .HasMaxLength(50);
+        builder.Property(c => c.IsActiveByBrand)
+            .IsRequired();
     }
 }
