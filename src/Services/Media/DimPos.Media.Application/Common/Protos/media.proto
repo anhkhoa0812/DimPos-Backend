@@ -1,0 +1,28 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Media.Application.Common.Protos";
+
+
+service MediaGrpcService {
+  rpc UploadImage (stream UploadImageRequest) returns (UploadImageResponse);
+}
+message UploadImageRequest {
+  ListImageRequest listImageRequest = 1;
+}
+message ListImageRequest {
+  repeated ImageRequest imageRequest = 1;
+}
+message ImageRequest {
+  string id = 1;
+  bytes chunk_data = 2;
+}
+message UploadImageResponse {
+    ListImageResponse listImageResponse = 1;
+}
+message ListImageResponse {
+  repeated ImageResponse imageResponse = 1;
+}
+message ImageResponse {
+  string id = 1;
+  string imageUrl = 2;
+}
