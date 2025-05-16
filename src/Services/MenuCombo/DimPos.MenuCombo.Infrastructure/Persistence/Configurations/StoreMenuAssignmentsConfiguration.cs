@@ -9,5 +9,12 @@ public class StoreMenuAssignmentsConfiguration : IEntityTypeConfiguration<StoreM
     public void Configure(EntityTypeBuilder<StoreMenuAssignments> builder)
     {
         builder.HasKey(sma => sma.Id);
+        builder.Property(sma => sma.StoreId)
+            .IsRequired();
+        builder.Property(sma => sma.BrandMenuId)
+            .IsRequired();
+        builder.Property(sma => sma.IsActiveAtStore)
+            .IsRequired();
+
     }
 }

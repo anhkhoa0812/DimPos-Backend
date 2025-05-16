@@ -56,7 +56,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             include: x => x.Include(x => x.Menu)
         );
         var variantIdStrings = variantIds
-            .Select(x => x.Value.ToString())
+            .Select(x => x.ToString())
             .ToList();
         var storeMenuGrpc = _catalogGrpcService.GetMenuProductByStore(new GetMenuProductByStoreRequest()
         {

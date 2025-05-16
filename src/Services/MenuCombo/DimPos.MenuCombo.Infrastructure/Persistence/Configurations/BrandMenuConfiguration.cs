@@ -11,9 +11,13 @@ public class BrandMenuConfiguration : IEntityTypeConfiguration<BrandMenu>
     {
         builder.HasKey(m => m.Id);
         builder.Property(m => m.Name)
+            .IsRequired()
             .HasMaxLength(200);
         builder.Property(m => m.Description)
             .HasMaxLength(1000);
+        builder.Property(m => m.IsActiveByBrand)
+            .IsRequired();
+        
         builder.Property(m => m.Type)
             .HasConversion(
                 v => v.ToString(),

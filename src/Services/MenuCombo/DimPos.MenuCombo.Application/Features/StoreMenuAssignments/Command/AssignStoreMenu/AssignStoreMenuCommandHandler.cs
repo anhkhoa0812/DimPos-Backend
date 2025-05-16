@@ -6,6 +6,7 @@ using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
 using DimPos.Store.Application.Common.Protos;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using SharedProject.Events.AssignMenuForStore;
 
 namespace DimPos.MenuCombo.Application.Features.StoreMenuAssignments.Command.AssignStoreMenu;
 
@@ -40,6 +41,9 @@ public class AssignStoreMenuCommandHandler : IRequestHandler<AssignStoreMenuComm
         {
             throw new BadHttpRequestException("Không tìm thấy BrandMenu");
         }
+        var productVariantIds = brandMenu.MenuItems
+            .Select(x => x.ProductVariantId)
+            .ToList();
         var requestStoreIds = request.AssignStoreMenuRequests.Select(x => x.StoreId).ToHashSet();
         var requestedIdStrings = requestStoreIds
             .Select(x => x.ToString())
@@ -62,7 +66,7 @@ public class AssignStoreMenuCommandHandler : IRequestHandler<AssignStoreMenuComm
             throw new BadHttpRequestException("Một hoặc nhiều cửa hàng không hợp lệ");
         }
         var storeIds = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().GetListAsync(
-            selector: x => x.StoreId ?? Guid.Empty,
+            selector: x => x.StoreId,
             predicate: x => x.BrandMenuId == brandMenu.Id
         );
         
@@ -88,11 +92,17 @@ public class AssignStoreMenuCommandHandler : IRequestHandler<AssignStoreMenuComm
                 }).ToList()
             }).ToList();
             await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().InsertRangeAsync(storeMenus);
+            var assignNewStoreMenuRequest = new AssignNewStoreMenuResponse()
+            {
+                BrandId = brandId.Value,
+                // ProductVariantIds = productVariantIds,
+                StoreIds = newStoreIds.ToList()
+            };
         }
         if (removeStoreIds.Any())
         {
             var storeMenus = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().GetListAsync(
-                predicate: x => removeStoreIds.Contains(x.StoreId ?? Guid.Empty) && x.BrandMenuId == brandMenu.Id
+                predicate: x => removeStoreIds.Contains(x.StoreId) && x.BrandMenuId == brandMenu.Id
             );
             _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().DeleteRangeAsync(storeMenus);
         }

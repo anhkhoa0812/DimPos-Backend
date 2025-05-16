@@ -11,8 +11,12 @@ public class RolesConfiguration : IEntityTypeConfiguration<Role>
     {
         builder.HasKey(r => r.Id);
         builder.Property(r => r.ShortName)
+            .IsRequired()
             .HasMaxLength(50);
+        builder.Property(r => r.ShortName)
+            .IsRequired();
         builder.Property(r => r.Name)
+            .IsRequired()
             .HasConversion(
                 v => v.ToString(),
                 v => (ERoleName)Enum.Parse(typeof(ERoleName), v)

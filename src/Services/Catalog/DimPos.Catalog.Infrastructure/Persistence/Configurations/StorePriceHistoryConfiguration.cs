@@ -14,11 +14,24 @@ public class StorePriceHistoryConfiguration : IEntityTypeConfiguration<StorePric
     {
         builder.HasKey(sph => sph.Id);
         builder.Property(sph => sph.CurrencyCode)
+            .IsRequired()
             .HasMaxLength(10);
         builder.Property(sph => sph.OldPrice)
+            .IsRequired()
             .HasPrecision(18,4);
         builder.Property(sph => sph.NewPrice)
+            .IsRequired()
             .HasPrecision(18,4);
+        builder.Property(sph => sph.ChangedAt)
+            .IsRequired();
+        builder.Property(sph => sph.ChangedBy)
+            .IsRequired();
+        builder.Property(sph => sph.StorePriceId)
+            .IsRequired();
+        builder.Property(sph => sph.ProductVariantId)
+            .IsRequired();
+        builder.Property(sph => sph.StoreId)
+            .IsRequired();
         builder.HasOne(sph => sph.StorePrice)
             .WithMany(sp => sp.StorePriceHistories)
             .HasForeignKey(sph => sph.StorePriceId)

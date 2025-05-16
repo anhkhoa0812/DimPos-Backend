@@ -11,8 +11,10 @@ public class BrandMenuItemsConfiguration : IEntityTypeConfiguration<BrandMenuIte
         builder.HasKey(mi => mi.Id);
         builder.Property(mi => mi.Description)
             .HasMaxLength(255);
-        builder.Property(mi => mi.ItemType)
-            .HasMaxLength(50);
+        builder.Property(mi => mi.MenuId)
+            .IsRequired();
+        builder.Property(mi => mi.ProductVariantId)
+            .IsRequired();
         builder.HasOne(mi => mi.Menu)
             .WithMany(m => m.MenuItems)
             .HasForeignKey(mi => mi.MenuId)

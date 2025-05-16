@@ -6,5 +6,5 @@ public class BrandAccounts : EntityAuditBase<Guid>
 {
     public Guid AccountId { get; set; }
     public Guid BrandId { get; set; }
-    public virtual Brands? Brand { get; set; }
+    public virtual Brands Brand { get; set; }
 }

@@ -16,8 +16,18 @@ public class StorePriceConfiguration : IEntityTypeConfiguration<StorePrice>
     {
         builder.HasKey(sp => sp.Id);
         builder.Property(sp => sp.CurrencyCode)
+            .IsRequired()
             .HasMaxLength(10);
-        builder.Property(sp => sp.Price)
+        builder.Property(sp => sp.OverridePrice)
+            .IsRequired()
             .HasPrecision(18,4);
+        builder.Property(sp => sp.StoreId)
+            .IsRequired();
+        builder.Property(sp => sp.ProductVariantId)
+            .IsRequired();
+        builder.Property(sp => sp.EffectiveFrom)
+            .IsRequired();
+        builder.Property(sp => sp.IsActiveAtStore)
+            .IsRequired();
     }
 }

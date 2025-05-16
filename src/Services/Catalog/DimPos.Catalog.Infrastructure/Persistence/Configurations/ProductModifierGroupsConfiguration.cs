@@ -9,6 +9,10 @@ public class ProductModifierGroupsConfiguration : IEntityTypeConfiguration<Produ
     public void Configure(EntityTypeBuilder<ProductModifierGroups> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.ProductId)
+            .IsRequired();
+        builder.Property(x => x.ModifierGroupId)
+            .IsRequired();
         builder.HasOne(pmg => pmg.Product)
             .WithMany(p => p.ProductModifierGroups)
             .HasForeignKey(pmg => pmg.ProductId)

@@ -15,16 +15,23 @@ public class AccountsConfiguration : IEntityTypeConfiguration<Accounts>
         builder.HasIndex(a => a.Code)
             .IsUnique();
         builder.Property(a => a.Username)
+            .IsRequired()
             .HasMaxLength(50);
         builder.Property(a => a.Code)
+            .IsRequired()
             .HasMaxLength(50);
-        builder.Property(a => a.Username)
-            .HasMaxLength(50);
+        builder.Property(a => a.PasswordHash)
+            .IsRequired();
+        builder.Property(a => a.PasswordSalt)
+            .IsRequired();
+        builder.Property(a => a.RoleId)
+            .IsRequired();
         builder.HasOne(a => a.Role)
             .WithMany(r => r.Accounts)
             .HasForeignKey(a => a.RoleId)
             .OnDelete(DeleteBehavior.Restrict);
         builder.Property(a => a.Status)
+            .IsRequired()
             .HasConversion(
                 v => v.ToString(),
                 v => (EAccountStatus)Enum.Parse(typeof(EAccountStatus), v));

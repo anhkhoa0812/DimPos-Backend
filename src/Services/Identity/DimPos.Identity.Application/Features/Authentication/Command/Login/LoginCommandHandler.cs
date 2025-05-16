@@ -77,7 +77,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
                         Data = null
                     };
                 }
-                token = _authenticationService.GenerateAccessToken(account, role.Name.Value, brandId: brandIdString, storeId: null);
+                token = _authenticationService.GenerateAccessToken(account, role.Name, brandId: brandIdString, storeId: null);
                 break;
             case ERoleName.Staff:
             case ERoleName.StoreAdmin:
@@ -95,10 +95,10 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
                         Data = null
                     };
                 }
-                token = _authenticationService.GenerateAccessToken(account, role.Name.Value, storeId: storeIdString, brandId: null);
+                token = _authenticationService.GenerateAccessToken(account, role.Name, storeId: storeIdString, brandId: null);
                 break;
             default:
-                token = _authenticationService.GenerateAccessToken(account, role.Name.Value, brandId: null, storeId: null);
+                token = _authenticationService.GenerateAccessToken(account, role.Name, brandId: null, storeId: null);
                 break;
         }
         // var token = _authenticationService.GenerateAccessToken(account);

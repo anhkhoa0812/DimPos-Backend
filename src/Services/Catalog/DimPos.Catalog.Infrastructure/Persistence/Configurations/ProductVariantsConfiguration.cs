@@ -19,15 +19,20 @@ public class ProductVariantsConfiguration : IEntityTypeConfiguration<ProductVari
     public void Configure(EntityTypeBuilder<ProductVariants> builder)
     {
         builder.HasKey(pv => pv.Id);
+        builder.Property(pv => pv.ProductId)
+            .IsRequired();
         builder.Property(p => p.Code)
+            .IsRequired()
             .HasMaxLength(50);
         builder.HasIndex(p => p.Code)
             .IsUnique();
         builder.Property(p => p.Name)
+            .IsRequired()
             .HasMaxLength(200);
         builder.Property(p => p.AlternativeCode)
             .HasMaxLength(100);
         builder.Property(pv => pv.Price)
+            .IsRequired()
             .HasPrecision(18, 4);
         builder.Property(pv => pv.DiscountPercent)
             .HasPrecision(5, 2);
@@ -40,6 +45,7 @@ public class ProductVariantsConfiguration : IEntityTypeConfiguration<ProductVari
             .HasForeignKey(pv => pv.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
         builder.Property(pv => pv.Status)
+            .IsRequired()
             .HasConversion(
                 v => v.ToString(),
                 v => (EProductVariantStatus)Enum.Parse(typeof(EProductVariantStatus), v)

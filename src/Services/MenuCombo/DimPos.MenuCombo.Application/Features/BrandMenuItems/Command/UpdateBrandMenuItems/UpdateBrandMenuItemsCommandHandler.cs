@@ -62,7 +62,7 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
             throw new BadHttpRequestException("Một hoặc nhiều sản phẩm không hợp lệ");
         }
         var existingProductVariants = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
-            selector: x =>  x.ProductVariantId ?? Guid.Empty,
+            selector: x =>  x.ProductVariantId,
             predicate: x => x.MenuId == request.BrandMenuId && x.ProductVariantId != null
         );
         
@@ -115,10 +115,10 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
         if (removeProductVariantIds.Any())
         {
             var removeBrandMenuItem = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
-                predicate: x => x.MenuId == request.BrandMenuId && x.ProductVariantId != null && removeProductVariantIds.Contains(x.ProductVariantId.Value)
+                predicate: x => x.MenuId == request.BrandMenuId && x.ProductVariantId != null && removeProductVariantIds.Contains(x.ProductVariantId)
             );
             var storeMenuItemAvailability = await _unitOfWork.GetRepository<StoreMenuItemAvailability>().GetListAsync(
-                predicate: x => removeBrandMenuItem.Select(x => x.Id).Contains(x.BrandMenuItemId.Value)
+                predicate: x => removeBrandMenuItem.Select(x => x.Id).Contains(x.BrandMenuItemId)
             );
             _unitOfWork.GetRepository<StoreMenuItemAvailability>().DeleteRangeAsync(storeMenuItemAvailability);
             _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().DeleteRangeAsync(removeBrandMenuItem);

@@ -24,7 +24,7 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
     
     public async ValueTask<ApiResponse> Handle(CreateCategoriesCommand request, CancellationToken cancellationToken)
     {
-        var brandId = _claimService.GetBrandId;
+        var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
         _logger.Information($"BEGIN: {nameof(CreateCategoriesCommandHandler)} - {DateTime.UtcNow}");

@@ -1,4 +1,3 @@
-using DimPos.Catalog.Application.Services.Implement;
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Models.Categories;
 using DimPos.Catalog.Domain.Models.Common;

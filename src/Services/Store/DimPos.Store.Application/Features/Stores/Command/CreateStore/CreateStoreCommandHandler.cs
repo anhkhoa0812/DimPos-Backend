@@ -30,17 +30,10 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Api
     
     public async ValueTask<ApiResponse> Handle(CreateStoreCommand request, CancellationToken cancellationToken)
     {
-        var brandId = _claimService.GetBrandId;
+        var brandId = _claimService.GetBrandId ?? Guid.Empty;
         
-        if (brandId.Equals(Guid.Empty))
-        {
-            return new ApiResponse()
-            {
-                Status = 401,
-                Message = "Không tìm thấy thương hiệu",
-                Data = null
-            };
-        }
+        if (brandId == Guid.Empty)
+            throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
         
         var store = StoreMapper.ToStores(request);
         store.Id = Guid.CreateVersion7();

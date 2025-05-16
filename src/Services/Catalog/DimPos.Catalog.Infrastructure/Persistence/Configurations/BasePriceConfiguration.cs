@@ -14,8 +14,16 @@ public class BasePriceConfiguration : IEntityTypeConfiguration<BasePrice>
     {
         builder.HasKey(bp => bp.Id);
         builder.Property(bp => bp.CurrencyCode)
+            .IsRequired()
             .HasMaxLength(10);
+        builder.Property(bp => bp.BrandId)
+            .IsRequired();
+        builder.Property(bp => bp.ProductVariantId)
+            .IsRequired();
         builder.Property(bp => bp.Price)
+            .IsRequired()
             .HasPrecision(18, 4);
+        builder.Property(bp => bp.EffectiveFrom)
+            .IsRequired();
     }
 }

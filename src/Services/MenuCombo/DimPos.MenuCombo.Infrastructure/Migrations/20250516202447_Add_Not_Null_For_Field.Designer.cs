@@ -4,6 +4,7 @@ using DimPos.MenuCombo.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DimPos.MenuCombo.Infrastructure.Migrations
 {
     [DbContext(typeof(MenuComboContext))]
-    partial class MenuComboContextModelSnapshot : ModelSnapshot
+    [Migration("20250516202447_Add_Not_Null_For_Field")]
+    partial class Add_Not_Null_For_Field
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

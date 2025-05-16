@@ -14,9 +14,14 @@ public class ProductImagesConfiguration : IEntityTypeConfiguration<ProductImages
     {
         builder.HasKey(pi => pi.Id);
         builder.Property(pi => pi.ImageUrl)
+            .IsRequired()
             .HasMaxLength(1000);
+        builder.Property(pi => pi.IsMainImage)
+            .IsRequired();
         builder.Property(pi => pi.AltText)
             .HasMaxLength(500);
+        builder.Property(pi => pi.ProductId)
+            .IsRequired();
         builder.HasOne(pi => pi.Product)
             .WithMany(p => p.ProductImages)
             .HasForeignKey(pi => pi.ProductId)

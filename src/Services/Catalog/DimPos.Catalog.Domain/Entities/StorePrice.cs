@@ -4,12 +4,12 @@ namespace DimPos.Catalog.Domain.Entities;
 
 public class StorePrice : EntityAuditBase<Guid>
 {
-    public string? CurrencyCode { get; set; }
-    public decimal? Price { get; set; }
-    public DateTime? EffectiveFrom { get; set; }
-    public bool? IsActiveAtStore { get; set; } = true;
-    public Guid? StoreId { get; set; }
-    public Guid? ProductVariantId { get; set; }
+    public string CurrencyCode { get; set; }
+    public decimal OverridePrice { get; set; }
+    public DateTime EffectiveFrom { get; set; }
+    public bool IsActiveAtStore { get; set; }
+    public Guid StoreId { get; set; }
+    public Guid ProductVariantId { get; set; }
     
     public virtual IEnumerable<StorePriceHistory>? StorePriceHistories { get; set; } = new List<StorePriceHistory>();
 }
