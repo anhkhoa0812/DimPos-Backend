@@ -2,6 +2,7 @@ using System.Net;
 using DimPos.Catalog.Application.Common.Mapper;
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Entities;
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
@@ -27,13 +28,18 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
     public async ValueTask<ApiResponse> Handle(CreateProductsCommand request, CancellationToken cancellationToken)
     {
         _logger.Information($"BEGIN: {nameof(CreateProductsCommandHandler)} - {DateTime.UtcNow}");
-        
+        var brandId = _claimService.GetBrandId;
+        if (brandId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy brandId");
+        }
         var product = ProductMapper.ToProducts(request);
         product.Id = Guid.CreateVersion7();
         product.IsMenuDisplay = false;
         product.IsMostOrdered = false;
-        product.ProductVariants = new List<Domain.Entities.ProductVariants>();
-        product.BrandId = _claimService.GetBrandId;
+        product.ProductVariants = new List<ProductVariants>();
+        product.BrandId = brandId;
+        product.Status = EProductStatus.Active;
         if (request.ProductVariants != null)
         {
             foreach (var productVariant in request.ProductVariants)
@@ -43,19 +49,38 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 productVariants.ProductId = product.Id;
                 productVariants.IsActive = false;
                 productVariants.IsMenuDisplay = false;
+                productVariants.Price = productVariant.BrandPrice;
+                productVariants.Status = EProductVariantStatus.Active;
                 product.ProductVariants.Add(productVariants);
+
+                var basePrice = new BasePrice()
+                {
+                    Id = Guid.CreateVersion7(),
+                    ProductVariantId = productVariants.Id,
+                    Price = productVariant.BrandPrice,
+                    BrandId = brandId,
+                    BrandPriceHistories = new List<BrandPriceHistory>()
+                    {
+                        new BrandPriceHistory()
+                        {
+                            Id = Guid.CreateVersion7(),
+                            OldPrice = 0,
+                            NewPrice = productVariant.BrandPrice,
+                            ChangedAt = DateTime.UtcNow,
+                            ChangedBy = brandId,
+                        }
+                    }
+                };
+                await _unitOfWork.GetRepository<BasePrice>().InsertAsync(basePrice);
             }
+            
             product.IsHasVariants = true;
         }
         else
         {
-            if (request.Price == null)
+            if (request.BrandPrice == null)
             {
-                return new ApiResponse()
-                {
-                    Status = (int) HttpStatusCode.BadRequest,
-                    Message = "Giá sản phẩm không được để trống",
-                };
+                throw new BadHttpRequestException("Giá sản phẩm không được để trống");
             }
             product.IsHasVariants = false;
             //Chưa set Status
@@ -67,13 +92,33 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 Name = request.Name,
                 AlternativeCode = request.AlternativeCode,
                 ProductId = product.Id,
-                Price = request.Price,
+                Price = request.BrandPrice,
                 PriceCOGS = request.PriceCOGS,
                 IsActive = false,
                 DiscountPercent = request.DiscountPercent,
                 DiscountPrice = request.DiscountPrice,
                 DisplayOrder = request.DisplayOrder,
+                Status = EProductVariantStatus.Active
             };
+            var basePrice = new BasePrice()
+            {
+                Id = Guid.CreateVersion7(),
+                ProductVariantId = productVariant.Id,
+                Price = request.BrandPrice,
+                BrandId = brandId,
+                BrandPriceHistories = new List<BrandPriceHistory>()
+                {
+                    new BrandPriceHistory()
+                    {
+                        Id = Guid.CreateVersion7(),
+                        OldPrice = 0,
+                        NewPrice = request.BrandPrice,
+                        ChangedAt = DateTime.UtcNow,
+                        ChangedBy = brandId,
+                    }
+                }
+            };
+            await _unitOfWork.GetRepository<BasePrice>().InsertAsync(basePrice);
             product.ProductVariants.Add(productVariant);
         }
 

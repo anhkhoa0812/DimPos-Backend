@@ -8,12 +8,11 @@ public class CreateProductsCommand : IRequest<ApiResponse>
     public string Code { get; set; } 
     public string? AlternativeCode { get; set; }
     public string Name { get; set; }
-    public decimal? Price { get; set; }
+    public decimal? BrandPrice { get; set; }
     public decimal? DiscountPercent { get; set; }
     public decimal? DiscountPrice { get; set; }
     public decimal? PriceCOGS { get; set; }
     public string Description { get; set; }
-    public int Status { get; set; }
     public bool IsAvailable { get; set; }
     public int? DisplayOrder { get; set; }
     public int SaleType { get; set; }
@@ -27,15 +26,14 @@ public class CreateProductsCommand : IRequest<ApiResponse>
 
 public record CreateProductVariant
 {
-    public string? Code { get; set; }
+    public string Code { get; set; }
     public string? AlterativeCode { get; set; }
     public string? Name { get; set; }
     public decimal? DiscountPercent { get; set; }
     public decimal? DiscountPrice { get; set; }
-    public decimal? Price { get; set; }
+    public decimal BrandPrice { get; set; }
     public decimal? PriceCOGS { get; set; }
     public int? DisplayOrder { get; set; }
-    public int? Status { get; set; }
 }
 
 public record CreateProductImages

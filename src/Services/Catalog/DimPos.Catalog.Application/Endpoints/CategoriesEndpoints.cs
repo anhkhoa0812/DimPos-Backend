@@ -16,6 +16,7 @@ public class CategoriesEndpoints : ICarterModule
         var group = app.MapGroup(ApiEndPointConstants.Categories.CategoriesEndpoint).WithTags("Categories");
 
         group.MapPost("", CreateCategory)
+            .RequireAuthorization("BrandPolicy")
             .DisableAntiforgery()
             .WithName(nameof(CreateCategory))
             .Produces<ApiResponse>(StatusCodes.Status201Created)

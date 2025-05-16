@@ -73,4 +73,22 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             IsValid = true
         };
     }
+
+    public override async Task<GetStoreIdByAccountIdResponse> GetStoreIdByAccountId(GetStoreIdByAccountIdRequest request, ServerCallContext context)
+    {
+        var storeId = await _unitOfWork.GetRepository<Domain.Entities.StoreAccounts>().SingleOrDefaultAsync(
+            predicate: x => x.AccountId == Guid.Parse(request.AccountId)
+        );
+        if (storeId == null)
+        {
+            return new GetStoreIdByAccountIdResponse()
+            {
+                StoreId = String.Empty
+            };
+        }
+        return new GetStoreIdByAccountIdResponse()
+        {
+            StoreId = storeId.Id.ToString()
+        };
+    }
 }

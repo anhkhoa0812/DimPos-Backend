@@ -25,7 +25,7 @@ public class ProductsEndpoints : ICarterModule
         group.MapGet("", GetProducts).WithName(nameof(GetProducts))
             .Produces<ApiResponse<List<ProductResponse>>>(StatusCodes.Status200OK);
     }
-    public async Task<IResult> CreateProduct(IMediator mediator,  [FromForm] CreateProductsCommand command, ValidationUtil<CreateProductsCommand> validationUtil)
+    public async Task<IResult> CreateProduct(IMediator mediator,  [FromBody] CreateProductsCommand command, ValidationUtil<CreateProductsCommand> validationUtil)
     {
         var (isValid, response) = await validationUtil.ValidateAsync(command);
         if (!isValid)

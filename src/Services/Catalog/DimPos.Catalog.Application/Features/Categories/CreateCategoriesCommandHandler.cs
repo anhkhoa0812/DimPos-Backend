@@ -13,20 +13,25 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IUploadService _uploadService;
-
-    public CreateCategoriesCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IUploadService uploadService)
+    private readonly IClaimService _claimService;
+    public CreateCategoriesCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IUploadService uploadService, IClaimService claimService)
     {
-        _unitOfWork = unitOfWork;
-        _logger = logger;
-        _uploadService = uploadService;
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _uploadService = uploadService ?? throw new ArgumentNullException(nameof(uploadService));
+        _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
     }
     
     public async ValueTask<ApiResponse> Handle(CreateCategoriesCommand request, CancellationToken cancellationToken)
     {
+        var brandId = _claimService.GetBrandId;
+        if (brandId == Guid.Empty)
+            throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
         _logger.Information($"BEGIN: {nameof(CreateCategoriesCommandHandler)} - {DateTime.UtcNow}");
         var category = CategoriesMapper.ToCategories(request);
         category.Id = Guid.CreateVersion7();
         category.HasChildCategory = false;
+        category.BrandId = brandId;
         if (request.ParentId != null)
         {
             var parentCategory = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(

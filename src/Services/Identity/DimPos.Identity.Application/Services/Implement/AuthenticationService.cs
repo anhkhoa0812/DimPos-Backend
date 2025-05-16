@@ -21,7 +21,7 @@ public class AuthenticationService : IAuthenticationService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public string GenerateAccessToken(Accounts accounts,  ERoleName roleName, string? brandId)
+    public string GenerateAccessToken(Accounts accounts,  ERoleName roleName, string? brandId, string? storeId)
     {
         var tokenhandler = new JwtSecurityTokenHandler();
         var tokenkey = Encoding.UTF8.GetBytes(_jwtSettings.SecurityKey!);
@@ -36,6 +36,8 @@ public class AuthenticationService : IAuthenticationService
                     new Claim("Username", accounts.Username!),
                     new Claim(ClaimTypes.Role, roleName.ToString()),
                     !string.IsNullOrEmpty(brandId) ? new Claim("BrandId", brandId!) : new Claim("BrandId", string.Empty),
+                    !string.IsNullOrEmpty(storeId) ? new Claim("StoreId", storeId!) : new Claim("StoreId", string.Empty),
+
                 }
             ),
             Expires = timeExpire,
