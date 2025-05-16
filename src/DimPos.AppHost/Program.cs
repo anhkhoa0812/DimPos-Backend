@@ -18,6 +18,7 @@ var brandApi = builder.AddProject<Projects.DimPos_Brand_Application>("brand-api"
     // .WaitFor(kafka);
 var storeApi = builder.AddProject<Projects.DimPos_Store_Application>("store-api");
 var menuComboApi = builder.AddProject<Projects.DimPos_MenuCombo_Application>("menu-combo-api");
+var mediaApi = builder.AddProject<Projects.DimPos_Media_Application>("media-api");
 var orchestrator = builder.AddProject<Projects.DimPos_Orchestrator>("orchestrator")
         .WithReference(brandApi)
         .WithReference(catalogApi)

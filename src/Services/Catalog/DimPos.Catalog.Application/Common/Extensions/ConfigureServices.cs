@@ -5,6 +5,8 @@ using DimPos.Catalog.Application.Features.ModifierGroups.Command.CreateModifierG
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 using DimPos.Catalog.Application.Services.Implement;
 using DimPos.Catalog.Application.Services.Interface;
+using DimPos.Catalog.Domain.Models.Settings;
+using DimPos.Media.Application.Common.Protos;
 using FluentValidation;
 using Mediator;
 using Microsoft.OpenApi;
@@ -14,7 +16,7 @@ namespace DimPos.Catalog.Application.Common.Extensions;
 
 public static class ConfigureServices
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         services
             .AddMediator( options =>
@@ -34,10 +36,29 @@ public static class ConfigureServices
             options.ThrowOnBadRequest = true;
         });
         services.AddGrpc();
+        services.AddGrpcServices(configuration);
         services.AddHttpContextAccessor();
         services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IClaimService, ClaimService>();
         services.AddHealthChecks();
+        return services;
+    }
+    public static IServiceCollection AddGrpcServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var settings = configuration.GetSection("GrpcSettings")
+            .Get<GrpcSettings>();
+        if (settings == null || string.IsNullOrEmpty(settings.MediaUrl))
+            throw new ArgumentNullException("Grpc is not configured.");
+
+        services.AddGrpcClient<MediaGrpcService.MediaGrpcServiceClient>(x =>
+            {
+                x.Address = new Uri(settings.MediaUrl);
+                x.ChannelOptionsActions.Add(channelOptions =>
+                {
+                    channelOptions.HttpVersion = System.Net.HttpVersion.Version20;
+                });
+            }
+        );
         return services;
     }
 }

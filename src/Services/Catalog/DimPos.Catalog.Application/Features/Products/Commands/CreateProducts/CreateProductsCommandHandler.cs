@@ -6,6 +6,9 @@ using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
+using DimPos.Media.Application.Common.Protos;
+using Google.Protobuf;
+using Grpc.Core;
 using Mediator;
 
 namespace DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
@@ -15,15 +18,16 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
     
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
-    private readonly IUploadService _uploadService;
     private readonly IClaimService _claimService;
+    private readonly MediaGrpcService.MediaGrpcServiceClient _mediaGrpcService;
     public CreateProductsCommandHandler(IUnitOfWork<CatalogContext> unitOfWork,
-        ILogger logger, IUploadService uploadService, IClaimService claimService)
+        ILogger logger, IClaimService claimService,
+        MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
-        _uploadService = uploadService;
         _claimService = claimService;
+        _mediaGrpcService = mediaGrpcService;
     }
     public async ValueTask<ApiResponse> Handle(CreateProductsCommand request, CancellationToken cancellationToken)
     {
@@ -149,24 +153,64 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 throw new BadHttpRequestException("Chỉ được chọn 1 ảnh chính");
             }
 
-            //Lưu ảnh xuống local VPS, publish 1 event đến uploadService, để upload ảnh lên S3 và cập nhập lại data
-            await Parallel.ForEachAsync(request.ProductImages, cancellationToken, async (productImage, ct) =>
+            var uploadImageGrpcRequest = new ListImageRequest();
+            var productImageList = new List<ProductImages>();
+            foreach (var productImage in request.ProductImages)
             {
-                if(productImage.Image == null)
-                    throw new BadHttpRequestException("Hình ảnh không được để trống");
-                var entity = new ProductImages()
+                var productImageId = Guid.CreateVersion7();
+                using var memoryStream = new MemoryStream();
+                await productImage.Image.CopyToAsync(memoryStream, cancellationToken);
+                var byteString = ByteString.CopyFrom(memoryStream.ToArray());
+                uploadImageGrpcRequest.ImageRequest.Add(new ImageRequest()
                 {
-                    Id = Guid.CreateVersion7(),
+                    Id = productImageId.ToString(),
+                    ChunkData = byteString
+                });
+                var productImageEntity = new ProductImages()
+                {
+                    Id = productImageId,
                     IsMainImage = productImage.IsMainImage,
                     AltText = productImage.AltText,
                     ProductId = product.Id
                 };
-                
-                var url = await _uploadService.UploadImageAsync(productImage.Image);
-                if (!string.IsNullOrEmpty(url))
-                    entity.ImageUrl = url;
-                await _unitOfWork.GetRepository<ProductImages>().InsertAsync(entity);
+                productImageList.Add(productImageEntity);
+            }
+            
+            using var call = _mediaGrpcService.UploadImage(cancellationToken: cancellationToken);
+            await call.RequestStream.WriteAsync(new UploadImageRequest()
+            {
+                ListImageRequest = uploadImageGrpcRequest
             });
+            await call.RequestStream.CompleteAsync();
+            
+            var uploadImageGrpcResponse = await call.ResponseAsync;
+            foreach (var imageResponse in uploadImageGrpcResponse.ListImageResponse.ImageResponse)
+            {
+                var productImage = productImageList.FirstOrDefault(x => x.Id.ToString() == imageResponse.Id);
+                if (productImage != null)
+                {
+                    productImage.ImageUrl = imageResponse.ImageUrl;
+                    await _unitOfWork.GetRepository<ProductImages>().InsertAsync(productImage);
+                }
+            }
+            // //Lưu ảnh xuống local VPS, publish 1 event đến uploadService, để upload ảnh lên S3 và cập nhập lại data
+            // await Parallel.ForEachAsync(request.ProductImages, cancellationToken, async (productImage, ct) =>
+            // {
+            //     if(productImage.Image == null)
+            //         throw new BadHttpRequestException("Hình ảnh không được để trống");
+            //     var entity = new ProductImages()
+            //     {
+            //         Id = Guid.CreateVersion7(),
+            //         IsMainImage = productImage.IsMainImage,
+            //         AltText = productImage.AltText,
+            //         ProductId = product.Id
+            //     };
+            //     
+            //     var url = await _uploadService.UploadImageAsync(productImage.Image);
+            //     if (!string.IsNullOrEmpty(url))
+            //         entity.ImageUrl = url;
+            //     await _unitOfWork.GetRepository<ProductImages>().InsertAsync(entity);
+            // });
         }
         await _unitOfWork.GetRepository<Domain.Entities.Products>().InsertAsync(product);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
