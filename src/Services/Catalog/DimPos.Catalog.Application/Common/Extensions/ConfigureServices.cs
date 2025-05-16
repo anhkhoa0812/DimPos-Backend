@@ -1,6 +1,6 @@
 using DimPos.Catalog.Application.Common.Behaviours;
 using DimPos.Catalog.Application.Common.Utils;
-using DimPos.Catalog.Application.Features.Categories;
+using DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
 using DimPos.Catalog.Application.Features.ModifierGroups.Command.CreateModifierGroups;
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 using DimPos.Catalog.Application.Services.Implement;
@@ -9,8 +9,6 @@ using DimPos.Catalog.Domain.Models.Settings;
 using DimPos.Media.Application.Common.Protos;
 using FluentValidation;
 using Mediator;
-using Microsoft.OpenApi;
-using Microsoft.OpenApi.Models;
 
 namespace DimPos.Catalog.Application.Common.Extensions;
 

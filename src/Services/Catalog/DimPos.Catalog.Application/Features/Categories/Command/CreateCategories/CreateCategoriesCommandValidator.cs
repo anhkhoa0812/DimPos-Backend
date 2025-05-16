@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace DimPos.Catalog.Application.Features.Categories;
+namespace DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
 
 public class CreateCategoriesCommandValidator : AbstractValidator<CreateCategoriesCommand>
 {

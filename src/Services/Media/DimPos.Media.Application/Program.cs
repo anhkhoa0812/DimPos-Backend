@@ -1,3 +1,4 @@
+using DimPos.Media.Application.Common.Models.Settings;
 using DimPos.Media.Application.GrpcService;
 using DimPos.Media.Application.Service.Implement;
 using DimPos.Media.Application.Service.Interface;
@@ -10,6 +11,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddCors();
 builder.Services.AddGrpc();
 builder.Services.AddScoped<IUploadService, UploadService>();
+builder.Services.Configure<S3CompatibleStorageSettings>(builder.Configuration.GetSection("S3CompatibleStorageSettings"));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

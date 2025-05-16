@@ -1,7 +1,7 @@
 using DimPos.Catalog.Domain.Models.Common;
 using Mediator;
 
-namespace DimPos.Catalog.Application.Features.Categories;
+namespace DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
 
 public class CreateCategoriesCommand : IRequest<ApiResponse>
 {

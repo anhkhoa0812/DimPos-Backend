@@ -6,7 +6,7 @@ using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
 using Mediator;
 
-namespace DimPos.Catalog.Application.Features.Categories;
+namespace DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
 
 public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCommand, ApiResponse>
 {
