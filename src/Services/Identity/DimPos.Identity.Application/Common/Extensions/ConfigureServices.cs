@@ -8,6 +8,7 @@ using DimPos.Identity.Application.Features.Authentication.Command.Login;
 using DimPos.Identity.Application.Services.Implement;
 using DimPos.Identity.Application.Services.Interface;
 using DimPos.Identity.Domain.Models.Settings;
+using DimPos.Store.Application.Common.Protos;
 using FluentValidation;
 using Grpc.Core;
 using Grpc.Net.Client.Configuration;
@@ -54,6 +55,16 @@ public static class ConfigureServices
             x =>
             {
                 x.Address = new Uri(settings.BrandUrl);
+                x.ChannelOptionsActions.Add(channelOptions =>
+                {
+                    channelOptions.HttpVersion = System.Net.HttpVersion.Version20;
+                });
+            }
+        );
+        services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(
+            x =>
+            {
+                x.Address = new Uri(settings.StoreUrl);
                 x.ChannelOptionsActions.Add(channelOptions =>
                 {
                     channelOptions.HttpVersion = System.Net.HttpVersion.Version20;

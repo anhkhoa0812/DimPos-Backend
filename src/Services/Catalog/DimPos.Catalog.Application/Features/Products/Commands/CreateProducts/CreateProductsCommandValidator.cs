@@ -25,9 +25,6 @@ public class CreateProductsCommandValidator : AbstractValidator<CreateProductsCo
         RuleFor(p => p.AlternativeCode)
             .MaximumLength(100).WithMessage("Mã thay thế của sản phẩm không được vượt quá 100 ký tự");
         
-        RuleFor(p => p.Status)
-            .NotEmpty().WithMessage("Trạng thái của sản phẩm không được bỏ trống");
-        
         RuleFor(p => p.IsAvailable)
             .NotEmpty().WithMessage("Trạng thái khả dụng của sản phẩm không được bỏ trống");
         
@@ -50,10 +47,8 @@ public class CreateProductVariantValidator : AbstractValidator<CreateProductVari
             .NotEmpty().WithMessage("Tên của biến thể sản phẩm không được bỏ trống")
             .MinimumLength(1).WithMessage("Tên của biến thể sản phẩm phải có ít nhất 1 ký tự")
             .MaximumLength(200).WithMessage("Tên của biến thể sản phẩm không được vượt quá 200 ký tự");
-        RuleFor(p => p.Price)
-            .NotEmpty().WithMessage("Giá của biến thể sản phẩm không được bỏ trống");
-        RuleFor(p => p.Status)
-            .NotEmpty().WithMessage("Trạng thái của biến thể sản phẩm không được bỏ trống");
+        RuleFor(p => p.BrandPrice)
+            .NotEmpty().WithMessage("Giá brand của biến thể sản phẩm không được bỏ trống");
     }
 }
 public class CreateProductVariantListValidator : AbstractValidator<List<CreateProductVariant>>

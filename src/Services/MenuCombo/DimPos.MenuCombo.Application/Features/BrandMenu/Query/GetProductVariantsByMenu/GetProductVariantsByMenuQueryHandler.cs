@@ -9,6 +9,7 @@ using DimPos.MenuCombo.Infrastructure.Paginate.Interface;
 using DimPos.MenuCombo.Infrastructure.Persistence;
 using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
 using Mediator;
+using ProductVariantResponse = DimPos.MenuCombo.Domain.Models.ProductVariant.ProductVariantResponse;
 
 namespace DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetProductVariantsByMenu;
 
