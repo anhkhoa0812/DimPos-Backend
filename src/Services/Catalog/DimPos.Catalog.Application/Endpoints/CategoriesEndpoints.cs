@@ -30,7 +30,7 @@ public class CategoriesEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
-    public async Task<IResult> CreateCategory(IMediator mediator, [FromBody] CreateCategoriesCommand command, ValidationUtil<CreateCategoriesCommand> validationUtil)
+    public async Task<IResult> CreateCategory(IMediator mediator, [FromForm] CreateCategoriesCommand command, ValidationUtil<CreateCategoriesCommand> validationUtil)
     {
         var (isValid, response) = await validationUtil.ValidateAsync(command);
         if (!isValid)

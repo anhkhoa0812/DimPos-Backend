@@ -4,6 +4,10 @@ namespace DimPos.Catalog.Application.Features.Categories.Command.CreateCategorie
 
 public class CreateCategoriesCommandValidator : AbstractValidator<CreateCategoriesCommand>
 {
+    private static readonly string[] _allowedExtensions = new[]
+    {
+        ".jpeg", ".png", ".jpg", ".gif", ".bmp", ".webp"
+    };
     public CreateCategoriesCommandValidator()
     {
         RuleFor(x => x.Code)
@@ -20,6 +24,13 @@ public class CreateCategoriesCommandValidator : AbstractValidator<CreateCategori
             .NotEmpty().WithMessage("Loại danh mục không được để trống");
         RuleFor(x => x.Status)
             .NotEmpty().WithMessage("Trạng thái không được để trống");
-        
+        RuleFor(x => x.Image)
+            .Cascade(CascadeMode.Stop)
+            .Must(file =>
+            {
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                return _allowedExtensions.Contains(extension);
+            }).WithMessage("Chỉ các định dạng tệp .jpeg, .png, .jpg, .gif, .bmp, .webp  được phép tải lên.");
     }
 }

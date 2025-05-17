@@ -30,6 +30,9 @@ public class CreateProductsCommandValidator : AbstractValidator<CreateProductsCo
         
         RuleFor(p => p.SaleType)
             .NotEmpty().WithMessage("Loại hình bán hàng của sản phẩm không được bỏ trống");
+        
+        RuleForEach(p => p.ProductVariants).SetValidator(new CreateProductVariantValidator());
+        RuleForEach(p => p.ProductImages).SetValidator(new CreateProductImageValidator());
     }
 }
 
@@ -51,10 +54,22 @@ public class CreateProductVariantValidator : AbstractValidator<CreateProductVari
             .NotEmpty().WithMessage("Giá brand của biến thể sản phẩm không được bỏ trống");
     }
 }
-public class CreateProductVariantListValidator : AbstractValidator<List<CreateProductVariant>>
+
+public class CreateProductImageValidator : AbstractValidator<CreateProductImages>
 {
-    public CreateProductVariantListValidator()
+    private static readonly string[] _allowedExtensions = new[]
     {
-        RuleForEach(x => x).SetValidator(new CreateProductVariantValidator());
+        ".jpeg", ".png", ".jpg", ".gif", ".bmp", ".webp"
+    };
+    public CreateProductImageValidator()
+    {
+        RuleFor(x => x.Image)
+            .Cascade(CascadeMode.Stop)
+            .Must(file =>
+            {
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                return _allowedExtensions.Contains(extension);
+            }).WithMessage("Chỉ các định dạng tệp .jpeg, .png, .jpg, .gif, .bmp, .webp  được phép tải lên.");
     }
 }

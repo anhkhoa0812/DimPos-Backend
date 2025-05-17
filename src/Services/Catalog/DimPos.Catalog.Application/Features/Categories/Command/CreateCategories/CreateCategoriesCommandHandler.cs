@@ -4,6 +4,8 @@ using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
+using DimPos.Media.Application.Common.Protos;
+using Google.Protobuf;
 using Mediator;
 
 namespace DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
@@ -12,14 +14,15 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
 {
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
-    private readonly IUploadService _uploadService;
     private readonly IClaimService _claimService;
-    public CreateCategoriesCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IUploadService uploadService, IClaimService claimService)
+    private readonly MediaGrpcService.MediaGrpcServiceClient _mediaGrpcService;
+    public CreateCategoriesCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService,
+        MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _uploadService = uploadService ?? throw new ArgumentNullException(nameof(uploadService));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
+        _mediaGrpcService = mediaGrpcService ?? throw new ArgumentNullException(nameof(mediaGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(CreateCategoriesCommand request, CancellationToken cancellationToken)
@@ -55,16 +58,33 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
 
         if (request.Image != null)
         {
-            var imageUrl = await _uploadService.UploadImageAsync(request.Image);
-            if(imageUrl == null)
+            using var memoryStream = new MemoryStream();
+            await request.Image.CopyToAsync(memoryStream, cancellationToken);
+            var byteString = ByteString.CopyFrom(memoryStream.ToArray());
+            var imageRequestId = Guid.CreateVersion7().ToString();
+            var imageRequest = new ImageRequest()
             {
-                return new ApiResponse()
+                Id = imageRequestId,
+                ChunkData = byteString
+            };
+            using var call = _mediaGrpcService.UploadImage(cancellationToken: cancellationToken);
+            await call.RequestStream.WriteAsync(new UploadImageRequest()
+            {
+                ListImageRequest = new ListImageRequest()
                 {
-                    Message = "Lỗi khi tải ảnh lên",
-                    Status =  (int) HttpStatusCode.InternalServerError,
-                };
-            }
-            category.PictureUrl = imageUrl;
+                    ImageRequest = { imageRequest }
+                }
+            });
+            await call.RequestStream.CompleteAsync();
+            
+            var uploadImageGrpcResponse = await call.ResponseAsync;
+            var imageResponse = uploadImageGrpcResponse.ListImageResponse
+                .ImageResponse
+                .FirstOrDefault(x => x.Id == imageRequestId)
+                ?.ImageUrl;
+            if (string.IsNullOrEmpty(imageResponse))
+                throw new Exception("Lỗi khi tải ảnh lên");
+            category.PictureUrl = imageResponse;
         }
         await _unitOfWork.GetRepository<Domain.Entities.Categories>().InsertAsync(category); 
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
