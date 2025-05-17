@@ -36,7 +36,6 @@ public static class ConfigureServices
         services.AddGrpc();
         services.AddGrpcServices(configuration);
         services.AddHttpContextAccessor();
-        services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IClaimService, ClaimService>();
         services.AddHealthChecks();
         return services;
