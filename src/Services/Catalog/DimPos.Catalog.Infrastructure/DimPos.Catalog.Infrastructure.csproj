@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\BuildingBlocks\Shared\SharedProject\SharedProject.csproj" />
       <ProjectReference Include="..\DimPos.Catalog.Domain\DimPos.Catalog.Domain.csproj" />
     </ItemGroup>
 
@@ -15,6 +16,7 @@
       <PackageReference Include="Carter" Version="8.2.0" />
       <PackageReference Include="FluentValidation" Version="11.11.0" />
       <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+      <PackageReference Include="MassTransit.Kafka" Version="8.4.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
       <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />

@@ -21,7 +21,7 @@ public class GetBrandMenuByBrandQueryHandler : IRequestHandler<GetBrandMenuByBra
     }
     public async ValueTask<ApiResponse> Handle(GetBrandMenuByBrandQuery request, CancellationToken cancellationToken)
     {
-        var brandId = _claimService.GetBrandId;
+        var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if (brandId == Guid.Empty)
         {
             throw new BadHttpRequestException("Không tìm thấy brandId");

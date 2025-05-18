@@ -19,6 +19,7 @@ public class RollbackBrandAccountConsumer : IConsumer<RollbackBrandAccountModel>
     
     public async Task Consume(ConsumeContext<RollbackBrandAccountModel> context)
     {
+        
         _logger.Information("RollbackBrandAccountConsumer: {CorrelationId}", context.Message.CorrelationId);
         var brand = await _unitOfWork.GetRepository<Brands>().SingleOrDefaultAsync(
             predicate: x => x.Id == context.Message.BrandId

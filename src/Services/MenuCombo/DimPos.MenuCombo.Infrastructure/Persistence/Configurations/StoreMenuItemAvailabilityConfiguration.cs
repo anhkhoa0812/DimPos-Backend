@@ -15,5 +15,9 @@ public class StoreMenuItemAvailabilityConfiguration : IEntityTypeConfiguration<S
             .IsRequired();
         builder.Property(smia => smia.IsActiveAtStore)
             .IsRequired();
+        builder.HasOne(x => x.StoreMenuAssignment)
+            .WithMany(x => x.StoreMenuItemAvailability)
+            .HasForeignKey(x => x.StoreMenuAssignmentId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

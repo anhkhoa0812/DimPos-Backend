@@ -21,7 +21,6 @@ public static class ConfigureServices
         });
         services.AddScoped<IUnitOfWork<StoreContext>, UnitOfWork<StoreContext>>();
         services.AddScoped<StoreContextSeed>();
-        services.AddCustomKafka(configuration);
         services.AddJWT(configuration);
         services.AddOpenApiConfig();
         services.AddAuthorization(options =>

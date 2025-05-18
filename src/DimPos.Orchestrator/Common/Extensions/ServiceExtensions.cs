@@ -2,8 +2,12 @@ using Confluent.Kafka;
 using DimPos.Orchestrator.Common.Models.Settings;
 using DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga;
 using DimPos.Orchestrator.SagaState.Brands.CreateStoreSaga;
+using DimPos.Orchestrator.SagaState.StoreMenu.AssignNewStoreMenu;
+using DimPos.Orchestrator.SagaState.StoreMenu.RemoveStoreMenu;
 using MassTransit;
+using SharedProject.Events.AssignMenuForStore;
 using SharedProject.Events.Brand;
+using SharedProject.Events.RemoveMenuForStore;
 using SharedProject.Events.Store.CreateStore;
 
 namespace DimPos.Orchestrator.Common.Extensions;
@@ -29,14 +33,19 @@ public static class ServiceExtensions
                     .AddSagaStateMachine<CreateBrandSagaStateMachine, CreateBrandSagaState>().InMemoryRepository();
                 rider
                     .AddSagaStateMachine<CreateStoreSagaStateMachine, CreateStoreSagaState>().InMemoryRepository();
-                
+                rider
+                    .AddSagaStateMachine<AssignNewStoreMenuStateMachine, AssignNewStoreMenuSagaState>().InMemoryRepository();
+                rider
+                    .AddSagaStateMachine<RemoveStoreMenuStateMachine, RemoveStoreMenuSagaState>().InMemoryRepository();
                 //Add Producers
                 rider.AddProducer<Null, CreateBrandAccountModel>(kafkaOptions!.Topics.CreateBrandAccountRequest);
                 rider.AddProducer<Null, RollbackBrandAccountModel>(kafkaOptions!.Topics.RollbackBrandAccountRequest);
                 rider.AddProducer<Null, CreateStoreAccountRequestModel>(kafkaOptions!.Topics.CreateStoreAccountRequest);
                 rider.AddProducer<Null, RollbackStoreRequestModel>(kafkaOptions!.Topics.RollbackStoreAccountRequest);
-                
-                
+                rider.AddProducer<Null, AddStorePriceRequestModel>(kafkaOptions!.Topics.AddStorePriceRequest);
+                rider.AddProducer<Null, RollbackStoreMenuModel>(kafkaOptions!.Topics.RollbackStoreMenuRequest);
+                rider.AddProducer<Null, RemoveStorePriceRequestModel>(kafkaOptions!.Topics.RemoveStorePriceRequest);
+                rider.AddProducer<Null, RollbackRemoveStoreMenuModel>(kafkaOptions!.Topics.RollbackRemoveStoreMenuRequest);
                 rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {
                     //Create Brand account
@@ -104,6 +113,74 @@ public static class ServiceExtensions
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureSaga<CreateStoreSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });  
+                    //Assign Store Price
+                    kafkaConfig.TopicEndpoint<Null, AssignNewStoreMenuModel>(
+                        topicName: kafkaOptions!.Topics.AssignNewStoreMenuResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<AssignNewStoreMenuSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });  
+                    kafkaConfig.TopicEndpoint<Null, AddStorePriceResponseModel>(
+                        topicName: kafkaOptions!.Topics.AddStorePriceResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<AssignNewStoreMenuSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });  
+                    kafkaConfig.TopicEndpoint<Null, AddStorePriceErrorModel>(
+                        topicName: kafkaOptions!.Topics.AddStorePriceError,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<AssignNewStoreMenuSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });  
+                    //Remove Store Price
+                    kafkaConfig.TopicEndpoint<Null, RemoveStoreMenuModel>(
+                        topicName: kafkaOptions!.Topics.RemoveStoreMenuResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<RemoveStoreMenuSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });  
+                    kafkaConfig.TopicEndpoint<Null, RemoveStorePriceResponseModel>(
+                        topicName: kafkaOptions!.Topics.RemoveStorePriceResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<RemoveStoreMenuSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });  
+                    kafkaConfig.TopicEndpoint<Null, RemoveStorePriceErrorModel>(
+                        topicName: kafkaOptions!.Topics.RemoveStorePriceError,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<RemoveStoreMenuSagaState>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

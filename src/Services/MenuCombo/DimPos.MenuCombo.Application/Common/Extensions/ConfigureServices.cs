@@ -28,6 +28,7 @@ public static class ConfigureServices
         {
             options.ThrowOnBadRequest = true;
         });
+        services.AddCustomKafka(configuration);
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();
         services.AddGrpcServices(configuration);
