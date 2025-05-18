@@ -20,7 +20,6 @@ public static class ConfigureServices
         });
         services.AddScoped<IUnitOfWork<BrandContext>, UnitOfWork<BrandContext>>();
         services.AddScoped<BrandContextSeed>();
-        services.AddCustomKafka(configuration);
         services.AddJWT(configuration);
         services.AddOpenApiConfig();
         services.AddAuthorization();

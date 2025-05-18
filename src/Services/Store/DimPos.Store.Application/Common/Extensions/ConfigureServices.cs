@@ -10,7 +10,7 @@ namespace DimPos.Store.Application.Common.Extensions;
 
 public static class ConfigureServices
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddMediator(options =>
             {
@@ -25,6 +25,7 @@ public static class ConfigureServices
         {
             options.ThrowOnBadRequest = true;
         });
+        services.AddCustomKafka(configuration);
         services.AddGrpc();
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();

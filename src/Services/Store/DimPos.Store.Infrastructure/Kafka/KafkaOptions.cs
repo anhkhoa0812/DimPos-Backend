@@ -11,4 +11,5 @@ public sealed record KafkaOptions
 public sealed record Topics
 {
     public string CreateStoreResponse { get; set; } = default!;
+    public string RollbackStoreAccountRequest { get; set; } = default!;
 }

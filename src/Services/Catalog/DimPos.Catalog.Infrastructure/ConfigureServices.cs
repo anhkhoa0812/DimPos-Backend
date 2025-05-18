@@ -23,7 +23,7 @@ public static class ConfigureServices
         });
         services.AddScoped<IUnitOfWork<CatalogContext>, UnitOfWork<CatalogContext>>();
         services.AddScoped<CatalogContextSeed>();
-        services.AddJWT(configuration);
+        services.AddJWT(configuration); 
         services.AddOpenApiConfig();
         services.Configure<S3CompatibleStorageSettings>(configuration.GetSection("S3CompatibleStorageSettings"));
         services.AddAuthorization(options =>

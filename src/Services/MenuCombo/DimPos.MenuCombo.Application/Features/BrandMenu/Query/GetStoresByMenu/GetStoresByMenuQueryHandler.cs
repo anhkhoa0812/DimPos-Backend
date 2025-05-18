@@ -27,7 +27,7 @@ public class GetStoresByMenuQueryHandler : IRequestHandler<GetStoresByMenuQuery,
     
     public async ValueTask<ApiResponse> Handle(GetStoresByMenuQuery request, CancellationToken cancellationToken)
     {
-        var brandId = _claimService.GetBrandId;
+        var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if(brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy brandId");
         var brandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().SingleOrDefaultAsync(

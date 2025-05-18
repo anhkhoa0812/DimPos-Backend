@@ -20,4 +20,14 @@ public sealed record Topics
     public string CreateStoreAccountResponse { get; set; } = default!;
     public string CreateStoreAccountError { get; set; } = default!;
     public string RollbackStoreAccountRequest { get; set; } = default!;
+    public string AssignNewStoreMenuResponse { get; set; } = default!;
+    public string AddStorePriceRequest { get; set; } = default!;
+    public string AddStorePriceResponse { get; set; } = default!;
+    public string AddStorePriceError { get; set; } = default!;
+    public string RollbackStoreMenuRequest { get; set; } = default!;
+    public string RemoveStoreMenuResponse { get; set; } = default!;
+    public string RemoveStorePriceRequest { get; set; } = default!;
+    public string RemoveStorePriceResponse { get; set; } = default!;
+    public string RemoveStorePriceError { get; set; } = default!;
+    public string RollbackRemoveStoreMenuRequest { get; set; } = default!;
 }
