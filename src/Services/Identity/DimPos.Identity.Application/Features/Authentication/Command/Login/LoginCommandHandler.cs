@@ -1,4 +1,5 @@
 using DimPos.Brand.Application.Common.Protos;
+using DimPos.Identity.Application.Common.Exceptions;
 using DimPos.Identity.Application.Common.Utils;
 using DimPos.Identity.Application.Services.Interface;
 using DimPos.Identity.Domain.Enum;
@@ -38,22 +39,12 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
         );
         if (account == null)
         {
-            return new ApiResponse()
-            {
-                Status = 404,
-                Message = "Không tìm thấy tài khoản",
-                Data = null
-            };
+            throw new NotFoundException("Không tìm thấy tài khoản");
         }
         var isValidPassword = PasswordUtil.Verify(request.Password, account.PasswordHash!, account.PasswordSalt!);
         if(!isValidPassword)
         {
-            return new ApiResponse()
-            {
-                Status = 401,
-                Message = "Sai tài khoản hoặc mật khẩu",
-                Data = null
-            };
+            throw new BadHttpRequestException("Sai tài khoản hoặc mật khẩu");
         }
 
         string token = String.Empty;
@@ -69,14 +60,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
                 }).BrandId;
                 
                 if (string.IsNullOrEmpty(brandIdString))
-                {
-                    return new ApiResponse()
-                    {
-                        Status = 404,
-                        Message = "Không tìm thấy thương hiệu",
-                        Data = null
-                    };
-                }
+                    throw new NotFoundException("Không tìm thấy thương hiệu");
                 token = _authenticationService.GenerateAccessToken(account, role.Name, brandId: brandIdString, storeId: null);
                 break;
             case ERoleName.Staff:
@@ -87,14 +71,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
                 }).StoreId;
                 
                 if (string.IsNullOrEmpty(storeIdString))
-                {
-                    return new ApiResponse()
-                    {
-                        Status = 404,
-                        Message = "Không tìm thấy cửa hàng",
-                        Data = null
-                    };
-                }
+                    throw new NotFoundException("Không tìm thấy cửa hàng");
+                
                 token = _authenticationService.GenerateAccessToken(account, role.Name, storeId: storeIdString, brandId: null);
                 break;
             default:

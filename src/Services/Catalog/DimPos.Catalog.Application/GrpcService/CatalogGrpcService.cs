@@ -108,7 +108,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             var categoryItem = new CategoryResponse()
             {
                 Id = category.Id.ToString(),
-                Name = category.Name ?? String.Empty,
+                Name = category.Name,
                 DisplayOrder = category.DisplayOrder ?? 0,
                 Code = category.Code ?? String.Empty,
                 Description = category.Description ?? String.Empty,

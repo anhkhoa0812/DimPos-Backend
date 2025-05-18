@@ -1,6 +1,7 @@
 using Carter;
 using Common.Logging;
 using DimPos.Identity.Application.Common.Extensions;
+using DimPos.Identity.Application.Common.Middlewares;
 using DimPos.Identity.Infrastructure;
 using DimPos.Identity.Infrastructure.Configurations;
 using DimPos.Identity.Infrastructure.Persistence;
@@ -39,6 +40,7 @@ try
         }
     }
 
+    app.UseMiddleware<GlobalException>();
     app.UseStaticFiles();
     app.UseRouting();
     app.UseCors(builder =>
