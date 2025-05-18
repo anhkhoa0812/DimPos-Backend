@@ -1,4 +1,5 @@
 using DimPos.Catalog.Domain.Entities;
+using DimPos.Catalog.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -36,5 +37,10 @@ public class CategoriesConfiguration : IEntityTypeConfiguration<Categories>
         builder.Property(c => c.DisplayOrder);
         builder.Property(c => c.PictureUrl)
             .HasMaxLength(1000);
+        builder.Property(c => c.Status)
+            .HasConversion(
+                v => v.ToString(),
+                v => (ECategoryStatus)Enum.Parse(typeof(ECategoryStatus), v)
+            );
     }
 }

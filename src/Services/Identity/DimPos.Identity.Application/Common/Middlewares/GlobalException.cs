@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using DimPos.Identity.Application.Common.Exceptions;
 using DimPos.Identity.Domain.Models.Common;
 using ValidationException = DimPos.Identity.Application.Common.Exceptions.ValidationException;
 
@@ -26,6 +27,10 @@ public class GlobalException
         {
             await HandleBadRequestException(context, ex);
         }
+        catch (NotFoundException ex)
+        {
+            await HandleNotFoundException(context, ex);
+        }
         catch (ValidationException ex)
         {
             await HandleValidationException(context, ex);
@@ -36,6 +41,20 @@ public class GlobalException
         }
     }
 
+    private static Task HandleNotFoundException(HttpContext context, NotFoundException ex)
+    {
+        int statusCode = (int)HttpStatusCode.NotFound;
+        var errorResponse = new ApiResponse()
+        {
+            Status = (int) HttpStatusCode.NotFound,
+            Message = ex.Message,
+            Data = null
+        };
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = statusCode;
+
+        return context.Response.WriteAsync(errorResponse.ToString()!);
+    }
     private static Task HandleValidationException(HttpContext context, ValidationException ex)
     {
         var errors = ex.Errors.Select(error => new

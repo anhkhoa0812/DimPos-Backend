@@ -77,6 +77,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
     public override async Task<GetStoreIdByAccountIdResponse> GetStoreIdByAccountId(GetStoreIdByAccountIdRequest request, ServerCallContext context)
     {
         var storeId = await _unitOfWork.GetRepository<Domain.Entities.StoreAccounts>().SingleOrDefaultAsync(
+            selector: x => x.StoreId,
             predicate: x => x.AccountId == Guid.Parse(request.AccountId)
         );
         if (storeId == null)
@@ -88,7 +89,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
         }
         return new GetStoreIdByAccountIdResponse()
         {
-            StoreId = storeId.Id.ToString()
+            StoreId = storeId.ToString()
         };
     }
 }
