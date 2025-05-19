@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-namespace DimPos.Catalog.Application.Common.Utils;
+namespace DimPos.Brand.Application.Common.Utils;
 
-public static class JsonHelper
+public static class JsonUtil
 {
     private static readonly JsonSerializerOptions _snakeCaseOptions = new JsonSerializerOptions
     {
@@ -13,5 +13,10 @@ public static class JsonHelper
     public static IResult Json(object data)
     {
         return Results.Json(data, _snakeCaseOptions, statusCode:200);
+    }
+
+    public static string JsonString(object data)
+    {
+        return JsonSerializer.Serialize(data, _snakeCaseOptions);
     }
 }

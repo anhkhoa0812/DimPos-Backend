@@ -1,5 +1,6 @@
 using System.Net;
 using DimPos.Store.Application.Common.Exceptions;
+using DimPos.Store.Application.Common.Utils;
 using DimPos.Store.Domain.Models.Common;
 
 namespace DimPos.Store.Application.Common.Middlewares;
@@ -54,7 +55,7 @@ public class GlobalException
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = statusCode;
 
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
     
     private static Task HandleBadRequestException(HttpContext context, BadHttpRequestException ex)
@@ -69,7 +70,7 @@ public class GlobalException
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
 
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
 
     private static Task HandleException(HttpContext context, Exception ex)
@@ -84,6 +85,6 @@ public class GlobalException
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
 
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
 }

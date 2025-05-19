@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using System.Net;
+using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Domain.Models.Common;
 using ValidationException = DimPos.Catalog.Application.Common.Exceptions.ValidationException;
 
@@ -55,8 +55,8 @@ public class GlobalException
         };
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = statusCode;
-
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
     
     private static Task HandleBadRequestException(HttpContext context, BadHttpRequestException ex)
@@ -70,8 +70,8 @@ public class GlobalException
         };
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
-
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
 
     private static Task HandleException(HttpContext context, Exception ex)
@@ -85,7 +85,7 @@ public class GlobalException
         };
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
-
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
 }
