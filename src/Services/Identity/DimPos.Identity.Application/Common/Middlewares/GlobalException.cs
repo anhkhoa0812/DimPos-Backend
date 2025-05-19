@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using System.Net;
+using DimPos.Identity.Application.Common.Utils;
 using DimPos.Identity.Application.Common.Exceptions;
 using DimPos.Identity.Domain.Models.Common;
 using ValidationException = DimPos.Identity.Application.Common.Exceptions.ValidationException;
@@ -47,13 +47,13 @@ public class GlobalException
         var errorResponse = new ApiResponse()
         {
             Status = (int) HttpStatusCode.NotFound,
-            Message = ex.Message,
-            Data = null
+            Message = "Lỗi không tìm thấy dữ liệu",
+            Data = ex.Message
         };
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = statusCode;
 
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
     private static Task HandleValidationException(HttpContext context, ValidationException ex)
     {
@@ -74,8 +74,8 @@ public class GlobalException
         };
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = statusCode;
-
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
     
     private static Task HandleBadRequestException(HttpContext context, BadHttpRequestException ex)
@@ -89,8 +89,8 @@ public class GlobalException
         };
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
-
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
 
     private static Task HandleException(HttpContext context, Exception ex)
@@ -104,7 +104,7 @@ public class GlobalException
         };
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
-
-        return context.Response.WriteAsync(errorResponse.ToString()!);
+        
+        return context.Response.WriteAsync(JsonUtil.JsonString(errorResponse));
     }
 }
