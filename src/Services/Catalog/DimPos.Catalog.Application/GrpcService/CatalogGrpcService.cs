@@ -102,6 +102,10 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             include: x => x.Include(c => c.Products.Where(p => p.ProductVariants.Any(v => variantIds.Contains(v.Id))))
                 .ThenInclude(p => p.ProductVariants.Where(v => variantIds.Contains(v.Id)))
         );
+        var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
+            predicate: x => x.StoreId == Guid.Parse(request.StoreId)
+            && variantIds.Contains(x.ProductVariantId)
+        );
         var response = new GetMenuProductByStoreResponse();
         foreach (var category in categories)
         {
@@ -126,6 +130,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                         AlternativeCode = variant.AlternativeCode ?? String.Empty,
                         ImageUrl = String.Empty,
                         Description = product.Description,
+                        Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == variant.Id).OverridePrice,
                         ProductVariants = null
                     };
                     categoryItem.Products.Add(productItem);
@@ -140,6 +145,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                         AlternativeCode = product.AlternativeCode ?? String.Empty,
                         ImageUrl = "",
                         Description = product.Description,
+                        Price = 0,
                         ProductVariants = new ListProductVariant()
                         {
                             ProductVariants =
@@ -153,7 +159,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                                     DisplayOrder = pv.DisplayOrder ?? 0,
                                     DiscountPercent = (float) pv.DiscountPercent,
                                     DiscountPrice = (float)pv.DiscountPrice,
-                                    Price = (float)pv.Price,
+                                    Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == pv.Id).OverridePrice,
                                     PriceCOGS = (float)pv.PriceCOGS,
                                     IsActive = pv.IsActive,
                                     IsMenuDisplay = pv.IsMenuDisplay ?? false

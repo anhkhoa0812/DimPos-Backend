@@ -60,6 +60,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             .ToList();
         var storeMenuGrpc = _catalogGrpcService.GetMenuProductByStore(new GetMenuProductByStoreRequest()
         {
+            StoreId = storeId.ToString(),
             ListProductVariantIds = new ListProductVariantIds()
             {
                 ProductVariantId = { variantIdStrings }
@@ -84,6 +85,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
                     Description = p.Description,
                     AlternativeCode = p.AlternativeCode,
                     ImageUrl = p.ImageUrl,
+                    Price = (decimal) p.Price,
                     ProductVariants = p.ProductVariants?.ProductVariants.Select(pv => new ProductVariantResponse()
                     {
                         Id = Guid.Parse(pv.Id),
