@@ -2,6 +2,8 @@ using DimPos.Brand.Application.Common.Behaviours;
 using DimPos.Brand.Application.Common.Protos;
 using DimPos.Brand.Application.Common.Utils;
 using DimPos.Brand.Application.Features.Brands.Command;
+using DimPos.Brand.Application.Services.Implement;
+using DimPos.Brand.Application.Services.Interface;
 using DimPos.Brand.Domain.Models.Settings;
 using FluentValidation;
 using Mediator;
@@ -28,6 +30,7 @@ public static class ConfigureServices
         });
         services.AddCustomKafka(configuration);
         services.AddGrpc();
+        services.AddScoped<IClaimService, ClaimService>();
         services.AddHealthChecks();
         return services;
     }

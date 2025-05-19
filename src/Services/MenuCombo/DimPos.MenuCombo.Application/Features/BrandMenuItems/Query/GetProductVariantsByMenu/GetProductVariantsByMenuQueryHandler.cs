@@ -11,7 +11,7 @@ using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
 using Mediator;
 using ProductVariantResponse = DimPos.MenuCombo.Domain.Models.ProductVariant.ProductVariantResponse;
 
-namespace DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetProductVariantsByMenu;
+namespace DimPos.MenuCombo.Application.Features.BrandMenuItems.Query.GetProductVariantsByMenu;
 
 public class GetProductVariantsByMenuQueryHandler : IRequestHandler<GetProductVariantsByMenuQuery, ApiResponse>
 {

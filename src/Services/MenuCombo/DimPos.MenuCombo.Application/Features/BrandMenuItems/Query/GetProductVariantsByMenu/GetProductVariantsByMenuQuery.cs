@@ -1,7 +1,7 @@
 using DimPos.MenuCombo.Domain.Models.Common;
 using Mediator;
 
-namespace DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetProductVariantsByMenu;
+namespace DimPos.MenuCombo.Application.Features.BrandMenuItems.Query.GetProductVariantsByMenu;
 
 public class GetProductVariantsByMenuQuery : IRequest<ApiResponse>
 {

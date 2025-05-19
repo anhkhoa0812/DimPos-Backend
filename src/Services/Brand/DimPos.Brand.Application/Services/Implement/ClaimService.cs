@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using DimPos.Catalog.Application.Common.Utils;
-using DimPos.Catalog.Application.Services.Interface;
+using DimPos.Brand.Application.Common.Utils;
+using DimPos.Brand.Application.Services.Interface;
 
-namespace DimPos.Catalog.Application.Services.Implement;
+namespace DimPos.Brand.Application.Services.Implement;
 
 public class ClaimService : IClaimService
 {
@@ -27,5 +27,6 @@ public class ClaimService : IClaimService
     public string GetCurrentUsername { get; }
     public string GetRole { get; }
     public Guid? GetBrandId { get; }
+    
     public Guid? GetStoreId { get; }
 }

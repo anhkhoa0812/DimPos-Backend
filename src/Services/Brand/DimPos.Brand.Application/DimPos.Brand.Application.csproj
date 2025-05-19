@@ -35,10 +35,6 @@
     <ItemGroup>
       <ProjectReference Include="..\DimPos.Brand.Infrastructure\DimPos.Brand.Infrastructure.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Features\Brands\Query\" />
-    </ItemGroup>
     
 
 </Project>

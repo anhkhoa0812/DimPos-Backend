@@ -2,10 +2,9 @@ using Carter;
 using DimPos.MenuCombo.Application.Common.Utils;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Command.CreateBrandMenu;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetBrandMenuByBrand;
-using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetProductVariantsByMenu;
-using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetStoreMenu;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetStoresByMenu;
 using DimPos.MenuCombo.Application.Features.BrandMenuItems.Command.UpdateBrandMenuItems;
+using DimPos.MenuCombo.Application.Features.BrandMenuItems.Query.GetProductVariantsByMenu;
 using DimPos.MenuCombo.Application.Features.StoreMenuAssignments.Command.AssignStoreMenu;
 using DimPos.MenuCombo.Domain.Constants;
 using DimPos.MenuCombo.Domain.Models.Common;
@@ -52,12 +51,6 @@ public class BrandMenuEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status200OK);
         group.MapPatch("/{brandMenuId}/stores", AssignMenuToStore).RequireAuthorization("BrandPolicy")
             .WithName(nameof(AssignMenuToStore))
-            .Produces<ApiResponse>(StatusCodes.Status200OK)
-            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
-            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
-            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapGet("/store-menu", GetStoreMenuByStore).RequireAuthorization("StorePolicy")
-            .WithName(nameof(GetStoreMenuByStore))
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
@@ -139,13 +132,6 @@ public class BrandMenuEndpoints : ICarterModule
             BrandMenuId = brandMenuId,
             AssignStoreMenuRequests= request
         };
-        var apiResponse = await mediator.Send(command);
-        return Results.Json(apiResponse);
-    }
-
-    public async Task<IResult> GetStoreMenuByStore(IMediator mediator)
-    {
-        var command = new GetStoreMenuQuery();
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);
     }

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace DimPos.Catalog.Application.Common.Utils;
+namespace DimPos.Brand.Application.Common.Utils;
 
 public static class JwtUtil
 {
