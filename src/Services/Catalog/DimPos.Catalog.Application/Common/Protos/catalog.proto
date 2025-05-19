@@ -52,7 +52,8 @@ enum ProductVariantStatus {
   Archived = 3;
 }
 message GetMenuProductByStoreRequest {
-    ListProductVariantIds listProductVariantIds = 1;
+  string storeId = 1;
+  ListProductVariantIds listProductVariantIds = 2;
 }
 message ListProductVariantIds {
   repeated string productVariantId = 1;
@@ -75,7 +76,8 @@ message ProductResponse {
   string name = 4;
   string description = 5;
   string imageUrl = 6;
-  optional ListProductVariant productVariants = 7;
+  float price = 7;
+  optional ListProductVariant productVariants = 8;
 }
 message ListProductVariant {
   repeated ProductVariantResponse productVariants = 1;
