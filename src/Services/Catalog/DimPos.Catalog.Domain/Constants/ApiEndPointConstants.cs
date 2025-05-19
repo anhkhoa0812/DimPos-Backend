@@ -18,4 +18,9 @@ public static class ApiEndPointConstants
     {
         public const string CategoriesEndpoint = ApiEndpoint + "/categories";
     }
+
+    public static class ProductVariants
+    {
+        public const string ProductVariantsEndpoint = ApiEndpoint + "/product-variants";
+    }
 }

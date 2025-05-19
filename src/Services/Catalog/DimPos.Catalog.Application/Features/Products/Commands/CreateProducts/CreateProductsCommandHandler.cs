@@ -43,7 +43,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         product.IsMenuDisplay = false;
         product.IsMostOrdered = false;
         product.IsHasRecipe = false; //Need to check again
-        product.ProductVariants = new List<ProductVariants>();
+        product.ProductVariants = new List<Domain.Entities.ProductVariants>();
         product.BrandId = brandId;
         product.Status = EProductStatus.Active;
         if (request.ProductVariants != null)
@@ -90,7 +90,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             }
             product.IsHasVariants = false;
             //Chưa set Status
-            var productVariant = new ProductVariants()
+            var productVariant = new Domain.Entities.ProductVariants()
             {
                 Id = Guid.CreateVersion7(),
                 IsMenuDisplay = false,

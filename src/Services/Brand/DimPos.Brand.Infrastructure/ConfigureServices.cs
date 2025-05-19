@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using DimPos.Brand.Infrastructure.Configurations;
 using DimPos.Brand.Infrastructure.Persistence;
 using DimPos.Brand.Infrastructure.Repositories;
@@ -22,8 +23,13 @@ public static class ConfigureServices
         services.AddScoped<BrandContextSeed>();
         services.AddJWT(configuration);
         services.AddOpenApiConfig();
-        services.AddAuthorization();
-        services.AddAuthentication();
+        services.AddHttpContextAccessor();
+        services.AddAuthorization(options =>
+            {
+                options.AddPolicy("BrandPolicy", policy =>
+                    policy.RequireAuthenticatedUser().RequireRole(ClaimTypes.Role, "BrandAdmin"));
+            }
+        );
         services.AddEndpointsApiExplorer();
         services.AddCors();
         return services;

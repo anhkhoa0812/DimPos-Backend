@@ -10,4 +10,9 @@ public static class ApiEndpointConstants
     {
         public const string BrandMenusEndpoint = ApiEndpoint + "/brand-menus";
     }
+
+    public static class StoreMenus
+    {
+        public const string StoreMenusEndpoint = ApiEndpoint + "/store-menus";
+    }
 }
