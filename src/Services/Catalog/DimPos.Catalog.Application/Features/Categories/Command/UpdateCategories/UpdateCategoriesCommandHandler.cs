@@ -1,6 +1,5 @@
 using System.Net;
 using DimPos.Catalog.Application.Common.Exceptions;
-using DimPos.Catalog.Application.Common.Mapper;
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
@@ -10,16 +9,18 @@ using DimPos.Media.Application.Common.Protos;
 using Google.Protobuf;
 using Mediator;
 
-namespace DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
+namespace DimPos.Catalog.Application.Features.Categories.Command.UpdateCategories;
 
-public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCommand, ApiResponse>
+public class UpdateCategoriesCommandHandler : IRequestHandler<UpdateCategoriesCommand, ApiResponse>
 {
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     private readonly MediaGrpcService.MediaGrpcServiceClient _mediaGrpcService;
-    public CreateCategoriesCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService,
+    
+    public UpdateCategoriesCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService,
         MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
+        
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -27,30 +28,33 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
         _mediaGrpcService = mediaGrpcService ?? throw new ArgumentNullException(nameof(mediaGrpcService));
     }
     
-    public async ValueTask<ApiResponse> Handle(CreateCategoriesCommand request, CancellationToken cancellationToken)
+    public async ValueTask<ApiResponse> Handle(UpdateCategoriesCommand request, CancellationToken cancellationToken)
     {
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
-        if (brandId == Guid.Empty)
+        if(brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
-        _logger.Information($"BEGIN: {nameof(CreateCategoriesCommandHandler)} - {DateTime.UtcNow}");
-        var category = CategoriesMapper.ToCategories(request);
-        category.Id = Guid.CreateVersion7();
-        category.HasChildCategory = false;
-        category.BrandId = brandId;
-        if (request.Type == ECategoryType.Child)
+        var category = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
+            predicate: x => x.Id == request.CategoryId && x.BrandId == brandId
+        );
+        category.Name = request.Name;
+        category.Description = request.Description;
+        category.DisplayOrder = request.DisplayOrder;
+        category.Status = request.Status;
+
+        if (category.Type == ECategoryType.Child && request.ParentCategoryId != Guid.Empty)
         {
-            if(request.ParentId == Guid.Empty)
-                throw new BadHttpRequestException("Danh mục cha không được để trống");
-            var parentCategory = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
-                predicate: c => c.Id == request.ParentId
-            );
-            if (parentCategory == null)
+            if(category.ParentId != request.ParentCategoryId)
             {
-                throw new NotFoundException("Không tìm thấy danh mục cha");
+                var parentCategory = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
+                    predicate: x => x.Id == request.ParentCategoryId && x.BrandId == brandId
+                );
+                if (parentCategory == null)
+                    throw new NotFoundException("Không tìm thấy danh mục cha");
+                category.ParentId = parentCategory.Id;
+                
+                parentCategory.HasChildCategory = true;
+                _unitOfWork.GetRepository<Domain.Entities.Categories>().UpdateAsync(parentCategory);
             }
-            category.ParentId = parentCategory.Id;
-            parentCategory.HasChildCategory = true;
-            _unitOfWork.GetRepository<Domain.Entities.Categories>().UpdateAsync(parentCategory);
         }
 
         if (request.Image != null)
@@ -83,21 +87,15 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
                 throw new Exception("Lỗi khi tải ảnh lên");
             category.PictureUrl = imageResponse;
         }
-        await _unitOfWork.GetRepository<Domain.Entities.Categories>().InsertAsync(category); 
+        _unitOfWork.GetRepository<Domain.Entities.Categories>().UpdateAsync(category);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        _logger.Information($"END: {nameof(CreateCategoriesCommandHandler)} - {DateTime.UtcNow}");
-        if (isSuccess)
-        {
-            return new ApiResponse()
-            {
-                Status = (int) HttpStatusCode.Created,
-                Message = "Tạo danh mục thành công",
-            };
-        }
+        if(!isSuccess)
+            throw new Exception("Lỗi khi cập nhật danh mục");
         return new ApiResponse()
         {
-            Status = (int) HttpStatusCode.InternalServerError,
-            Message = "Tạo danh mục thất bại",
+            Status = (int)HttpStatusCode.OK,
+            Message = "Cập nhập dữ liệu thành công",
+            Data = null
         };
     }
 }

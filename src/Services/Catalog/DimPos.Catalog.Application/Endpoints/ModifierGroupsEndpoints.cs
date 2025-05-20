@@ -15,6 +15,7 @@ public class ModifierGroupsEndpoints : ICarterModule
         var group = app.MapGroup(ApiEndPointConstants.ModifierGroups.ModifierGroupsEndpoint).WithTags("ModifierGroups");
 
         group.MapPost("", CreateModifierGroup)
+            .RequireAuthorization("BrandPolicy")
             .DisableAntiforgery()
             .WithName(nameof(CreateModifierGroup))
             .Produces<ApiResponse>(StatusCodes.Status201Created)

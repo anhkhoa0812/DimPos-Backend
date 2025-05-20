@@ -1,5 +1,6 @@
 using System.Net;
 using DimPos.Catalog.Application.Common.Mapper;
+using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
@@ -12,18 +13,23 @@ public class CreateModifierGroupsCommandHandler : IRequestHandler<CreateModifier
 {
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
-
-    public CreateModifierGroupsCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger)
+    private readonly IClaimService _claimService;
+    
+    public CreateModifierGroupsCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _claimService = claimService;
     }
     public async ValueTask<ApiResponse> Handle(CreateModifierGroupsCommand request, CancellationToken cancellationToken)
     {
         _logger.Information($"BEGIN: {nameof(CreateModifierGroupsCommandHandler)} - {DateTime.UtcNow}");
+        var brandId = _claimService.GetBrandId ?? Guid.Empty;
+        if (brandId == Guid.Empty)
+            throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
         var modifierGroup = ModifierGroupsMapper.ToModifierGroups(request);
         modifierGroup.Id = Guid.CreateVersion7();
-        
+        modifierGroup.BrandId = brandId;
         if (request.ModifierOptions != null)
         {
             modifierGroup.ModifierOptions = new List<ModifierOptions>();
