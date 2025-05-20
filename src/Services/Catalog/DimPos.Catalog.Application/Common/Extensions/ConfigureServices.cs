@@ -1,6 +1,7 @@
 using DimPos.Catalog.Application.Common.Behaviours;
 using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
+using DimPos.Catalog.Application.Features.Categories.Command.UpdateCategories;
 using DimPos.Catalog.Application.Features.ModifierGroups.Command.CreateModifierGroups;
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 using DimPos.Catalog.Application.Services.Implement;
@@ -28,7 +29,7 @@ public static class ConfigureServices
         services.AddScoped<IValidator<CreateProductsCommand>, CreateProductsCommandValidator>();
         services.AddScoped<IValidator<CreateCategoriesCommand>, CreateCategoriesCommandValidator>();
         services.AddScoped<IValidator<CreateModifierGroupsCommand>, CreateModifierGroupsCommandValidator>();
-        
+        services.AddScoped<IValidator<UpdateCategoriesCommand>, UpdateCategoriesCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

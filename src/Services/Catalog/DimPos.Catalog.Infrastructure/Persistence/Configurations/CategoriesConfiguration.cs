@@ -42,5 +42,14 @@ public class CategoriesConfiguration : IEntityTypeConfiguration<Categories>
                 v => v.ToString(),
                 v => (ECategoryStatus)Enum.Parse(typeof(ECategoryStatus), v)
             );
+        builder.HasOne(x => x.Parent)
+            .WithMany(x => x.ChildCategories)
+            .HasForeignKey(x => x.ParentId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(p => p.Type)
+            .HasConversion(
+                v => v.ToString(),
+                v => (ECategoryType)Enum.Parse(typeof(ECategoryType), v)
+            );
     }
 }
