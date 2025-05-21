@@ -2,9 +2,18 @@ namespace DimPos.MenuCombo.Domain.Models.StoreMenu;
 
 public class StoreMenuResponse
 {
-    public List<CategoriesResponse>? Categories { get; set; }
+    public List<ParentCategoryResponse>? Categories { get; set; }
 }
-
+public record ParentCategoryResponse
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; }
+    public string? Description { get; set; }
+    public int DisplayOrder { get; set; }
+    public List<CategoriesResponse>? ChildCategories { get; set; }
+    public List<ProductsResponse>? Products { get; set; }
+}
 public record CategoriesResponse
 {
     public Guid Id { get; set; }
@@ -12,10 +21,10 @@ public record CategoriesResponse
     public string Name { get; set; }
     public string? Description { get; set; }
     public int DisplayOrder { get; set; }
-    public List<ProductResponse>? Products { get; set; }
+    public List<ProductsResponse>? Products { get; set; }
 }
 
-public record ProductResponse
+public record ProductsResponse
 {
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
