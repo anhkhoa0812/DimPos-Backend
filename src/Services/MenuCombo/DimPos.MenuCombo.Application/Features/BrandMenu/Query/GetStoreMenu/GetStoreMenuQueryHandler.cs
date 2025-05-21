@@ -33,7 +33,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
         {
             throw new BadHttpRequestException("Không tìm thấy Id cửa hàng");
         }
-
+        
         var storeMenuAssignment = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>()
             .SingleOrDefaultAsync(
                 predicate: sma => sma.IsActiveAtStore == true && sma.StoreId == storeId,
@@ -47,18 +47,19 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
         var brandMenuItemIds = storeMenuAssignment.StoreMenuItemAvailability
             .Select(x => x.BrandMenuItemId )
             .ToList();
-        var variantIds = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
-            selector: x => x.ProductVariantId,
+        var listBrandMenuItems = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
             predicate: x => brandMenuItemIds.Contains(x.Id) && x.ProductVariantId != null
                                                             && x.Menu != null
                                                             && x.Menu.IsActiveByBrand == true,
             include: x => x.Include(x => x.Menu)
         );
-        var variantIdStrings = variantIds
+        var brandId = listBrandMenuItems.Select(x => x.Menu.BrandId).FirstOrDefault();
+        var variantIdStrings = listBrandMenuItems.Select(x => x.ProductVariantId)
             .Select(x => x.ToString())
             .ToList();
         var storeMenuGrpc = _catalogGrpcService.GetMenuProductByStore(new GetMenuProductByStoreRequest()
         {
+            BrandId = brandId.ToString(),
             StoreId = storeId.ToString(),
             ListProductVariantIds = new ListProductVariantIds()
             {
@@ -66,30 +67,35 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             }
         });
         var response = new StoreMenuResponse();
-        var listCategory = new List<ParentCategoryResponse>();
-        foreach (var category in storeMenuGrpc.Response)
+        var listCategory = new List<CategoriesResponse>();
+        foreach (var category in storeMenuGrpc.ListCategoryResponse.Categories)
         {
-            var categoryResponse = new ParentCategoryResponse()
+            var categoryResponse = new CategoriesResponse()
             {
                 Id = Guid.Parse(category.Id),
                 Name = category.Name,
                 Description = category.Description,
                 DisplayOrder = category.DisplayOrder,
                 Code = category.Code,
-                Products = category.Products?.Products.Select(MapProduct).ToList(),
-                ChildCategories = category.ChildCategories?.ChildCategories.Select(cc => new CategoriesResponse()
+                ChildCategories = category.ChildCategories?.ChildCategories.Select(cc => new ChildCategoriesResponse()
                 {
                     Id = Guid.Parse(cc.Id),
                     Name = cc.Name,
                     Description = cc.Description,
                     DisplayOrder = cc.DisplayOrder,
-                    Code = cc.Code,
-                    Products = cc.Products?.Products.Select(MapProduct).ToList()
+                    Code = cc.Code
                 }).ToList()
             };
             listCategory.Add(categoryResponse);
         }
         response.Categories = listCategory;
+        var listProduct = new List<ProductsResponse>();
+        foreach (var product in storeMenuGrpc.ListProductResponse.Products)
+        {
+            var productResponse = MapProduct(product);
+            listProduct.Add(productResponse);
+        }
+        response.Products = listProduct;
         return new ApiResponse()
         {
             Status = 200,
@@ -109,6 +115,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             AlternativeCode = product.AlternativeCode,
             ImageUrl = product.ImageUrl,
             Price = (decimal) product.Price,
+            CategoryId = Guid.Parse(product.CategoryId),
             ProductVariants = product.ProductVariants?.ProductVariants.Select(pv => new ProductVariantResponse()
             {
                 Id = Guid.Parse(pv.Id),

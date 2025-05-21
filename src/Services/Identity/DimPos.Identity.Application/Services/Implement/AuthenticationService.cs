@@ -25,19 +25,18 @@ public class AuthenticationService : IAuthenticationService
     {
         var tokenhandler = new JwtSecurityTokenHandler();
         var tokenkey = Encoding.UTF8.GetBytes(_jwtSettings.SecurityKey!);
-        var timeExpire = DateTime.UtcNow.AddMinutes((double)_jwtSettings.TokenExpiry!);
+        var timeExpire = DateTime.UtcNow.AddDays((double)_jwtSettings.TokenExpiry!);
         var tokenDescriptor = new SecurityTokenDescriptor()
         {
             Subject = new ClaimsIdentity(
                 new Claim[]
                 {
                     new Claim("AccountId", accounts.Id.ToString()),
-                    new Claim("Email", accounts.Email!),
-                    new Claim("Username", accounts.Username!),
+                    new Claim("Email", accounts.Email ?? string.Empty),
+                    new Claim("Username", accounts.Username),
                     new Claim(ClaimTypes.Role, roleName.ToString()),
-                    !string.IsNullOrEmpty(brandId) ? new Claim("BrandId", brandId!) : new Claim("BrandId", string.Empty),
-                    !string.IsNullOrEmpty(storeId) ? new Claim("StoreId", storeId!) : new Claim("StoreId", string.Empty),
-
+                    !string.IsNullOrEmpty(brandId) ? new Claim("BrandId", brandId) : new Claim("BrandId", string.Empty),
+                    !string.IsNullOrEmpty(storeId) ? new Claim("StoreId", storeId) : new Claim("StoreId", string.Empty),
                 }
             ),
             Expires = timeExpire,

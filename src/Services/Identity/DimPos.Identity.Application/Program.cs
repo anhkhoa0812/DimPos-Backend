@@ -39,7 +39,6 @@ try
             throw; 
         }
     }
-
     app.UseMiddleware<GlobalException>();
     app.UseStaticFiles();
     app.UseRouting();
