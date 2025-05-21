@@ -94,175 +94,59 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
     public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     {
         var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
-        // var parentCategories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
-        //     predicate: c => c.Status == ECategoryStatus.Active && c.Type == ECategoryType.Parent
-        //                     && c.ParentId == null
-        //         ? c.Products.Any(p =>
-        //             p.ProductVariants.Any(pv =>
-        //                 variantIds.Contains(pv.Id)
-        //                 && pv.Status == EProductVariantStatus.Active
-        //                 && pv.IsActive))
-        //         : c.ChildCategories.Any(cc =>
-        //             cc.Status == ECategoryStatus.Active
-        //             && cc.Products.Any(p =>
-        //                 p.ProductVariants.Any(pv =>
-        //                     variantIds.Contains(pv.Id)
-        //                     && pv.Status == EProductVariantStatus.Active
-        //                     && pv.IsActive))),
-        //     include: c => c
-        //         .Include(c => c.Products
-        //             .Where(p => p.ProductVariants.Any(pv =>
-        //                 variantIds.Contains(pv.Id)
-        //                 && pv.Status == EProductVariantStatus.Active
-        //                 && pv.IsActive)))
-        //         .ThenInclude(p => p.ProductVariants
-        //             .Where(pv =>
-        //                 variantIds.Contains(pv.Id)
-        //                 && pv.Status == EProductVariantStatus.Active
-        //                 && pv.IsActive))
-        //
-        //         .Include(c => c.ChildCategories
-        //             .Where(cc => cc.Status == ECategoryStatus.Active
-        //                          && cc.Products.Any(p => p.ProductVariants.Any(pv =>
-        //                              variantIds.Contains(pv.Id)
-        //                              && pv.Status == EProductVariantStatus.Active
-        //                              && pv.IsActive))))
-        //         .ThenInclude(cc => cc.Products
-        //             .Where(p => p.ProductVariants.Any(pv =>
-        //                 variantIds.Contains(pv.Id)
-        //                 && pv.Status == EProductVariantStatus.Active
-        //                 && pv.IsActive)))
-        //         .ThenInclude(p => p.ProductVariants
-        //             .Where(pv =>
-        //                 variantIds.Contains(pv.Id)
-        //                 && pv.Status == EProductVariantStatus.Active
-        //                 && pv.IsActive))
-        //         
-        // );
-        var parentCategories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
-        predicate: c => c.Status == ECategoryStatus.Active 
-                     && c.Type == ECategoryType.Parent
-                     && c.ParentId == null
-                     && (
-                        // Nếu là danh mục cha thì kiểm tra xem có sản phẩm nào với variantId không
-                        c.Products.Any(p => p.ProductVariants.Any(pv =>
-                            variantIds.Contains(pv.Id)
-                            && pv.Status == EProductVariantStatus.Active
-                            && pv.IsActive))
-                        ||
-                        // Nếu không có sản phẩm thì kiểm tra xem có danh mục con nào có sản phẩm với variantId không
-                        c.ChildCategories.Any(cc => 
-                            cc.Status == ECategoryStatus.Active
-                            && cc.Products.Any(p => p.ProductVariants.Any(pv =>
-                                variantIds.Contains(pv.Id)
-                                && pv.Status == EProductVariantStatus.Active
-                                && pv.IsActive)))
-                     ),
-        include: c => c
-            .Include(c => c.Products
-                .Where(p => p.ProductVariants.Any(pv =>
-                    variantIds.Contains(pv.Id)
-                    && pv.Status == EProductVariantStatus.Active
-                    && pv.IsActive)))
-            .ThenInclude(p => p.ProductImages)
-            .Include(c => c.Products
-                .Where(p => p.ProductVariants.Any(pv =>
-                    variantIds.Contains(pv.Id)
-                    && pv.Status == EProductVariantStatus.Active
-                    && pv.IsActive)))
-            .ThenInclude(p => p.ProductVariants
-                .Where(pv =>
-                    variantIds.Contains(pv.Id)
-                    && pv.Status == EProductVariantStatus.Active
-                    && pv.IsActive))
-
-            .Include(c => c.ChildCategories
-                .Where(cc => cc.Status == ECategoryStatus.Active
-                             && cc.Products.Any(p => p.ProductVariants.Any(pv =>
-                                 variantIds.Contains(pv.Id)
-                                 && pv.Status == EProductVariantStatus.Active
-                                 && pv.IsActive))))
-            .ThenInclude(cc => cc.Products
-                .Where(p => p.ProductVariants.Any(pv =>
-                    variantIds.Contains(pv.Id)
-                    && pv.Status == EProductVariantStatus.Active
-                    && pv.IsActive)))
-            .ThenInclude(p => p.ProductImages)
-            .Include(c => c.Products
-                .Where(p => p.ProductVariants.Any(pv =>
-                    variantIds.Contains(pv.Id)
-                    && pv.Status == EProductVariantStatus.Active
-                    && pv.IsActive)))
-            .ThenInclude(p => p.ProductVariants
-                .Where(pv =>
-                    variantIds.Contains(pv.Id)
-                    && pv.Status == EProductVariantStatus.Active
-                    && pv.IsActive))
-    );
+        var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
+            predicate: x => x.BrandId == Guid.Parse(request.BrandId),
+            include: x => x.Include(x => x.ChildCategories)
+        );
+        var listCategory = new ListCategoryResponse();
+        foreach (var category in categories)
+        {
+            var categoryItem = new CategoryResponse
+            {
+                Id = category.Id.ToString(),
+                Name = category.Name,
+                DisplayOrder = category.DisplayOrder ?? 0,
+                Code = category.Code ?? String.Empty,
+                Description = category.Description ?? String.Empty,
+                ChildCategories = category.ChildCategories != null ? new ListChildCategoryResponse()
+                {
+                    ChildCategories = { category.ChildCategories.Select(x => new ChildCategoryResponse()
+                    {
+                        Id = x.Id.ToString(),
+                        Code = x.Code,
+                        Name = x.Name,
+                        DisplayOrder = x.DisplayOrder ?? 0,
+                        Description = x.Description ?? String.Empty,
+                    }) 
+                    }
+                } : null
+            };
+            listCategory.Categories.Add(categoryItem);
+        }
+        var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
+            predicate: x => x.BrandId == Guid.Parse(request.BrandId) 
+                           && x.Status == EProductStatus.Active
+            && x.ProductVariants.Any(pv => variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive),
+            include: x => x.Include(x => x.ProductImages)
+                .Include(x => x.ProductVariants.Where(
+                    pv => variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive))
+        );
         var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
             predicate: x => x.StoreId == Guid.Parse(request.StoreId)
-                            && variantIds.Contains(x.ProductVariantId)
+                           && variantIds.Contains(x.ProductVariantId)
         );
-        var response = new GetMenuProductByStoreResponse();
-        foreach (var parentCategory in parentCategories)
+        var listProduct = new ListProductResponse()
         {
-            response.Response.Add(
-                MapCategory(parentCategory, storePrices.ToList(), variantIds)
-            );
-        }
+            Products = { products.Select(p => MapProduct(p, storePrices.ToList())).ToList() }
+        };
+        var response = new GetMenuProductByStoreResponse()
+        {
+            ListCategoryResponse = listCategory,
+            ListProductResponse = listProduct
+        };
         return response;
     }
-
-    private CategoryResponse MapCategory(Categories categories, List<StorePrice> storePrices, List<Guid> variantIds)
-    {
-        var categoryItem = new CategoryResponse()
-        {
-            Id = categories.Id.ToString(),
-            Name = categories.Name,
-            DisplayOrder = categories.DisplayOrder ?? 0,
-            Code = categories.Code ?? String.Empty,
-            Description = categories.Description ?? String.Empty,
-        };
-        if (categories.ChildCategories?.Any() ?? false)
-        {
-            var childCategoryList = new ListChildCategoryResponse();
-            foreach (var childCategory in categories.ChildCategories)
-            {
-                childCategoryList.ChildCategories.Add(
-                    new ChildCategoryResponse()
-                    {
-                        Id = childCategory.Id.ToString(),
-                        Name = childCategory.Name,
-                        DisplayOrder = childCategory.DisplayOrder ?? 0,
-                        Code = childCategory.Code ?? String.Empty,
-                        Description = childCategory.Description ?? String.Empty,
-                        Products = new ListProductResponse()
-                        {
-                            Products =
-                            {
-                                childCategory.Products.Select(p => MapProduct(p, storePrices, variantIds))
-                            }
-                        }
-                    }
-                );
-            }
-            categoryItem.ChildCategories = childCategoryList;
-        }
-        else
-        {
-            var productList = new ListProductResponse();
-            foreach (var product in categories.Products)
-            {
-                productList.Products.Add(
-                    MapProduct(product, storePrices, variantIds)
-                    );
-            }
-            categoryItem.Products = productList;
-        }
-        return categoryItem;
-    }
-
-    private ProductResponse MapProduct(Products product, List<StorePrice> storePrices, List<Guid> variantIds)
+    private ProductResponse MapProduct(Products product, List<StorePrice> storePrices)
     {
         if (!product.IsHasVariants)
         {
@@ -277,6 +161,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     .SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? String.Empty,
                 Description = product.Description,
                 Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == variant.Id).OverridePrice,
+                CategoryId = product.CategoryId.ToString(),
                 ProductVariants = null
             };
             return productItem;
@@ -293,6 +178,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     .SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? String.Empty,
                 Description = product.Description,
                 Price = 0,
+                CategoryId = product.CategoryId.ToString(),
                 ProductVariants = new ListProductVariant()
                 {
                     ProductVariants =
@@ -317,6 +203,132 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             return productItem;
         }
     }
+    // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
+    // {
+    //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
+    //     var parentCategories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
+    //     predicate: c => c.Status == ECategoryStatus.Active 
+    //                  && c.Type == ECategoryType.Parent
+    //                  && c.ParentId == null
+    //                  && (
+    //                     // Nếu là danh mục cha thì kiểm tra xem có sản phẩm nào với variantId không
+    //                     c.Products.Any(p => p.ProductVariants.Any(pv =>
+    //                         variantIds.Contains(pv.Id)
+    //                         && pv.Status == EProductVariantStatus.Active
+    //                         && pv.IsActive))
+    //                     ||
+    //                     // Nếu không có sản phẩm thì kiểm tra xem có danh mục con nào có sản phẩm với variantId không
+    //                     c.ChildCategories.Any(cc => 
+    //                         cc.Status == ECategoryStatus.Active
+    //                         && cc.Products.Any(p => p.ProductVariants.Any(pv =>
+    //                             variantIds.Contains(pv.Id)
+    //                             && pv.Status == EProductVariantStatus.Active
+    //                             && pv.IsActive)))
+    //                  ),
+    //     include: c => c
+    //         .Include(c => c.Products
+    //             .Where(p => p.ProductVariants.Any(pv =>
+    //                 variantIds.Contains(pv.Id)
+    //                 && pv.Status == EProductVariantStatus.Active
+    //                 && pv.IsActive)))
+    //         .ThenInclude(p => p.ProductImages)
+    //         .Include(c => c.Products
+    //             .Where(p => p.ProductVariants.Any(pv =>
+    //                 variantIds.Contains(pv.Id)
+    //                 && pv.Status == EProductVariantStatus.Active
+    //                 && pv.IsActive)))
+    //         .ThenInclude(p => p.ProductVariants
+    //             .Where(pv =>
+    //                 variantIds.Contains(pv.Id)
+    //                 && pv.Status == EProductVariantStatus.Active
+    //                 && pv.IsActive))
+    //
+    //         .Include(c => c.ChildCategories
+    //             .Where(cc => cc.Status == ECategoryStatus.Active
+    //                          && cc.Products.Any(p => p.ProductVariants.Any(pv =>
+    //                              variantIds.Contains(pv.Id)
+    //                              && pv.Status == EProductVariantStatus.Active
+    //                              && pv.IsActive))))
+    //         .ThenInclude(cc => cc.Products
+    //             .Where(p => p.ProductVariants.Any(pv =>
+    //                 variantIds.Contains(pv.Id)
+    //                 && pv.Status == EProductVariantStatus.Active
+    //                 && pv.IsActive)))
+    //         .ThenInclude(p => p.ProductImages)
+    //         .Include(c => c.Products
+    //             .Where(p => p.ProductVariants.Any(pv =>
+    //                 variantIds.Contains(pv.Id)
+    //                 && pv.Status == EProductVariantStatus.Active
+    //                 && pv.IsActive)))
+    //         .ThenInclude(p => p.ProductVariants
+    //             .Where(pv =>
+    //                 variantIds.Contains(pv.Id)
+    //                 && pv.Status == EProductVariantStatus.Active
+    //                 && pv.IsActive))
+    // );
+    //     var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
+    //         predicate: x => x.StoreId == Guid.Parse(request.StoreId)
+    //                         && variantIds.Contains(x.ProductVariantId)
+    //     );
+    //     var response = new GetMenuProductByStoreResponse();
+    //     foreach (var parentCategory in parentCategories)
+    //     {
+    //         response.Response.Add(
+    //             MapCategory(parentCategory, storePrices.ToList(), variantIds)
+    //         );
+    //     }
+    //     return response;
+    // }
+    //
+    // private CategoryResponse MapCategory(Categories categories, List<StorePrice> storePrices, List<Guid> variantIds)
+    // {
+    //     var categoryItem = new CategoryResponse()
+    //     {
+    //         Id = categories.Id.ToString(),
+    //         Name = categories.Name,
+    //         DisplayOrder = categories.DisplayOrder ?? 0,
+    //         Code = categories.Code ?? String.Empty,
+    //         Description = categories.Description ?? String.Empty,
+    //     };
+    //     if (categories.ChildCategories?.Any() ?? false)
+    //     {
+    //         var childCategoryList = new ListChildCategoryResponse();
+    //         foreach (var childCategory in categories.ChildCategories)
+    //         {
+    //             childCategoryList.ChildCategories.Add(
+    //                 new ChildCategoryResponse()
+    //                 {
+    //                     Id = childCategory.Id.ToString(),
+    //                     Name = childCategory.Name,
+    //                     DisplayOrder = childCategory.DisplayOrder ?? 0,
+    //                     Code = childCategory.Code ?? String.Empty,
+    //                     Description = childCategory.Description ?? String.Empty,
+    //                     Products = new ListProductResponse()
+    //                     {
+    //                         Products =
+    //                         {
+    //                             childCategory.Products.Select(p => MapProduct(p, storePrices, variantIds))
+    //                         }
+    //                     }
+    //                 }
+    //             );
+    //         }
+    //         categoryItem.ChildCategories = childCategoryList;
+    //     }
+    //     else
+    //     {
+    //         var productList = new ListProductResponse();
+    //         foreach (var product in categories.Products)
+    //         {
+    //             productList.Products.Add(
+    //                 MapProduct(product, storePrices, variantIds)
+    //                 );
+    //         }
+    //         categoryItem.Products = productList;
+    //     }
+    //     return categoryItem;
+    // }
+    //
     // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     // {
     //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
@@ -399,96 +411,6 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
     //
     //         response.Response.Add(categoryItem);
     //     }
-    //     return response;
-    // }
-    // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(
-    //     GetMenuProductByStoreRequest request, ServerCallContext context)
-    // {
-    //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
-    //
-    //     var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
-    //         predicate: x => variantIds.Contains(x.Id),
-    //         include: x => x.Include(x => x.Product)
-    //             .ThenInclude(x => x.Category)
-    //     );
-    //     // var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
-    //     //     include: x => x.Include(c => c.Products)
-    //     //         .ThenInclude(p => p.ProductVariants.Where(pv => variantIds.Contains(pv.Id)) )
-    //     // );
-    //     
-    //     var groupByCategory = productVariants
-    //         .GroupBy(v => v.Product!.Category)
-    //         .OrderBy(c => c.Key?.DisplayOrder)
-    //         .ToList();
-    //     var response = new GetMenuProductByStoreResponse();
-    //     foreach (var categoryGroup in groupByCategory)
-    //     {
-    //         var categoryItem = new CategoryResponse()
-    //         {
-    //             Id = categoryGroup.Key?.Id.ToString(),
-    //             Name = categoryGroup.Key?.Name ?? String.Empty,
-    //             DisplayOrder = categoryGroup.Key?.DisplayOrder ?? 0,
-    //             Code = categoryGroup.Key?.Code ?? String.Empty,
-    //             Description = categoryGroup.Key?.Description ?? String.Empty,
-    //         };
-    //         foreach (var productGroup in categoryGroup.GroupBy(v => v.Product))
-    //         {
-    //             var variantsInGroup = productGroup.ToList();
-    //             var product = productGroup.Key;
-    //
-    //             if (variantsInGroup.Count == 1)
-    //             {
-    //                 var variant = variantsInGroup.First();
-    //                 var productItem = new ProductResponse()
-    //                 {
-    //                     Id = variant.Id.ToString(),
-    //                     Code = variant.Code ?? String.Empty,
-    //                     Name = variant.Name ?? String.Empty,
-    //                     AlternativeCode = variant.AlternativeCode ?? String.Empty,
-    //                     ImageUrl = variant.Product!.ProductImages.FirstOrDefault().ImageUrl ?? String.Empty,
-    //                     ProductVariants =
-    //                     {
-    //                     }
-    //                 };
-    //                 categoryItem.Products.Add(productItem);
-    //             }
-    //             else
-    //             {
-    //                 var productItem = new ProductResponse()
-    //                 {
-    //                     Id = product.Id.ToString(),
-    //                     Code = product.Code,
-    //                     Name = product.Name,
-    //                     AlternativeCode = product.AlternativeCode,
-    //                     ImageUrl = product.ProductImages.FirstOrDefault().ImageUrl,
-    //                 };
-    //                 foreach (var variant in variantsInGroup.OrderBy(v => v.DisplayOrder))
-    //                 {
-    //                     productItem.ProductVariants.Add(
-    //                         new ProductVariant()
-    //                         {
-    //
-    //                             Id = variant.Id.ToString(),
-    //                             Code = variant.Code ?? String.Empty,
-    //                             Name = variant.Name ?? String.Empty,
-    //                             AlternativeCode = variant.AlternativeCode ?? String.Empty,
-    //                             DisplayOrder = variant.DisplayOrder ?? 0,
-    //                             DiscountPercent = (float)variant.DiscountPercent,
-    //                             DiscountPrice = (float)variant.DiscountPrice,
-    //                             Price = (float)variant.Price,
-    //                             PriceCOGS = (float)variant.PriceCOGS,
-    //                             IsActive = variant.IsActive ?? false,
-    //                             IsMenuDisplay = variant.IsMenuDisplay ?? false,
-    //                         });
-    //                 }
-    //
-    //                 categoryItem.Products.Add(productItem);
-    //             }
-    //         }
-    //
-    //         response.Response.Add(categoryItem);
-    //     }
-    //
     //     return response;
     // }
 }
