@@ -8,6 +8,7 @@ using DimPos.Catalog.Infrastructure.Repositories.Interface;
 using DimPos.Media.Application.Common.Protos;
 using Google.Protobuf;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Catalog.Application.Features.Categories.Command.UpdateCategories;
 
@@ -46,10 +47,13 @@ public class UpdateCategoriesCommandHandler : IRequestHandler<UpdateCategoriesCo
             if(category.ParentId != request.ParentCategoryId)
             {
                 var parentCategory = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
-                    predicate: x => x.Id == request.ParentCategoryId && x.BrandId == brandId
+                    predicate: x => x.Id == request.ParentCategoryId && x.BrandId == brandId,
+                    include: x => x.Include(x => x.Products)
                 );
                 if (parentCategory == null)
                     throw new NotFoundException("Không tìm thấy danh mục cha");
+                if(parentCategory.Products.Any()) 
+                    throw new BadHttpRequestException("Danh mục cha đã có sản phẩm, không thể thay đổi danh mục con");
                 category.ParentId = parentCategory.Id;
                 
                 parentCategory.HasChildCategory = true;

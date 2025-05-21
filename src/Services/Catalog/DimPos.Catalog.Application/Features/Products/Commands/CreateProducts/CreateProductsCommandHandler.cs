@@ -46,6 +46,30 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         product.ProductVariants = new List<Domain.Entities.ProductVariants>();
         product.BrandId = brandId;
         product.Status = EProductStatus.Active;
+
+        var category = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
+            predicate: x => x.Id == request.CategoryId
+        );
+        if (category == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy danh mục");
+        }
+
+        switch (category.Type)
+        {
+            case ECategoryType.Parent:
+                if(category.HasChildCategory) 
+                    throw new BadHttpRequestException("Không thể thêm sản phẩm vào danh mục này");
+                product.CategoryId = category.Id;
+                break;
+            case ECategoryType.Child:
+                product.CategoryId = category.Id;
+                break;
+            default:
+                throw new BadHttpRequestException("Không thể thêm sản phẩm vào danh mục này");
+                
+        }
+        
         if (request.ProductVariants != null)
         {
             foreach (var productVariant in request.ProductVariants)
@@ -127,7 +151,6 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             await _unitOfWork.GetRepository<BasePrice>().InsertAsync(basePrice);
             product.ProductVariants.Add(productVariant);
         }
-
         if (request.ModifierGroupIds != null)
         {
             foreach (var modifierGroupId in request.ModifierGroupIds)

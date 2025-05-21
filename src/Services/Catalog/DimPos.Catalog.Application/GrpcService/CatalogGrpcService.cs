@@ -95,7 +95,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
     {
         var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
         var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
-            predicate: x => x.BrandId == Guid.Parse(request.BrandId),
+            predicate: x => x.BrandId == Guid.Parse(request.BrandId) && x.Type == ECategoryType.Parent,
             include: x => x.Include(x => x.ChildCategories)
         );
         var listCategory = new ListCategoryResponse();
