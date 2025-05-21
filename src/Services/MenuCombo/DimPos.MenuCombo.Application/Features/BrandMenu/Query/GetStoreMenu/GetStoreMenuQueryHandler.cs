@@ -57,7 +57,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
         var variantIdStrings = listBrandMenuItems.Select(x => x.ProductVariantId)
             .Select(x => x.ToString())
             .ToList();
-        var storeMenuGrpc = _catalogGrpcService.GetMenuProductByStore(new GetMenuProductByStoreRequest()
+        var storeMenuGrpc = await _catalogGrpcService.GetMenuProductByStoreAsync(new GetMenuProductByStoreRequest()
         {
             BrandId = brandId.ToString(),
             StoreId = storeId.ToString(),
@@ -127,6 +127,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
                 Price = (decimal) pv.Price,
                 PriceCOGS = (decimal) pv.PriceCOGS,
                 IsActive = pv.IsActive,
+                Size = pv.Size,
                 IsMenuDisplay = pv.IsMenuDisplay,
                 DisplayOrder = pv.DisplayOrder
             }).ToList()

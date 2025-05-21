@@ -47,21 +47,14 @@ public static class ConfigureServices
         services.AddGrpcClient<CatalogGrpcService.CatalogGrpcServiceClient>(x =>
             {
                 x.Address = new Uri(settings.CatalogUrl);
-                x.ChannelOptionsActions.Add(channelOptions =>
-                {
-                    channelOptions.HttpVersion = System.Net.HttpVersion.Version20;
-                });
             }
         );
         services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(x =>
         {
             x.Address = new Uri(settings.StoreUrl);
-            x.ChannelOptionsActions.Add(channelOptions =>
-            {
-                channelOptions.HttpVersion = System.Net.HttpVersion.Version20;
-            });
         });
 
+        
         return services;
     }
 }

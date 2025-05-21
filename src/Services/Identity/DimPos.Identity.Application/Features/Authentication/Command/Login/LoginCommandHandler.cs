@@ -54,26 +54,26 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
         switch (role.Name)
         {
             case ERoleName.BrandAdmin:
-                var brandIdString = _brandGrpcService.GetBrandIdByAccountId(new GetBrandIdByAccountIdRequest()
+                var brandGrpcResponse = await _brandGrpcService.GetBrandIdByAccountIdAsync(new GetBrandIdByAccountIdRequest()
                 {
                     AccountId = account.Id.ToString()
-                }).BrandId;
+                });
                 
-                if (string.IsNullOrEmpty(brandIdString))
+                if (string.IsNullOrEmpty(brandGrpcResponse.BrandId))
                     throw new NotFoundException("Không tìm thấy thương hiệu");
-                token = _authenticationService.GenerateAccessToken(account, role.Name, brandId: brandIdString, storeId: null);
+                token = _authenticationService.GenerateAccessToken(account, role.Name, brandId: brandGrpcResponse.BrandId, storeId: null);
                 break;
             case ERoleName.Staff:
             case ERoleName.StoreAdmin:
-                var storeIdString = _storeGrpcService.GetStoreIdByAccountId(new GetStoreIdByAccountIdRequest()
+                var storeGrpcResponse = await _storeGrpcService.GetStoreIdByAccountIdAsync(new GetStoreIdByAccountIdRequest()
                 {
                     AccountId = account.Id.ToString()
-                }).StoreId;
+                });
                 
-                if (string.IsNullOrEmpty(storeIdString))
+                if (string.IsNullOrEmpty(storeGrpcResponse.StoreId))
                     throw new NotFoundException("Không tìm thấy cửa hàng");
                 
-                token = _authenticationService.GenerateAccessToken(account, role.Name, storeId: storeIdString, brandId: null);
+                token = _authenticationService.GenerateAccessToken(account, role.Name, storeId: storeGrpcResponse.StoreId, brandId: null);
                 break;
             default:
                 token = _authenticationService.GenerateAccessToken(account, role.Name, brandId: null, storeId: null);

@@ -46,6 +46,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     AlternativeCode = productVariant.AlternativeCode ?? String.Empty,
                     Status = (ProductVariantStatus) productVariant.Status,
                     IsActive = productVariant.IsActive,
+                    Size = productVariant.Size ?? String.Empty,
                     IsMenuDisplay = productVariant.IsMenuDisplay ?? false,
                     DisplayOrder = productVariant.DisplayOrder ?? 0,
                     Price = (float)productVariant.Price,
@@ -95,7 +96,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
     {
         var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
         var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
-            predicate: x => x.BrandId == Guid.Parse(request.BrandId),
+            predicate: x => x.BrandId == Guid.Parse(request.BrandId) && x.Type == ECategoryType.Parent,
             include: x => x.Include(x => x.ChildCategories)
         );
         var listCategory = new ListCategoryResponse();
@@ -195,6 +196,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == pv.Id).OverridePrice,
                             PriceCOGS = (float)pv.PriceCOGS,
                             IsActive = pv.IsActive,
+                            Size = pv.Size ?? String.Empty,
                             IsMenuDisplay = pv.IsMenuDisplay ?? false
                         }).ToList()
                     }

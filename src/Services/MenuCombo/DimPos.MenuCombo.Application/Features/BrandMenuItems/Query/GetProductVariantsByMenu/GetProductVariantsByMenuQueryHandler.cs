@@ -70,6 +70,7 @@ public class GetProductVariantsByMenuQueryHandler : IRequestHandler<GetProductVa
                 DiscountPrice = (decimal) productVariantGrpcResponse.DiscountPrice,
                 PriceCOGS = (decimal) productVariantGrpcResponse.PriceCOGS,
                 IsActive = productVariantGrpcResponse.IsActive,
+                Size = productVariantGrpcResponse.Size,
                 DisplayOrder =  productVariantGrpcResponse.DisplayOrder,
                 IsMenuDisplay = productVariantGrpcResponse.IsMenuDisplay,
                 Status = (EProductVariantStatus) productVariantGrpcResponse.Status,

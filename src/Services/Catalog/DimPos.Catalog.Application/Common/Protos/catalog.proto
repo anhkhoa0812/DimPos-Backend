@@ -41,9 +41,10 @@ message ProductVariant {
   float price = 7;
   float priceCOGS = 8;
   bool isActive = 9;
-  bool isMenuDisplay = 10;
-  int32 displayOrder = 11;
-  ProductVariantStatus status = 12;
+  string size = 10;
+  bool isMenuDisplay = 11;
+  int32 displayOrder = 12;
+  ProductVariantStatus status = 13;
 }
 enum ProductVariantStatus {
   Active = 0;
@@ -111,6 +112,7 @@ message ProductVariantResponse {
   float price = 7;
   float priceCOGS = 8;
   bool isActive = 9;
-  bool isMenuDisplay = 10;
-  int32 displayOrder = 11;
+  string size = 10;
+  bool isMenuDisplay = 11;
+  int32 displayOrder = 12;
 }
