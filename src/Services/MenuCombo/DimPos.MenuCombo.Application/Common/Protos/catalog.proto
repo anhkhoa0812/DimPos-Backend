@@ -67,7 +67,22 @@ message CategoryResponse {
   string name = 3;
   optional string description = 4;
   int32 displayOrder = 5;
-  repeated ProductResponse products = 6;
+  optional ListChildCategoryResponse childCategories = 6;
+  optional ListProductResponse products = 7;
+}
+message ListChildCategoryResponse {
+  repeated ChildCategoryResponse childCategories = 1;
+}
+message ChildCategoryResponse {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  optional string description = 4;
+  int32 displayOrder = 5;
+  optional ListProductResponse products = 6;
+}
+message ListProductResponse {
+  repeated ProductResponse products = 1;
 }
 message ProductResponse {
   string id = 1;

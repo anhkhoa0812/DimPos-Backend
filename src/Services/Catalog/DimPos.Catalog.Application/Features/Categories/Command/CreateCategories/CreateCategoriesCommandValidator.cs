@@ -24,14 +24,13 @@ public class CreateCategoriesCommandValidator : AbstractValidator<CreateCategori
             .NotEmpty().WithMessage("Loại danh mục không được để trống")
             .IsInEnum().WithMessage("Loại danh mục không hợp lệ");
         RuleFor(x => x.Status)
-            .NotEmpty().WithMessage("Trạng thái không được để trống");
+            .IsInEnum().WithMessage("Trạng thái của danh mục không hợp lệ");
         RuleFor(x => x.Image)
             .Cascade(CascadeMode.Stop)
             .Must(file =>
             {
                 if (file == null)
                     return true;
-                
                 var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
                 return _allowedExtensions.Contains(extension);

@@ -4,10 +4,9 @@ using DimPos.MenuCombo.Domain.Models.Common;
 using DimPos.MenuCombo.Domain.Models.StoreMenu;
 using DimPos.MenuCombo.Infrastructure.Persistence;
 using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
-using Google.Protobuf.Collections;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
-using ProductResponse = DimPos.MenuCombo.Domain.Models.StoreMenu.ProductResponse;
+using ProductResponse = DimPos.Catalog.Application.Common.Protos.ProductResponse;
 using ProductVariantResponse = DimPos.MenuCombo.Domain.Models.StoreMenu.ProductVariantResponse;
 
 namespace DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetStoreMenu;
@@ -67,39 +66,25 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             }
         });
         var response = new StoreMenuResponse();
-        var listCategory = new List<CategoriesResponse>();
+        var listCategory = new List<ParentCategoryResponse>();
         foreach (var category in storeMenuGrpc.Response)
         {
-            var categoryResponse = new CategoriesResponse()
+            var categoryResponse = new ParentCategoryResponse()
             {
                 Id = Guid.Parse(category.Id),
                 Name = category.Name,
                 Description = category.Description,
                 DisplayOrder = category.DisplayOrder,
                 Code = category.Code,
-                Products = category.Products.Select(p => new ProductResponse()
+                Products = category.Products?.Products.Select(MapProduct).ToList(),
+                ChildCategories = category.ChildCategories?.ChildCategories.Select(cc => new CategoriesResponse()
                 {
-                    Id = Guid.Parse(p.Id),
-                    Name = p.Name,
-                    Code = p.Code,
-                    Description = p.Description,
-                    AlternativeCode = p.AlternativeCode,
-                    ImageUrl = p.ImageUrl,
-                    Price = (decimal) p.Price,
-                    ProductVariants = p.ProductVariants?.ProductVariants.Select(pv => new ProductVariantResponse()
-                    {
-                        Id = Guid.Parse(pv.Id),
-                        Code = pv.Code,
-                        AlternativeCode = pv.AlternativeCode,
-                        Name = pv.Name,
-                        DiscountPercent = (decimal) pv.DiscountPercent,
-                        DiscountPrice = (decimal) pv.DiscountPrice,
-                        Price = (decimal) pv.Price,
-                        PriceCOGS = (decimal) pv.PriceCOGS,
-                        IsActive = pv.IsActive,
-                        IsMenuDisplay = pv.IsMenuDisplay,
-                        DisplayOrder = pv.DisplayOrder
-                    }).ToList()
+                    Id = Guid.Parse(cc.Id),
+                    Name = cc.Name,
+                    Description = cc.Description,
+                    DisplayOrder = cc.DisplayOrder,
+                    Code = cc.Code,
+                    Products = cc.Products?.Products.Select(MapProduct).ToList()
                 }).ToList()
             };
             listCategory.Add(categoryResponse);
@@ -110,6 +95,34 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             Status = 200,
             Message = "Lấy dữ liệu thành công",
             Data = response
+        };
+    }
+
+    private ProductsResponse MapProduct(ProductResponse product)
+    {
+        return new ProductsResponse()
+        {
+            Id = Guid.Parse(product.Id),
+            Name = product.Name,
+            Code = product.Code,
+            Description = product.Description,
+            AlternativeCode = product.AlternativeCode,
+            ImageUrl = product.ImageUrl,
+            Price = (decimal) product.Price,
+            ProductVariants = product.ProductVariants?.ProductVariants.Select(pv => new ProductVariantResponse()
+            {
+                Id = Guid.Parse(pv.Id),
+                Code = pv.Code,
+                AlternativeCode = pv.AlternativeCode,
+                Name = pv.Name,
+                DiscountPercent = (decimal) pv.DiscountPercent,
+                DiscountPrice = (decimal) pv.DiscountPrice,
+                Price = (decimal) pv.Price,
+                PriceCOGS = (decimal) pv.PriceCOGS,
+                IsActive = pv.IsActive,
+                IsMenuDisplay = pv.IsMenuDisplay,
+                DisplayOrder = pv.DisplayOrder
+            }).ToList()
         };
     }
 }
