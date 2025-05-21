@@ -127,6 +127,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
                 Price = (decimal) pv.Price,
                 PriceCOGS = (decimal) pv.PriceCOGS,
                 IsActive = pv.IsActive,
+                Size = pv.Size,
                 IsMenuDisplay = pv.IsMenuDisplay,
                 DisplayOrder = pv.DisplayOrder
             }).ToList()

@@ -34,6 +34,7 @@ public record CreateProductVariant
     public decimal? DiscountPrice { get; set; }
     public decimal BrandPrice { get; set; }
     public decimal? PriceCOGS { get; set; }
+    public string? Size { get; set; }
     public int? DisplayOrder { get; set; }
 }
 

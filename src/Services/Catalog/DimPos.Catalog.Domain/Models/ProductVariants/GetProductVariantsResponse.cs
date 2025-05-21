@@ -13,6 +13,7 @@ public class GetProductVariantsResponse
     public decimal Price { get; set; }
     public decimal? PriceCOGS { get; set; }
     public bool IsActive { get; set; }
+    public string? Size { get; set; }
     public bool? IsMenuDisplay { get; set; }
     public EProductVariantStatus Status { get; set; }
 }

@@ -44,6 +44,7 @@ public class GetProductVariantsQueryHandler : IRequestHandler<GetProductVariants
                 DiscountPercent = x.DiscountPercent,
                 DiscountPrice = x.DiscountPrice,
                 IsActive = x.IsActive,
+                Size = x.Size,
                 IsMenuDisplay = x.IsMenuDisplay, 
                 PriceCOGS = x.PriceCOGS,
                 Status = x.Status

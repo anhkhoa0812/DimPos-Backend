@@ -128,7 +128,8 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 DiscountPercent = request.DiscountPercent,
                 DiscountPrice = request.DiscountPrice,
                 DisplayOrder = request.DisplayOrder,
-                Status = EProductVariantStatus.Active
+                Status = EProductVariantStatus.Active,
+                Size = null
             };
             var basePrice = new BasePrice()
             {
@@ -205,7 +206,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             await call.RequestStream.WriteAsync(new UploadImageRequest()
             {
                 ListImageRequest = uploadImageGrpcRequest
-            });
+            }, cancellationToken);
             await call.RequestStream.CompleteAsync();
             
             var uploadImageGrpcResponse = await call.ResponseAsync;
