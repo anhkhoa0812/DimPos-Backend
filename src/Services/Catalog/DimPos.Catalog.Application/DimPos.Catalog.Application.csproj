@@ -43,7 +43,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\ModifierGroups\Query\" />
       <Folder Include="Features\ProductVariants\Command\" />
     </ItemGroup>
 

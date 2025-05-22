@@ -1,6 +1,7 @@
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Application.Features.ModifierGroups.Command.CreateModifierGroups;
+using DimPos.Catalog.Application.Features.ModifierGroups.Query.GetModifierGroups;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Models.Common;
 using Mediator;
@@ -21,6 +22,12 @@ public class ModifierGroupsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("", GetModifierGroups)
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetModifierGroups))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     public async Task<IResult> CreateModifierGroup (IMediator mediator, 
         [FromBody] CreateModifierGroupsCommand command, ValidationUtil<CreateModifierGroupsCommand> validationUtil)
@@ -31,6 +38,21 @@ public class ModifierGroupsEndpoints : ICarterModule
             return Results.BadRequest(response);
         }
         var apiResponse = await mediator.Send(command);
+        return Results.Json(apiResponse);
+    }
+
+    public async Task<IResult> GetModifierGroups(IMediator mediator,
+        [FromQuery] int page = 1, [FromQuery] int size = 30,
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var query = new GetModifierGroupsQuery()
+        {
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc
+        };
+        var apiResponse = await mediator.Send(query);
         return Results.Json(apiResponse);
     }
 }
