@@ -61,8 +61,8 @@ public class CategoriesEndpoints : ICarterModule
         return Results.Json(apiResponse);
     }
 
-    public async Task<IResult> GetCategoriesByBrand(IMediator mediator, [FromQuery] int size, [FromQuery] int page,
-        [FromQuery] string? sortBy, [FromQuery] bool isAsc, [FromQuery] string? name)
+    public async Task<IResult> GetCategoriesByBrand(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int size = 30,
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, [FromQuery] string? name = null)
     {
         var query = new GetCategoriesByBrandQuery()
         {

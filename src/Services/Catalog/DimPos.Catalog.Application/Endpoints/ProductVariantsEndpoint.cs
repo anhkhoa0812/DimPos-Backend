@@ -29,7 +29,7 @@ public class ProductVariantsEndpoint : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
-    public async Task<IResult> GetProductVariants(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int size = 10, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, [FromQuery] string? name = null)
+    public async Task<IResult> GetProductVariants(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, [FromQuery] string? name = null)
     {
         var query = new GetProductVariantsQuery()
         {
