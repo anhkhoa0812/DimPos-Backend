@@ -4,6 +4,7 @@ public class StoreMenuResponse
 {
     public List<CategoriesResponse>? Categories { get; set; }
     public List<ProductsResponse>? Products { get; set; }
+    public List<ModifierGroupsResponses>? ModifierGroups { get; set; }
 }
 public record CategoriesResponse
 {
@@ -50,4 +51,24 @@ public record ProductVariantResponse
     public string? Size { get; set; }
     public bool IsMenuDisplay { get; set; }
     public int DisplayOrder { get; set; }
+}
+public record ModifierGroupsResponses
+{
+    public Guid Id { get; set; }
+    public string? Description { get; set; }
+    // public ESelectedTypeModifier SelectedType { get; set; }
+    public int? DisplayOrder { get; set; }
+    public bool IsActive { get; set; }
+    public Guid BrandId { get; set; }
+    public List<Guid> ProductVariantIds { get; set; } = new();
+    public List<ModifierOptionsResponses>? ModifierOptions { get; set; } = new();
+}
+public record ModifierOptionsResponses
+{
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
+    public decimal? PriceDelta { get; set; }
+    public Guid ModifierGroupId { get; set; }
 }

@@ -63,6 +63,7 @@ message ListProductVariantIds {
 message GetMenuProductByStoreResponse {
   optional ListCategoryResponse listCategoryResponse = 1;
   optional ListProductResponse listProductResponse = 2;
+  optional ListModifierGroupResponse listModifierGroupResponse = 3;
 }
 message ListCategoryResponse {
   repeated CategoryResponse categories = 1;
@@ -96,8 +97,37 @@ message ProductResponse {
   string description = 5;
   string imageUrl = 6;
   float price = 7;
-  string CategoryId = 8;
+  string categoryId = 8;
   optional ListProductVariant productVariants = 9;
+}
+message ListModifierGroupResponse {
+  repeated ModifierGroupResponse modifierGroups = 1;
+}
+message ModifierGroupResponse {
+  string id = 1;
+  optional string description = 2;
+  SelectedTypeModifier selectedType = 3;
+  optional int32 displayOrder = 4;
+  bool isActive = 5;
+  string brandId = 6;
+  repeated string productVariantId = 7;
+  optional ListModifierOptionResponse modifierOptions = 8;
+}
+
+enum SelectedTypeModifier {
+  Single = 0;
+  Multiple = 1;
+}
+message ListModifierOptionResponse {
+  repeated ModifierOptionResponse modifierOptions = 1;
+}
+message ModifierOptionResponse {
+  string id = 1;
+  optional string name = 2;
+  optional string description = 4;
+  bool isActive = 5;
+  optional float priceDelta = 6;
+  string modifierGroupId = 7;
 }
 message ListProductVariant {
   repeated ProductVariantResponse productVariants = 1;

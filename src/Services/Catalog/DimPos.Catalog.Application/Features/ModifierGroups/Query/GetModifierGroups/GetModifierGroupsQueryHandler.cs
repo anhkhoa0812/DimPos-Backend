@@ -34,12 +34,12 @@ public class GetModifierGroupsQueryHandler : IRequestHandler<GetModifierGroupsQu
                 DisplayOrder = x.DisplayOrder,
                 Description = x.Description,
                 SelectedType = x.SelectedType,
-                Status = x.Status,
+                IsActive = x.IsActive,
                 ModifierOptions = x.ModifierOptions != null ? x.ModifierOptions.Select(mo => new ModifierOptionsResponse()
                 {
                     Id = mo.Id,
                     Description = mo.Description,
-                    Status = mo.Status,
+                    IsActive = mo.IsActive,
                     Name = mo.Name,
                     PriceDelta = mo.PriceDelta
                 }).ToList() : null

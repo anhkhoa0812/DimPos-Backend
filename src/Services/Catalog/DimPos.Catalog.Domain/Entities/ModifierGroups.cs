@@ -9,7 +9,7 @@ public class ModifierGroups : EntityAuditBase<Guid>
     public string? Description { get; set; }
     public ESelectedTypeModifier SelectedType { get; set; }
     public int? DisplayOrder { get; set; }
-    public int? Status { get; set; }
+    public bool IsActive { get; set; }
     public Guid BrandId { get; set; }
     
     public virtual ICollection<ModifierOptions>? ModifierOptions { get; set; } = new List<ModifierOptions>();

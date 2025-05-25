@@ -40,7 +40,7 @@ public class CreateModifierGroupsCommandHandler : IRequestHandler<CreateModifier
                     Id = Guid.CreateVersion7(),
                     Name = option.Name,
                     Description = option.Description,
-                    Status = option.Status,
+                    IsActive = option.IsActive,
                     PriceDelta = option.PriceDelta
                 };
                 modifierGroup.ModifierOptions.Add(modifierOption);

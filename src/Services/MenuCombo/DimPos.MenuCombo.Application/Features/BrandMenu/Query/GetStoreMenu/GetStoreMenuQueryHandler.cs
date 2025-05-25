@@ -96,6 +96,13 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             listProduct.Add(productResponse);
         }
         response.Products = listProduct;
+        var listModifierGroup = new List<ModifierGroupsResponses>();
+        foreach (var modifierGroup in storeMenuGrpc.ListModifierGroupResponse.ModifierGroups)
+        {
+            var modifierGroupResponse = MapModifierGroup(modifierGroup);
+            listModifierGroup.Add(modifierGroupResponse);
+        }
+        response.ModifierGroups = listModifierGroup;
         return new ApiResponse()
         {
             Status = 200,
@@ -130,6 +137,28 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
                 Size = pv.Size,
                 IsMenuDisplay = pv.IsMenuDisplay,
                 DisplayOrder = pv.DisplayOrder
+            }).ToList()
+        };
+    }
+    private ModifierGroupsResponses MapModifierGroup(ModifierGroupResponse modifierGroup)
+    {
+        return new ModifierGroupsResponses()
+        {
+            Id = Guid.Parse(modifierGroup.Id),
+            Description = modifierGroup.Description,
+            DisplayOrder = modifierGroup.DisplayOrder,
+            IsActive = modifierGroup.IsActive,
+            ProductVariantIds = modifierGroup.ProductVariantId?.Select(x => Guid.Parse(x)).ToList() ?? new List<Guid>(),
+            BrandId = Guid.Parse(modifierGroup.BrandId),
+            // SelectedType = modifierGroup.SelectedType, // Assuming SelectedType is an enum, you may need to map it accordingly
+            ModifierOptions = modifierGroup.ModifierOptions.ModifierOptions.Select(mo => new ModifierOptionsResponses()
+            {
+                Id = Guid.Parse(mo.Id),
+                Name = mo.Name,
+                Description = mo.Description,
+                IsActive = mo.IsActive,
+                PriceDelta = (decimal) mo.PriceDelta,
+                ModifierGroupId = Guid.Parse(mo.ModifierGroupId)
             }).ToList()
         };
     }

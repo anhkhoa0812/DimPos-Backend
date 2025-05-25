@@ -124,13 +124,18 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             };
             listCategory.Categories.Add(categoryItem);
         }
+
         var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
-            predicate: x => x.BrandId == Guid.Parse(request.BrandId) 
-                           && x.Status == EProductStatus.Active
-            && x.ProductVariants.Any(pv => variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive),
+            predicate: x => x.BrandId == Guid.Parse(request.BrandId)
+                            && x.Status == EProductStatus.Active
+                            && x.ProductVariants.Any(pv =>
+                                variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive),
             include: x => x.Include(x => x.ProductImages)
-                .Include(x => x.ProductVariants.Where(
-                    pv => variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive))
+                .Include(x => x.ProductVariants.Where(pv =>
+                    variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive))
+                .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == Guid.Parse(request.BrandId)))
+                .ThenInclude(pmg => pmg.ModifierGroup)
+                .ThenInclude(mg => mg.ModifierOptions)
         );
         var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
             predicate: x => x.StoreId == Guid.Parse(request.StoreId)
@@ -138,12 +143,23 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         );
         var listProduct = new ListProductResponse()
         {
-            Products = { products.Select(p => MapProduct(p, storePrices.ToList())).ToList() }
+            Products =
+            {
+                products.Select(p => MapProduct(p, storePrices.ToList())).ToList() 
+            }
         };
+        var productForModifierGroups = products
+            .Where(p => p.ProductModifierGroups.Any(pmg => pmg.ModifierGroup.IsActive)
+                        && p.ProductModifierGroups.Any(pmg =>
+                            pmg.ModifierGroup.ModifierOptions.Any(x => x.IsActive))).ToList();
+        var listModifierOptions = MapModifierOptions(
+            productForModifierGroups.SelectMany(x => x.ProductModifierGroups).ToList()
+        );;
         var response = new GetMenuProductByStoreResponse()
         {
             ListCategoryResponse = listCategory,
-            ListProductResponse = listProduct
+            ListProductResponse = listProduct,
+            ListModifierGroupResponse = listModifierOptions
         };
         return response;
     }
@@ -204,6 +220,45 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             };
             return productItem;
         }
+    }
+
+    private ListModifierGroupResponse MapModifierOptions(List<ProductModifierGroups> productModifierGroups)
+    {
+        var modifierOptions = new ListModifierGroupResponse();
+        foreach (var productModifierGroup in productModifierGroups)
+        {
+            var modifierGroup = productModifierGroup.ModifierGroup;
+            var modifierGroupResponse = new ModifierGroupResponse()
+            {
+                Id = modifierGroup.Id.ToString(),
+                DisplayOrder = modifierGroup.DisplayOrder ?? 0,
+                Description = modifierGroup.Description ?? String.Empty,
+                SelectedType = (SelectedTypeModifier) modifierGroup.SelectedType,
+                IsActive = modifierGroup.IsActive,
+                BrandId = modifierGroup.BrandId.ToString(),
+                ProductVariantId =
+                {
+                    productModifierGroup.Product.ProductVariants.Select(x => x.Id.ToString()).ToList(),
+                },
+                ModifierOptions = new ListModifierOptionResponse()
+                {
+                    ModifierOptions =
+                    {
+                        modifierGroup.ModifierOptions?.Select(x => new ModifierOptionResponse()
+                        {
+                            Id = x.Id.ToString(),
+                            Name = x.Name ,
+                            Description = x.Description ?? String.Empty,
+                            IsActive = x.IsActive,
+                            PriceDelta = x.PriceDelta != null ? (float)x.PriceDelta.Value : 0,
+                            ModifierGroupId = modifierGroup.Id.ToString()
+                        })
+                    }
+                }
+            };
+            modifierOptions.ModifierGroups.Add(modifierGroupResponse);
+        }
+        return modifierOptions;
     }
     // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     // {
