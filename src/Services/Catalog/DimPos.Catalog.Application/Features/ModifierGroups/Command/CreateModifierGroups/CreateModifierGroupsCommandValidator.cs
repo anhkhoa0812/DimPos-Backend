@@ -12,7 +12,7 @@ public class CreateModifierGroupsCommandValidator : AbstractValidator<CreateModi
             .MaximumLength(200).WithMessage("Tên của nhóm tùy chọn không được nhiều hơn 200 ký tự.");
         RuleFor(x => x.SelectedType)
             .NotEmpty().WithMessage("Kiểu tùy chọn không được để trống.");
-        RuleFor(x => x.Status)
+        RuleFor(x => x.IsActive)
             .NotEmpty().WithMessage("Trạng thái của nhóm tùy chọn không được để trống.");
         RuleFor(x => x.Description)
             .MaximumLength(1000).WithMessage("Mô tả của nhóm tùy chọn không được nhiều hơn 1000 ký tự.");
@@ -27,7 +27,7 @@ public class CreateModifierOptionsValidator : AbstractValidator<CreateModifierOp
     {
         RuleFor(x => x.Name)
             .MaximumLength(200).WithMessage("Tên của tùy chọn không được nhiều hơn 200 ký tự.");
-        RuleFor(x => x.Status)
+        RuleFor(x => x.IsActive)
             .NotEmpty().WithMessage("Trạng thái của tùy chọn không được để trống.");
         RuleFor(x => x.Description)
             .MaximumLength(1000).WithMessage("Mô tả của tùy chọn không được nhiều hơn 1000 ký tự.");

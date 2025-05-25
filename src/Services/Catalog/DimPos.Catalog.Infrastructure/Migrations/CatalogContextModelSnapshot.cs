@@ -222,6 +222,9 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<int?>("DisplayOrder")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
@@ -233,9 +236,6 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<string>("SelectedType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -255,6 +255,9 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
@@ -268,9 +271,6 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Property<decimal?>("PriceDelta")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

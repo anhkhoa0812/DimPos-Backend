@@ -22,7 +22,7 @@ public class ModifierGroupsConfiguration : IEntityTypeConfiguration<ModifierGrou
                 v => v.ToString(),
                 v => (ESelectedTypeModifier)Enum.Parse(typeof(ESelectedTypeModifier), v)
             );
-        builder.Property(mg => mg.Status)
+        builder.Property(mg => mg.IsActive)
             .IsRequired();
         builder.Property(mg => mg.BrandId)
             .IsRequired();
