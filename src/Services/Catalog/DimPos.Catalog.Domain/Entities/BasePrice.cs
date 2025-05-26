@@ -10,5 +10,5 @@ public class BasePrice : EntityAuditBase<Guid>
     public Guid ProductVariantId { get; set; }
     public Guid BrandId { get; set; }
     
-    public virtual IEnumerable<BrandPriceHistory>? BrandPriceHistories { get; set; } = new List<BrandPriceHistory>();
+    public virtual ICollection<BrandPriceHistory>? BrandPriceHistories { get; set; } = new List<BrandPriceHistory>();
 }
