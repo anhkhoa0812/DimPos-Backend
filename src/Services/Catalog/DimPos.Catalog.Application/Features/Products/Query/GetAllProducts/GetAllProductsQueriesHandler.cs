@@ -24,15 +24,63 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
-        var products = await _unitOfWork.GetRepository<Domain.Entities.Products>().GetListAsync(
-            predicate: x => x.BrandId == brandId
+        var products = await _unitOfWork.GetRepository<Domain.Entities.Products>().GetPagingListAsync(
+            selector: p => new ProductResponse()
+            {
+                Id = p.Id,
+                Code = p.Code,
+                AlternativeCode = p.AlternativeCode,
+                Name = p.Name,
+                Description = p.Description,
+                IsHasVariants = p.IsHasVariants,
+                IsHasRecipe = p.IsHasRecipe,
+                Status = p.Status,
+                IsAvailable = p.IsAvailable,
+                DisplayOrder = p.DisplayOrder,
+                IsMenuDisplay = p.IsMenuDisplay,
+                SaleType = p.SaleType,
+                IsMostOrdered = p.IsMostOrdered,
+                Note = p.Note,
+                NumOfUserVoted = p.NumOfUserVoted,
+                CreatedDate = p.CreatedDate,
+                LastModifiedDate = p.LastModifiedDate,
+                ProductVariants = p.ProductVariants.Select(v => new ProductVariantsResponse
+                {
+                    Id = v.Id,
+                    Code = v.Code,
+                    AlternativeCode = v.AlternativeCode,
+                    Name = v.Name,
+                    DiscountPercent = v.DiscountPercent,
+                    DiscountPrice = v.DiscountPrice,
+                    Price = v.Price,
+                    PriceCOGS = v.PriceCOGS,
+                    IsActive = v.IsActive,
+                    Size = v.Size,
+                    IsMenuDisplay = v.IsMenuDisplay,
+                    Status = v.Status
+                }).ToList(),
+                ProductImages = p.ProductImages.Select(i => new ProductImagesResponse
+                {
+                    Id = i.Id,
+                    ImageUrl = i.ImageUrl,
+                    IsMainImage = i.IsMainImage,
+                    AltText = i.AltText
+                }).ToList()
+            },
+            predicate: x => x.BrandId == brandId && 
+                           (request.Status == null || x.Status == request.Status) &&
+                           (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)) &&
+                           (request.IsHasVariants == null || x.IsHasVariants == request.IsHasVariants),
+            page: request.Page,
+            size: request.Size,
+            sortBy: request.SortBy,
+            isAsc: request.IsAsc
         );
-        var productResponse = ProductMapper.ToProductResponses(products.ToList());
-        return new ApiResponse()
+        return new ApiResponse
         {
             Status = (int) HttpStatusCode.OK,
-            Message = "Thành công",
-            Data = productResponse
+            Message = "Lấy dữ liệu thành công",
+            Data = products
         };
     }
 }

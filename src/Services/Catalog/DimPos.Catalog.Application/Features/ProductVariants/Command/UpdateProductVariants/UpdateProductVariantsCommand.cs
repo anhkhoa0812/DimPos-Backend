@@ -1,0 +1,26 @@
+using DimPos.Catalog.Domain.Enums;
+using DimPos.Catalog.Domain.Models.Common;
+using Mediator;
+
+namespace DimPos.Catalog.Application.Features.ProductVariants.Command.UpdateProductVariants;
+
+public class UpdateProductVariantsCommand : IRequest<ApiResponse>
+{
+    public Guid ProductVariantId { get; set; }
+    public UpdateProductVariantsRequest UpdateProductVariants { get; set; } = new UpdateProductVariantsRequest();
+}
+
+public class UpdateProductVariantsRequest
+{
+    public string? AlternativeCode { get; set; }
+    public string? Name { get; set; }
+    public decimal? DiscountPercent { get; set; }
+    public decimal? DiscountPrice { get; set; }
+    public decimal? Price { get; set; }
+    public decimal? PriceCOGS { get; set; }
+    public bool? IsActive { get; set; }
+    public string? Size { get; set; }
+    public bool? IsMenuDisplay { get; set; }
+    public int? DisplayOrder { get; set; }
+    public EProductVariantStatus? Status { get; set; }
+}

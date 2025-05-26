@@ -1,4 +1,6 @@
 using Carter;
+using DimPos.Catalog.Application.Common.Utils;
+using DimPos.Catalog.Application.Features.ProductVariants.Command.UpdateProductVariants;
 using DimPos.Catalog.Application.Features.ProductVariants.Query.GetProductProductVariantsById;
 using DimPos.Catalog.Application.Features.ProductVariants.Query.GetProductVariants;
 using DimPos.Catalog.Domain.Constants;
@@ -27,6 +29,13 @@ public class ProductVariantsEndpoint : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("/{id}", UpdateProductVariantsById)
+            .WithName(nameof(UpdateProductVariantsById))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> GetProductVariants(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, [FromQuery] string? name = null)
@@ -50,6 +59,21 @@ public class ProductVariantsEndpoint : ICarterModule
             ProductVariantId = id
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> UpdateProductVariantsById(IMediator mediator, [FromRoute] Guid id, [FromBody] UpdateProductVariantsRequest request, ValidationUtil<UpdateProductVariantsCommand> validationUtil)
+    {
+        var command = new UpdateProductVariantsCommand()
+        {
+            ProductVariantId = id,
+            UpdateProductVariants = request
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }
