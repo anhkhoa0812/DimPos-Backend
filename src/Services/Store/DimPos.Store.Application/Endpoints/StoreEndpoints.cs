@@ -28,6 +28,6 @@ public class StoreEndpoints  : ICarterModule
             return Results.BadRequest(response);
         }
         var result = await mediator.Send(command);
-        return Results.Json(result);
+        return Results.CreatedAtRoute($"{ApiEndpointConstant.Store.StoreEndpoint}", result);
     }
 }

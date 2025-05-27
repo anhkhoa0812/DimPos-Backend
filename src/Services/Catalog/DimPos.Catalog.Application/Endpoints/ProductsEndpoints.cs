@@ -45,7 +45,7 @@ public class ProductsEndpoints : ICarterModule
             return Results.BadRequest(response);
         }
         var apiResponse = await mediator.Send(command);
-        return Results.Json(apiResponse);
+        return Results.Created($"{ApiEndPointConstants.Products.ProductsEndpoint}", apiResponse);
     }
 
     public async Task<IResult> GetProducts(IMediator mediator, [FromQuery] int page = 1, 

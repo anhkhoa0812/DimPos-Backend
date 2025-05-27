@@ -45,7 +45,7 @@ public class ModifierGroupsEndpoints : ICarterModule
             return Results.BadRequest(response);
         }
         var apiResponse = await mediator.Send(command);
-        return Results.Json(apiResponse);
+        return Results.Created($"{ApiEndPointConstants.ModifierGroups.ModifierGroupsEndpoint}", apiResponse);
     }
 
     public async Task<IResult> GetModifierGroups(IMediator mediator,
