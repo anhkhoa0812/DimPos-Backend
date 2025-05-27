@@ -98,6 +98,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                             NewPrice = productVariant.BrandPrice,
                             ChangedAt = DateTime.UtcNow,
                             ChangedBy = brandId,
+                            ProductVariantId = productVariants.Id
                         }
                     }
                 };
@@ -137,6 +138,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 ProductVariantId = productVariant.Id,
                 Price = request.Price ?? 0,
                 BrandId = brandId,
+                CurrencyCode = "VND",
                 BrandPriceHistories = new List<BrandPriceHistory>()
                 {
                     new BrandPriceHistory()
@@ -146,6 +148,8 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                         NewPrice = request.Price ?? 0,
                         ChangedAt = DateTime.UtcNow,
                         ChangedBy = brandId,
+                        CurrencyCode = "VND",
+                        ProductVariantId = productVariant.Id
                     }
                 }
             };

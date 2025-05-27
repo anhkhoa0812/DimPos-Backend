@@ -58,7 +58,7 @@ public class CategoriesEndpoints : ICarterModule
             return Results.BadRequest(response);
         }
         var apiResponse = await mediator.Send(command);
-        return Results.Json(apiResponse);
+        return Results.Created($"{ApiEndPointConstants.Categories.CategoriesEndpoint}",apiResponse);
     }
 
     public async Task<IResult> GetCategoriesByBrand(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int size = 30,

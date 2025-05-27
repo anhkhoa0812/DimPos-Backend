@@ -38,7 +38,7 @@ public class BrandEndpoints : ICarterModule
             return Results.BadRequest(response);
         }
         var apiResponse = await mediator.Send(command);
-        return Results.Json(apiResponse);
+        return Results.Created($"{ApiEndpointConstants.Brands.BrandsEndpoint}" ,apiResponse);
     }
 
     public async Task<IResult> GetBrandDetail(IMediator mediator)
