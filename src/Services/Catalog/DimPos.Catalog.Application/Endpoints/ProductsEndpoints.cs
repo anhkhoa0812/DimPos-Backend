@@ -3,12 +3,12 @@ using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 using DimPos.Catalog.Application.Features.Products.Commands.UpdateProducts;
 using DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;
+using DimPos.Catalog.Application.Features.Products.Query.GetProductsById;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Domain.Models.Product;
-using FluentValidation.Results;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +29,13 @@ public class ProductsEndpoints : ICarterModule
             .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse<List<ProductResponse>>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized);
+        group.MapGet("/{id}", GetProductsById).WithName(nameof(GetProductsById))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse<ProductResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status404NotFound)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapPatch("/{id}", UpdateProductsById)
             .WithName(nameof(UpdateProductsById))
             .RequireAuthorization("BrandPolicy")
@@ -66,7 +73,7 @@ public class ProductsEndpoints : ICarterModule
         var result = await mediator.Send(query);
         return Results.Json(result);
     }
-    public async Task<IResult> UpdateProductsById(IMediator mediator, [FromRoute] Guid id, [FromBody] UpdateProductsRequest request, ValidationUtil<UpdateProductsCommand> validationUtil)
+    public async Task<IResult> UpdateProductsById(IMediator mediator, [FromRoute] Guid id, [FromForm] UpdateProductsRequest request, ValidationUtil<UpdateProductsCommand> validationUtil)
     {
         var command = new UpdateProductsCommand()
         {
@@ -80,5 +87,11 @@ public class ProductsEndpoints : ICarterModule
         }
         var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetProductsById(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetProductsByIdQuery() { ProductId = id };
+        var result = await mediator.Send(query);
+        return Results.Json(result);
     }
 }
