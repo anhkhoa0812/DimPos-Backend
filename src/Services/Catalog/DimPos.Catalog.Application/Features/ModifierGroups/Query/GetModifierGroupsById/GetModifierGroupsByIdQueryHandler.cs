@@ -36,16 +36,6 @@ public class GetModifierGroupsByIdQueryHandler : IRequestHandler<GetModifierGrou
                 Description = x.Description,
                 SelectedType = x.SelectedType,
                 IsActive = x.IsActive,
-                ModifierOptions = x.ModifierOptions != null
-                    ? x.ModifierOptions.Select(mo => new ModifierOptionsResponse()
-                    {
-                        Id = mo.Id,
-                        Description = mo.Description,
-                        IsActive = mo.IsActive,
-                        Name = mo.Name,
-                        PriceDelta = mo.PriceDelta
-                    }).ToList()
-                    : null
             },
             predicate: x => x.Id == request.ModifierGroupId && x.BrandId == brandId
         );

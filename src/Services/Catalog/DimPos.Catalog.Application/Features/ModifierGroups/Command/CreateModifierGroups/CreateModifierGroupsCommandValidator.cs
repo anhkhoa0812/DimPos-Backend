@@ -18,6 +18,8 @@ public class CreateModifierGroupsCommandValidator : AbstractValidator<CreateModi
             .MaximumLength(1000).WithMessage("Mô tả của nhóm tùy chọn không được nhiều hơn 1000 ký tự.");
         RuleFor(x => x.SelectedType)
             .IsInEnum();
+        RuleFor(x => x.DisplayOrder)
+            .GreaterThanOrEqualTo(0).WithMessage("Thứ tự hiển thị phải lớn hơn hoặc bằng 0.");
     }
 }
 

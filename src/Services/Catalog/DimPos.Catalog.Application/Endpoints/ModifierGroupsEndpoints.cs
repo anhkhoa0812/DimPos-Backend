@@ -1,8 +1,10 @@
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Application.Features.ModifierGroups.Command.CreateModifierGroups;
+using DimPos.Catalog.Application.Features.ModifierGroups.Command.UpdateModifierGroups;
 using DimPos.Catalog.Application.Features.ModifierGroups.Query.GetModifierGroups;
 using DimPos.Catalog.Application.Features.ModifierGroups.Query.GetModifierGroupsById;
+using DimPos.Catalog.Application.Features.ModifierOptions.Query.GetModifierOptionsByModifierGroup;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Models.Common;
 using Mediator;
@@ -33,6 +35,20 @@ public class ModifierGroupsEndpoints : ICarterModule
             .RequireAuthorization("BrandPolicy")
             .WithName(nameof(GetModifierGroupById))
             .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/{id}/modifier-options", GetModifierOptionsByModifierGroupId)
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetModifierOptionsByModifierGroupId))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status404NotFound)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("/{id}", UpdateModifierGroup)
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(UpdateModifierGroup))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
@@ -70,5 +86,40 @@ public class ModifierGroupsEndpoints : ICarterModule
         };
         var apiResponse = await mediator.Send(query);
         return Results.Json(apiResponse);
+    }
+    public async Task<IResult> GetModifierOptionsByModifierGroupId(
+        IMediator mediator, [FromRoute] Guid id,
+        [FromQuery] int page = 1, [FromQuery] int size = 30,
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,
+        [FromQuery] string? name = null, [FromQuery] bool? isActive = null)
+    {
+        var query = new GetModifierOptionsByModifierGroupQuery()
+        {
+            ModifierGroupsId = id,
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc,
+            Name = name,
+            IsActive = isActive,
+        };
+        var result = await mediator.Send(query);
+        return Results.Json(result);
+    }
+    public async Task<IResult> UpdateModifierGroup(IMediator mediator, [FromRoute] Guid id, 
+        [FromBody] UpdateModifierGroupsRequest request, ValidationUtil<UpdateModifierGroupsCommand> validationUtil)
+    {
+        var command = new UpdateModifierGroupsCommand()
+        {
+            Id = id,
+            UpdateModifierGroupsRequest = request
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
     }
 }
