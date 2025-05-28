@@ -32,10 +32,10 @@ public class CreateModifierGroupsCommandHandler : IRequestHandler<CreateModifier
         modifierGroup.BrandId = brandId;
         if (request.ModifierOptions != null)
         {
-            modifierGroup.ModifierOptions = new List<ModifierOptions>();
+            modifierGroup.ModifierOptions = new List<DimPos.Catalog.Domain.Entities.ModifierOptions>();
             foreach (var option in request.ModifierOptions)
             {
-                var modifierOption = new ModifierOptions()
+                var modifierOption = new DimPos.Catalog.Domain.Entities.ModifierOptions()
                 {
                     Id = Guid.CreateVersion7(),
                     Name = option.Name,
