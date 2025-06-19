@@ -55,16 +55,11 @@ public static class ConfigureServices
             .Get<GrpcSettings>();
         if (settings == null || string.IsNullOrEmpty(settings.MediaUrl))
             throw new ArgumentNullException("Grpc is not configured.");
-
+        
         services.AddGrpcClient<MediaGrpcService.MediaGrpcServiceClient>(x =>
-            {
-                x.Address = new Uri(settings.MediaUrl);
-                x.ChannelOptionsActions.Add(channelOptions =>
-                {
-                    channelOptions.HttpVersion = System.Net.HttpVersion.Version20;
-                });
-            }
-        );
+        {
+            x.Address = new Uri(settings.MediaUrl);
+        });
         return services;
     }
 }

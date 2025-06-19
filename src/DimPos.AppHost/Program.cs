@@ -1,38 +1,41 @@
 var builder = DistributedApplication.CreateBuilder(args);
-var sql = builder.AddConnectionString("CatalogDb");
-var kafka = builder
-    .AddKafka("kafka", 9092)
-    .WithEnvironment("KAFKA_SASL_USERNAME", "kafka")
-    .WithEnvironment("KAFKA_SASL_PASSWORD", "kafka")
-    .WithEnvironment("KAFKA_SASL_MECHANISM", "PLAIN")
-    .WithKafkaUI()
-    .WithLifetime(ContainerLifetime.Persistent)
-    .WithDataVolume();
-
-var catalogApi = builder.AddProject<Projects.DimPos_Catalog_Application>("catalog-api")
-    .WithReference(sql)
-    .WithReference(kafka)
-    .WaitFor(kafka);
+// var sql = builder.AddConnectionString("CatalogDb");
+// var kafka = builder
+//     .AddKafka("kafka", 9092)
+//     .WithEnvironment("KAFKA_SASL_USERNAME", "kafka")
+//     .WithEnvironment("KAFKA_SASL_PASSWORD", "kafka")
+//     .WithEnvironment("KAFKA_SASL_MECHANISM", "PLAIN")
+//     .WithEnvironment("KAFKA_CFG_SOCKET_REQUEST_MAX_BYTES", "524288000")
+//     .WithEnvironment("KAFKA_CFG_MESSAGE_MAX_BYTES", "524288000")
+//     .WithKafkaUI()
+//     .WithLifetime(ContainerLifetime.Persistent)
+//     .WithDataVolume();
+//
+var catalogApi = builder.AddProject<Projects.DimPos_Catalog_Application>("catalog-api");
+    // .WithReference(sql)
+    // .WithReference(kafka)
+    // .WaitFor(kafka);
 var identityApi = builder.AddProject<Projects.DimPos_Identity_Application>("identity-api");
 
 var brandApi = builder.AddProject<Projects.DimPos_Brand_Application>("brand-api");
     // .WithReference(kafka)
     // .WaitFor(kafka);
-var storeApi = builder.AddProject<Projects.DimPos_Store_Application>("store-api")
-    .WithReference(kafka)
-    .WaitFor(kafka);
-var menuComboApi = builder.AddProject<Projects.DimPos_MenuCombo_Application>("menu-combo-api")
-    .WithReference(kafka)
-    .WaitFor(kafka);
-var mediaApi = builder.AddProject<Projects.DimPos_Media_Application>("media-api")
-    .WithReference(kafka)
-    .WaitFor(kafka);
+var storeApi = builder.AddProject<Projects.DimPos_Store_Application>("store-api");
+    // .WithReference(kafka)
+    // .WaitFor(kafka);
+var menuComboApi = builder.AddProject<Projects.DimPos_MenuCombo_Application>("menu-combo-api");
+    // .WithReference(kafka)
+    // .WaitFor(kafka);
+var mediaApi = builder.AddProject<Projects.DimPos_Media_Application>("media-api");
+    // .WithReference(kafka)
+    // .WaitFor(kafka);
+var basketApi = builder.AddProject<Projects.DimPos_Basket_Application>("basket-api");
 var orchestrator = builder.AddProject<Projects.DimPos_Orchestrator>("orchestrator")
         .WithReference(brandApi)
         .WithReference(catalogApi)
         .WithReference(identityApi)
-        .WithReference(storeApi)
-        .WithReference(kafka)
-        .WaitFor(kafka);
+        .WithReference(storeApi);
+        // .WithReference(kafka)
+        // .WaitFor(kafka);
 
 builder.Build().Run();

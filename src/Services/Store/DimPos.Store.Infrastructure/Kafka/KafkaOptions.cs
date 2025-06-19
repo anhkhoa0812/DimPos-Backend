@@ -12,4 +12,6 @@ public sealed record Topics
 {
     public string CreateStoreResponse { get; set; } = default!;
     public string RollbackStoreAccountRequest { get; set; } = default!;
+    public string CreateStaffResponse { get; set; } = default!;
+    public string RollbackStaffStoreAccountRequest { get; set; } = default!;
 }

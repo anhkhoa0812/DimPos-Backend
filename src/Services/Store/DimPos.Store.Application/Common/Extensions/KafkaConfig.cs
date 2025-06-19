@@ -4,6 +4,7 @@ using DimPos.Store.Infrastructure.Kafka;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SharedProject.Events.Store.CreateStaff;
 using SharedProject.Events.Store.CreateStore;
 
 namespace DimPos.Store.Application.Common.Extensions;
@@ -27,9 +28,10 @@ public static class KafkaConfig
             configureMassTransit.AddRider(configureRider =>
             {
                 configureRider.AddProducer<Null, CreateStoreResponseModel>(kafkaOptions!.Topics.CreateStoreResponse);
-
-                configureRider.AddConsumer<RollbackStoreConsumer>();
+                configureRider.AddProducer<Null, CreateStaffResponseModel>(kafkaOptions!.Topics.CreateStaffResponse);
                 
+                configureRider.AddConsumer<RollbackStoreConsumer>();
+                configureRider.AddConsumer<RollbackStaffStoreAccountRequestConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, RollbackStoreConsumer>(
@@ -39,6 +41,17 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<RollbackStoreConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, RollbackStaffStoreAccountRequestModel>(
+                        topicName: kafkaOptions!.Topics.RollbackStaffStoreAccountRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<RollbackStaffStoreAccountRequestConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

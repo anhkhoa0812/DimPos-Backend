@@ -28,9 +28,6 @@ public class CreateProductsCommandValidator : AbstractValidator<CreateProductsCo
         RuleFor(p => p.IsAvailable)
             .NotEmpty().WithMessage("Trạng thái khả dụng của sản phẩm không được bỏ trống");
         
-        RuleFor(p => p.SaleType)
-            .NotEmpty().WithMessage("Loại hình bán hàng của sản phẩm không được bỏ trống");
-        
         RuleForEach(p => p.ProductVariants).SetValidator(new CreateProductVariantValidator());
         RuleForEach(p => p.ProductImages).SetValidator(new CreateProductImageValidator());
     }

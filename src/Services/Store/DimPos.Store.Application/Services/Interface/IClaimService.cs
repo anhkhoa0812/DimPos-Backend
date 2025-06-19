@@ -1,6 +1,6 @@
 namespace DimPos.Store.Application.Services.Interface;
 
-public class IClaimService
+public interface IClaimService
 {
     public Guid GetCurrentUserId { get; }
     public string GetCurrentEmail { get; }

@@ -16,4 +16,7 @@ public sealed record Topics
     public string CreateStoreAccountRequest { get; set; } = default!;
     public string CreateStoreAccountResponse { get; set; } = default!;
     public string CreateStoreAccountError { get; set; } = default!;
+    public string CreateStaffAccountRequest { get; set; } = default!;
+    public string CreateStaffAccountResponse { get; set; } = default!;
+    public string CreateStaffAccountError { get; set; } = default!;
 }
