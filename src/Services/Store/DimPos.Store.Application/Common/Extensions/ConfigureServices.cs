@@ -1,5 +1,6 @@
 using DimPos.Store.Application.Common.Behaviours;
 using DimPos.Store.Application.Common.Utils;
+using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
 using DimPos.Store.Application.Services.Implement;
 using DimPos.Store.Application.Services.Interface;
@@ -21,6 +22,7 @@ public static class ConfigureServices
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddScoped(typeof(ValidationUtil<>));
         services.AddScoped<IValidator<CreateStoreCommand>, CreateStoreCommandValidator>();
+        services.AddScoped<IValidator<CreateStaffCommand>, CreateStaffCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

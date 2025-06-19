@@ -4,10 +4,12 @@ using DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga;
 using DimPos.Orchestrator.SagaState.Brands.CreateStoreSaga;
 using DimPos.Orchestrator.SagaState.StoreMenu.AssignNewStoreMenu;
 using DimPos.Orchestrator.SagaState.StoreMenu.RemoveStoreMenu;
+using DimPos.Orchestrator.SagaState.Stores.CreateStaffSaga;
 using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
 using SharedProject.Events.Brand;
 using SharedProject.Events.RemoveMenuForStore;
+using SharedProject.Events.Store.CreateStaff;
 using SharedProject.Events.Store.CreateStore;
 
 namespace DimPos.Orchestrator.Common.Extensions;
@@ -22,7 +24,6 @@ public static class ServiceExtensions
         var kafkaOptions = configuration
             .GetSection(nameof(KafkaOptions))
             .Get<KafkaOptions>();
-
         services.AddMassTransit(massTransit =>
         {
             massTransit.UsingInMemory((context, cfg) => cfg.ConfigureEndpoints(context));
@@ -37,6 +38,8 @@ public static class ServiceExtensions
                     .AddSagaStateMachine<AssignNewStoreMenuStateMachine, AssignNewStoreMenuSagaState>().InMemoryRepository();
                 rider
                     .AddSagaStateMachine<RemoveStoreMenuStateMachine, RemoveStoreMenuSagaState>().InMemoryRepository();
+                rider
+                    .AddSagaStateMachine<CreateStaffSagaStateMachine, CreateStaffSagaState>().InMemoryRepository();
                 //Add Producers
                 rider.AddProducer<Null, CreateBrandAccountModel>(kafkaOptions!.Topics.CreateBrandAccountRequest);
                 rider.AddProducer<Null, RollbackBrandAccountModel>(kafkaOptions!.Topics.RollbackBrandAccountRequest);
@@ -46,6 +49,8 @@ public static class ServiceExtensions
                 rider.AddProducer<Null, RollbackStoreMenuModel>(kafkaOptions!.Topics.RollbackStoreMenuRequest);
                 rider.AddProducer<Null, RemoveStorePriceRequestModel>(kafkaOptions!.Topics.RemoveStorePriceRequest);
                 rider.AddProducer<Null, RollbackRemoveStoreMenuModel>(kafkaOptions!.Topics.RollbackRemoveStoreMenuRequest);
+                rider.AddProducer<Null, CreateStaffAccountRequestModel>(kafkaOptions!.Topics.CreateStaffAccountRequest);
+                rider.AddProducer<Null, RollbackStaffStoreAccountRequestModel>(kafkaOptions!.Topics.RollbackStaffStoreAccountRequest);
                 rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {
                     //Create Brand account
@@ -181,6 +186,40 @@ public static class ServiceExtensions
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureSaga<RemoveStoreMenuSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });  
+                    //Create Staff
+                    kafkaConfig.TopicEndpoint<Null, CreateStaffResponseModel>(
+                        topicName: kafkaOptions!.Topics.CreateStaffResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<CreateStaffSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });  
+                    kafkaConfig.TopicEndpoint<Null, CreateStaffAccountResponseModel>(
+                        topicName: kafkaOptions!.Topics.CreateStaffAccountResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<CreateStaffSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });  
+                    kafkaConfig.TopicEndpoint<Null, CreateStaffAccountErrorModel>(
+                        topicName: kafkaOptions!.Topics.CreateStaffAccountError,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<CreateStaffSagaState>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

@@ -1,5 +1,6 @@
 using Carter;
 using DimPos.Store.Application.Common.Utils;
+using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
 using DimPos.Store.Domain.Constants;
 using DimPos.Store.Domain.Models.Common;
@@ -8,12 +9,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DimPos.Store.Application.Endpoints;
 
-public class StoreEndpoints  : ICarterModule
+public class StoreEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ApiEndpointConstant.Store.StoreEndpoint).WithTags("Stores");
         group.MapPost("", CreateStore).RequireAuthorization("BrandPolicy").WithName(nameof(CreateStore))
+            .DisableAntiforgery()
+            .Produces<ApiResponse>(StatusCodes.Status201Created)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPost("/staff", CreateStaff).RequireAuthorization("StorePolicy").WithName(nameof(CreateStaff))
             .DisableAntiforgery()
             .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
@@ -28,6 +35,18 @@ public class StoreEndpoints  : ICarterModule
             return Results.BadRequest(response);
         }
         var result = await mediator.Send(command);
-        return Results.CreatedAtRoute($"{ApiEndpointConstant.Store.StoreEndpoint}", result);
+        return Results.Created($"{ApiEndpointConstant.Store.StoreEndpoint}/staff", result);
+    }
+
+    public async Task<IResult> CreateStaff(IMediator mediator, [FromBody] CreateStaffCommand command,
+        ValidationUtil<CreateStaffCommand> validationUtil)
+    {
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var result = await mediator.Send(command);
+        return Results.Created($"{ApiEndpointConstant.Store.StoreEndpoint}", result);
     }
 }

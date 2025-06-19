@@ -67,7 +67,7 @@ public class BrandMenuEndpoints : ICarterModule
             return Results.BadRequest(response);
         }
         var apiResponse = await mediator.Send(command);
-        return Results.CreatedAtRoute($"{ApiEndpointConstants.BrandMenus.BrandMenusEndpoint}", apiResponse);
+        return Results.Created($"{ApiEndpointConstants.BrandMenus.BrandMenusEndpoint}", apiResponse);
     }
 
     public async Task<IResult> GetBrandMenu(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int size = 30,

@@ -20,6 +20,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\DimPos.Orchestrator\DimPos.Orchestrator.csproj" />
+      <ProjectReference Include="..\Services\Basket\DimPos.Basket.Application\DimPos.Basket.Application.csproj" />
       <ProjectReference Include="..\Services\Brand\DimPos.Brand.Application\DimPos.Brand.Application.csproj" />
       <ProjectReference Include="..\Services\Catalog\DimPos.Catalog.Application\DimPos.Catalog.Application.csproj" />
       <ProjectReference Include="..\Services\Identity\DimPos.Identity.Application\DimPos.Identity.Application.csproj" />
