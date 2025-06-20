@@ -14,6 +14,7 @@ public class ProductVariants : EntityBase<Guid>
     public decimal? PriceCOGS { get; set; }
     public bool IsActive { get; set; }
     public string? Size { get; set; }
+    public string? Sku { get; set; }
     public bool? IsMenuDisplay { get; set; }
     public int? DisplayOrder { get; set; }
     public EProductVariantStatus Status { get; set; }

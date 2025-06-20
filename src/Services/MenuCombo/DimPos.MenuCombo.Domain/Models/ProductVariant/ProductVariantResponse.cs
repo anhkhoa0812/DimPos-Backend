@@ -18,4 +18,5 @@ public record ProductVariantResponse
     public int DisplayOrder { get; set; }
     public EProductVariantStatus Status { get; set; }
     public bool IsSelected { get; set; }
+    public string? Sku { get; set; }
 }

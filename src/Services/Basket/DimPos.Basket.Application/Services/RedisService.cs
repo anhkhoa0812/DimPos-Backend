@@ -54,7 +54,7 @@ public class RedisService : IRedisService
     
     public Task<List<string>> GetSortedSetAsync(string key)
     {
-        return _db.SortedSetRangeByRankAsync(key, order: Order.Descending)
+        return _db.SortedSetRangeByRankAsync(key, order: Order.Ascending)
             .ContinueWith(t => t.Result.Select(x => x.ToString()).ToList());
     }
 

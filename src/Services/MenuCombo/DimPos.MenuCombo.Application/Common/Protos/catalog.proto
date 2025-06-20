@@ -44,7 +44,8 @@ message ProductVariant {
   string size = 10;
   bool isMenuDisplay = 11;
   int32 displayOrder = 12;
-  ProductVariantStatus status = 13;
+  optional string sku = 13;
+  ProductVariantStatus status = 14;
 }
 enum ProductVariantStatus {
   Active = 0;
@@ -145,4 +146,5 @@ message ProductVariantResponse {
   string size = 10;
   bool isMenuDisplay = 11;
   int32 displayOrder = 12;
+  string sku = 13;
 }

@@ -130,7 +130,8 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 DiscountPrice = request.DiscountPrice,
                 DisplayOrder = request.DisplayOrder,
                 Status = EProductVariantStatus.Active,
-                Size = null
+                Size = null,
+                Sku = request.Sku
             };
             var basePrice = new BasePrice()
             {
