@@ -53,6 +53,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     DiscountPercent = (float)productVariant.DiscountPercent,
                     DiscountPrice = (float)productVariant.DiscountPrice,
                     PriceCOGS = (float)productVariant.PriceCOGS,
+                    Sku = productVariant.Sku
                 };
                 response.ProductVariants.Add(productVariantResponse);
             }
@@ -135,7 +136,9 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive))
                 .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == Guid.Parse(request.BrandId)))
                 .ThenInclude(pmg => pmg.ModifierGroup)
-                .ThenInclude(mg => mg.ModifierOptions)
+                .ThenInclude(mg => mg.ModifierOptions),
+            orderBy: x => x.OrderBy(p => p.DisplayOrder)
+                .ThenBy(p => p.ProductVariants.OrderBy(pv => pv.DisplayOrder))
         );
         var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
             predicate: x => x.StoreId == Guid.Parse(request.StoreId)
@@ -213,7 +216,8 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             PriceCOGS = (float)pv.PriceCOGS,
                             IsActive = pv.IsActive,
                             Size = pv.Size ?? String.Empty,
-                            IsMenuDisplay = pv.IsMenuDisplay ?? false
+                            IsMenuDisplay = pv.IsMenuDisplay ?? false,
+                            Sku = pv.Sku
                         }).ToList()
                     }
                 }

@@ -40,6 +40,8 @@ public class ProductVariantsConfiguration : IEntityTypeConfiguration<ProductVari
             .HasPrecision(18, 4);
         builder.Property(pv => pv.PriceCOGS)
             .HasPrecision(18, 4);
+        builder.Property(pv => pv.Sku)
+            .HasMaxLength(255);
         builder.HasOne(pv => pv.Product)
             .WithMany(p => p.ProductVariants)
             .HasForeignKey(pv => pv.ProductId)

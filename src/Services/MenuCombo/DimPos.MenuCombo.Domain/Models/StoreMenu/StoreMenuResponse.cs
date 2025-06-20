@@ -51,6 +51,7 @@ public record ProductVariantResponse
     public string? Size { get; set; }
     public bool IsMenuDisplay { get; set; }
     public int DisplayOrder { get; set; }
+    public string? Sku { get; set; }
 }
 public record ModifierGroupsResponses
 {

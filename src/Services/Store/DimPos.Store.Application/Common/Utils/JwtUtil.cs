@@ -49,4 +49,13 @@ public static class JwtUtil
         }
         return null;
     }
+    public static string GetCurrentStoreId(ClaimsIdentity identity)
+    {
+        if (identity != null)
+        {
+            var userClaims = identity.Claims;
+            return userClaims.FirstOrDefault(x => x.Type == "StoreId")?.Value;
+        }
+        return null;
+    }
 }

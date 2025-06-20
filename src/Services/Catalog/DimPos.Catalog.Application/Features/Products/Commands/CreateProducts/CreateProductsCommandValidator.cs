@@ -27,6 +27,8 @@ public class CreateProductsCommandValidator : AbstractValidator<CreateProductsCo
         
         RuleFor(p => p.IsAvailable)
             .NotEmpty().WithMessage("Trạng thái khả dụng của sản phẩm không được bỏ trống");
+        RuleFor(p => p.Sku)
+            .MaximumLength(255).WithMessage("Mã SKU của sản phẩm không được vượt quá 255 ký tự");
         
         RuleForEach(p => p.ProductVariants).SetValidator(new CreateProductVariantValidator());
         RuleForEach(p => p.ProductImages).SetValidator(new CreateProductImageValidator());

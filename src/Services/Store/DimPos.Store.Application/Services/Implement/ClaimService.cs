@@ -19,6 +19,7 @@ public class ClaimService : IClaimService
         GetCurrentUsername = string.IsNullOrEmpty(username) ? "" : username;
         GetBrandId = brandId;
         GetRole = string.IsNullOrEmpty(role) ? string.Empty : role;
+        GetStoreId = Guid.TryParse(JwtUtil.GetCurrentStoreId(identity), out var storeIdResult) ? storeIdResult : Guid.Empty;
     }
     public Guid GetCurrentUserId { get; }
     public string GetCurrentEmail { get; }

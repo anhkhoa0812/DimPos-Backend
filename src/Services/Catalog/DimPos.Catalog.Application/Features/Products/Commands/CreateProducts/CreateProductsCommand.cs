@@ -18,6 +18,7 @@ public class CreateProductsCommand : IRequest<ApiResponse>
     public int? DisplayOrder { get; set; }
     public EProductSaleType SaleType { get; set; }
     public string? Note { get; set; }
+    public string? Sku { get; set; }
     public Guid CategoryId { get; set; }
     public List<Guid>? ModifierGroupIds { get; set; }
     public List<CreateProductVariant>? ProductVariants { get; set; }
@@ -36,6 +37,7 @@ public record CreateProductVariant
     public decimal? PriceCOGS { get; set; }
     public string? Size { get; set; }
     public int? DisplayOrder { get; set; }
+    public string? Sku { get; set; }
 }
 
 public record CreateProductImages

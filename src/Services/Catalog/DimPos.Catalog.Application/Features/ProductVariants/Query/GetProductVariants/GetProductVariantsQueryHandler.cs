@@ -47,7 +47,8 @@ public class GetProductVariantsQueryHandler : IRequestHandler<GetProductVariants
                 Size = x.Size,
                 IsMenuDisplay = x.IsMenuDisplay, 
                 PriceCOGS = x.PriceCOGS,
-                Status = x.Status
+                Status = x.Status,
+                Sku = x.Sku
             },
             predicate: x => x.Product.BrandId == brandId &&
                             (request.Name == null || x.Name.Contains(request.Name)),

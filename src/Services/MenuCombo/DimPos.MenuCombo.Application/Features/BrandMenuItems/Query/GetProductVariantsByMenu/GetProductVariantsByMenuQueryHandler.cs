@@ -74,7 +74,8 @@ public class GetProductVariantsByMenuQueryHandler : IRequestHandler<GetProductVa
                 DisplayOrder =  productVariantGrpcResponse.DisplayOrder,
                 IsMenuDisplay = productVariantGrpcResponse.IsMenuDisplay,
                 Status = (EProductVariantStatus) productVariantGrpcResponse.Status,
-                IsSelected = productVariantsIdInBrandMenu.Contains(Guid.Parse(productVariantGrpcResponse.Id))
+                IsSelected = productVariantsIdInBrandMenu.Contains(Guid.Parse(productVariantGrpcResponse.Id)),
+                Sku = productVariantGrpcResponse.Sku
             });
         }
         return new ApiResponse()

@@ -60,12 +60,22 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
             productVariant.Price = (decimal)request.UpdateProductVariants.Price;
         } 
         productVariant.PriceCOGS = request.UpdateProductVariants.PriceCOGS ?? productVariant.PriceCOGS;
+        if (request.UpdateProductVariants.IsActive != null)
+        {
+            if (request.UpdateProductVariants.IsActive == false &&
+                productVariant.IsActive != request.UpdateProductVariants.IsActive &&
+                productVariant.Product.ProductVariants.Count <= 1)
+            {
+                throw new BadHttpRequestException("Không thể vô hiệu hóa biến thể sản phẩm");
+            }
+            productVariant.IsActive = request.UpdateProductVariants.IsActive.Value;
+        }
         productVariant.IsActive = request.UpdateProductVariants.IsActive ?? productVariant.IsActive;
         productVariant.Size = request.UpdateProductVariants.Size ?? productVariant.Size;
         productVariant.IsMenuDisplay = request.UpdateProductVariants.IsMenuDisplay ?? productVariant.IsMenuDisplay;
         productVariant.DisplayOrder = request.UpdateProductVariants.DisplayOrder ?? productVariant.DisplayOrder;
         productVariant.Status = request.UpdateProductVariants.Status ?? productVariant.Status;
-        
+        productVariant.Sku = request.UpdateProductVariants.Sku ?? productVariant.Sku;
         
         _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().UpdateAsync(productVariant);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

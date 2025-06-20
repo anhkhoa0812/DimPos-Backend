@@ -136,7 +136,8 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
                 IsActive = pv.IsActive,
                 Size = pv.Size,
                 IsMenuDisplay = pv.IsMenuDisplay,
-                DisplayOrder = pv.DisplayOrder
+                DisplayOrder = pv.DisplayOrder,
+                Sku = pv.Sku
             }).ToList()
         };
     }
