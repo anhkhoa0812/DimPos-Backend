@@ -69,6 +69,7 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
                     IsActive = v.IsActive,
                     Size = v.Size,
                     IsMenuDisplay = v.IsMenuDisplay,
+                    Sku = v.Sku,
                     Status = v.Status
                 }).ToList(),
             }

@@ -57,6 +57,7 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
                     IsActive = v.IsActive,
                     Size = v.Size,
                     IsMenuDisplay = v.IsMenuDisplay,
+                    Sku = v.Sku,
                     Status = v.Status
                 }).ToList(),
                 ProductImages = p.ProductImages.Select(i => new ProductImagesResponse
