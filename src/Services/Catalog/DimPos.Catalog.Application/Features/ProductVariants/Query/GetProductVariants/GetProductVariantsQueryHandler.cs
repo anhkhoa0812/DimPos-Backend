@@ -51,7 +51,8 @@ public class GetProductVariantsQueryHandler : IRequestHandler<GetProductVariants
                 Sku = x.Sku
             },
             predicate: x => x.Product.BrandId == brandId &&
-                            (request.Name == null || x.Name.Contains(request.Name)),
+                            (request.Name == null || x.Name.Contains(request.Name)) && 
+                            (request.Sku == null || x.Sku.Contains(request.Sku)),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy ?? "DisplayOrder",

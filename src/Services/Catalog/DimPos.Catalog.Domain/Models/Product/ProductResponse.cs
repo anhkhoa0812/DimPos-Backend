@@ -37,6 +37,7 @@ public record ProductVariantsResponse
     public bool IsActive { get; set; }
     public string? Size { get; set; }
     public bool? IsMenuDisplay { get; set; }
+    public string? Sku { get; set; }
     public EProductVariantStatus Status { get; set; }
 }
 public record ProductImagesResponse {
