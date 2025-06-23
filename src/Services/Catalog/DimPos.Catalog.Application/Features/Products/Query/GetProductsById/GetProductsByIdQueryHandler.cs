@@ -30,7 +30,7 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
         _logger.Information("BEGIN: GetProductsByIdQueryHandler.Handle - ProductId: {ProductId}", request.ProductId);
         var product = await _unitOfWork.GetRepository<Domain.Entities.Products>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.ProductId && x.BrandId == brandId,
-            selector: p => new ProductResponse()
+            selector: p => new ProductByIdResponse()
             {
                 Id = p.Id,
                 Code = p.Code,
@@ -72,6 +72,18 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
                     Sku = v.Sku,
                     Status = v.Status
                 }).ToList(),
+                Category =  new CategoryResponse
+                {
+                    Id = p.Category.Id,
+                    Code = p.Category.Code,
+                    Name = p.Category.Name,
+                    Description = p.Category.Description,
+                    DisplayOrder = p.Category.DisplayOrder,
+                    HasChildCategory = p.Category.HasChildCategory,
+                    PictureUrl = p.Category.PictureUrl,
+                    Status = p.Category.Status,
+                    Type = p.Category.Type
+                },
             }
         );
         if (product == null)
