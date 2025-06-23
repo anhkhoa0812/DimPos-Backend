@@ -2,6 +2,7 @@ using Carter;
 using DimPos.MenuCombo.Application.Common.Utils;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Command.CreateBrandMenu;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetBrandMenuByBrand;
+using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetBrandMenuById;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetStoresByMenu;
 using DimPos.MenuCombo.Application.Features.BrandMenuItems.Command.UpdateBrandMenuItems;
 using DimPos.MenuCombo.Application.Features.BrandMenuItems.Query.GetProductVariantsByMenu;
@@ -28,14 +29,21 @@ public class BrandMenuEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
-            .Produces<ApiResponse>(StatusCodes.Status404NotFound)
+            // .Produces<ApiResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("", GetBrandMenu).RequireAuthorization("BrandPolicy")
             .WithName(nameof(GetBrandMenu))
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
-            .Produces<ApiResponse>(StatusCodes.Status404NotFound)
+            // .Produces<ApiResponse>(StatusCodes.Status404NotFound)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/{brandMenuId}", GetBrandMenuById).RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetBrandMenuById))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            // .Produces<ApiResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("/{brandMenuId}/product-variants", GetProductVariantsByMenu).RequireAuthorization("BrandPolicy")
             .WithName(nameof(GetProductVariantsByMenu))
@@ -131,6 +139,15 @@ public class BrandMenuEndpoints : ICarterModule
         {
             BrandMenuId = brandMenuId,
             AssignStoreMenuRequests= request
+        };
+        var apiResponse = await mediator.Send(command);
+        return Results.Json(apiResponse);
+    }
+    public async Task<IResult> GetBrandMenuById(IMediator mediator, [FromRoute] Guid brandMenuId)
+    {
+        var command = new GetBrandMenuByIdQuery()
+        {
+            BrandMenuId = brandMenuId
         };
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);
