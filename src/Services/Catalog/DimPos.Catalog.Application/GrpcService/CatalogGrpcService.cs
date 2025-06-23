@@ -44,16 +44,16 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     Code = productVariant.Code,
                     Name = productVariant.Name,
                     AlternativeCode = productVariant.AlternativeCode ?? String.Empty,
-                    Status = (ProductVariantStatus) productVariant.Status,
+                    DisplayOrder = productVariant.DisplayOrder ?? 0,
+                    DiscountPercent = (float)(productVariant.DiscountPercent ?? 0 ),
+                    DiscountPrice = (float)(productVariant.DiscountPrice ?? 0),
+                    Price = (float)productVariant.Price,
+                    PriceCOGS = (float)(productVariant.PriceCOGS ?? 0),
                     IsActive = productVariant.IsActive,
                     Size = productVariant.Size ?? String.Empty,
                     IsMenuDisplay = productVariant.IsMenuDisplay ?? false,
-                    DisplayOrder = productVariant.DisplayOrder ?? 0,
-                    Price = (float)productVariant.Price,
-                    DiscountPercent = (float)productVariant.DiscountPercent,
-                    DiscountPrice = (float)productVariant.DiscountPrice,
-                    PriceCOGS = (float)productVariant.PriceCOGS,
-                    Sku = productVariant.Sku
+                    Sku = productVariant.Sku ?? String.Empty,
+                    Status = (ProductVariantStatus) productVariant.Status,
                 };
                 response.ProductVariants.Add(productVariantResponse);
             }
@@ -136,10 +136,12 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive))
                 .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == Guid.Parse(request.BrandId)))
                 .ThenInclude(pmg => pmg.ModifierGroup)
-                .ThenInclude(mg => mg.ModifierOptions),
-            orderBy: x => x.OrderBy(p => p.DisplayOrder)
-                .ThenBy(p => p.ProductVariants.OrderBy(pv => pv.DisplayOrder))
+                .ThenInclude(mg => mg.ModifierOptions)
         );
+        var orderedProducts = products
+            .OrderBy(p => p.DisplayOrder)
+            .ThenBy(p => p.ProductVariants.OrderBy(pv => pv.DisplayOrder))
+            .ToList();
         var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
             predicate: x => x.StoreId == Guid.Parse(request.StoreId)
                            && variantIds.Contains(x.ProductVariantId)
@@ -148,10 +150,10 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         {
             Products =
             {
-                products.Select(p => MapProduct(p, storePrices.ToList())).ToList() 
+                orderedProducts.Select(p => MapProduct(p, storePrices.ToList())).ToList() 
             }
         };
-        var productForModifierGroups = products
+        var productForModifierGroups = orderedProducts
             .Where(p => p.ProductModifierGroups.Any(pmg => pmg.ModifierGroup.IsActive)
                         && p.ProductModifierGroups.Any(pmg =>
                             pmg.ModifierGroup.ModifierOptions.Any(x => x.IsActive))).ToList();
@@ -217,7 +219,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             IsActive = pv.IsActive,
                             Size = pv.Size ?? String.Empty,
                             IsMenuDisplay = pv.IsMenuDisplay ?? false,
-                            Sku = pv.Sku
+                            Sku = pv.Sku ?? String.Empty,
                         }).ToList()
                     }
                 }

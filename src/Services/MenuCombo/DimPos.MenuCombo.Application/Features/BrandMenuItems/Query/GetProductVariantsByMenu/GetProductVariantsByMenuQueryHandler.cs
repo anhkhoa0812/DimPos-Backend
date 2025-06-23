@@ -48,7 +48,7 @@ public class GetProductVariantsByMenuQueryHandler : IRequestHandler<GetProductVa
             selector: x => x.ProductVariantId,
             predicate: x => x.MenuId == request.BrandMenuId
         );
-        var productVariantsGrpcResponse = _catalogGrpcService.GetProductVariantsByBrand(
+        var productVariantsGrpcResponse = await _catalogGrpcService.GetProductVariantsByBrandAsync(
             new GetProductVariantsByBrandRequest()
             {
                 BrandId = brandId.ToString(),
@@ -75,7 +75,7 @@ public class GetProductVariantsByMenuQueryHandler : IRequestHandler<GetProductVa
                 IsMenuDisplay = productVariantGrpcResponse.IsMenuDisplay,
                 Status = (EProductVariantStatus) productVariantGrpcResponse.Status,
                 IsSelected = productVariantsIdInBrandMenu.Contains(Guid.Parse(productVariantGrpcResponse.Id)),
-                Sku = productVariantGrpcResponse.Sku
+                Sku = productVariantGrpcResponse.Sku 
             });
         }
         return new ApiResponse()

@@ -27,5 +27,5 @@ public class Products : EntityAuditBase<Guid>
     public virtual ICollection<ProductAttributes>? ProductAttributes { get; set; } = new List<ProductAttributes>();
     public virtual ICollection<ProductImages>? ProductImages { get; set; } = new List<ProductImages>();
     public virtual ICollection<ProductVariants> ProductVariants { get; set; } = new List<ProductVariants>();
-    public virtual IEnumerable<ProductModifierGroups>? ProductModifierGroups { get; set; } = new List<ProductModifierGroups>();
+    public virtual ICollection<ProductModifierGroups>? ProductModifierGroups { get; set; } = new List<ProductModifierGroups>();
 }

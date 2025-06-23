@@ -34,7 +34,7 @@ message CheckProductVariantInBrandResponse {
 message ProductVariant {
   string id = 1;
   string code = 2;
-  string alternativeCode = 3;
+  optional string alternativeCode = 3;
   string name = 4;
   float discountPercent = 5;
   float discountPrice = 6;
@@ -44,7 +44,7 @@ message ProductVariant {
   string size = 10;
   bool isMenuDisplay = 11;
   int32 displayOrder = 12;
-  optional string sku = 13;
+  string sku = 13;
   ProductVariantStatus status = 14;
 }
 enum ProductVariantStatus {
