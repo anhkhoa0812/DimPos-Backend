@@ -34,7 +34,6 @@ public static class ConfigureServices
         services.AddScoped<IValidator<CreateModifierGroupsCommand>, CreateModifierGroupsCommandValidator>();
         services.AddScoped<IValidator<UpdateCategoriesCommand>, UpdateCategoriesCommandValidator>();
         services.AddScoped<IValidator<UpdateProductVariantsCommand>, UpdateProductVariantsCommandValidator>();
-        services.AddScoped<IValidator<CreateProductsCommand>, CreateProductsCommandValidator>();
         services.AddScoped<IValidator<UpdateModifierGroupsCommand>, UpdateModifierGroupsCommandValidator>();
         services.AddScoped<IValidator<UpdateModifierOptionsCommand>, UpdateModifierOptionsCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
