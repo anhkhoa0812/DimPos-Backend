@@ -1,8 +1,19 @@
 using DimPos.MenuCombo.Domain.Enums;
 
-namespace DimPos.MenuCombo.Domain.Models.ProductVariant;
+namespace DimPos.MenuCombo.Domain.Models.BrandMenu;
 
-public record ProductVariantResponse
+public class BrandMenuByIdResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public EBrandMenuType? Type { get; set; }
+    public bool? IsActiveByBrand { get; set; }
+    public DateTime? ValidFrom { get; set; }
+    public DateTime? ValidTo { get; set; }
+    public List<BrandMenuByIdResponseWithProductVariants> ProductVariants { get; set; } = new List<BrandMenuByIdResponseWithProductVariants>();
+}
+public class BrandMenuByIdResponseWithProductVariants : BrandMenuByIdResponse
 {
     public Guid Id { get; set; }
     public string Code { get; set; }
