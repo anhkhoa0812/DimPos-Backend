@@ -20,6 +20,7 @@ public static class ConfigureServices
                 builder => builder.MigrationsAssembly(typeof(PromotionContext).Assembly.FullName));
         });
         services.AddScoped<IUnitOfWork<PromotionContext>, UnitOfWork<PromotionContext>>();
+        services.AddScoped<PromotionContextSeed>();
         services.AddJWT(configuration);
         services.AddOpenApiConfig();
         services.AddAuthorization(options =>
