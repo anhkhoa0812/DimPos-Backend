@@ -26,27 +26,39 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
         var category = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.CategoryId && x.BrandId == brandId
+            predicate: x => x.Id == request.CategoryId && x.BrandId == brandId,
+            selector: x => new GetCategoryByIdResponse()
+            {
+                Id = x.Id,
+                Code = x.Code,
+                Name = x.Name,
+                PictureUrl = x.PictureUrl,
+                Description = x.Description,
+                Type = x.Type,
+                DisplayOrder = x.DisplayOrder,
+                HasChildCategory = x.HasChildCategory,
+                Status = x.Status,
+                ParentCategory = x.Parent != null ? new ParentCategoryResponse()
+                {
+                    Id = x.Parent.Id,
+                    Code = x.Parent.Code,
+                    Name = x.Parent.Name,
+                    Description = x.Parent.Description,
+                    Type = x.Parent.Type,
+                    DisplayOrder = x.Parent.DisplayOrder,
+                    PictureUrl = x.Parent.PictureUrl,
+                    HasChildCategory = x.Parent.HasChildCategory,
+                    Status = x.Parent.Status
+                } : null
+            }
         );
         if (category == null)
             throw new BadHttpRequestException("Không tìm thấy danh mục");
-        var response = new GetCategoryByIdResponse()
-        {
-            Id = category.Id,
-            Code = category.Code,
-            Name = category.Name,
-            PictureUrl = category.PictureUrl,
-            Description = category.Description,
-            Type = category.Type,
-            DisplayOrder = category.DisplayOrder,
-            HasChildCategory = category.HasChildCategory,
-            Status = category.Status,
-        };
         return new ApiResponse()
         {
             Status = (int)HttpStatusCode.OK,
             Message = "Lấy dữ liệu thành công",
-            Data = response
+            Data = category
         };
     }
 }
