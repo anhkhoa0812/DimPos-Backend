@@ -266,6 +266,44 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         }
         return modifierOptions;
     }
+
+    public override async Task<GetProductVariantListByIdsResponse> GetProductVariantListByIds(GetProductVariantListByIdsRequest request, ServerCallContext context)
+    {
+        var brandId = Guid.Parse(request.BrandId);
+        var variantIds = request.ProductVariantIds
+            .Select(Guid.Parse)
+            .ToList();
+
+        var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
+            predicate: x => variantIds.Contains(x.Id) && x.Product.BrandId == brandId,
+            include: x => x.Include(x => x.Product)
+        );
+        var response = new GetProductVariantListByIdsResponse()
+        {
+            ProductVariants =
+            {
+                productVariants.Select(x => new ProductVariant()
+                {
+                    Id = x.Id.ToString(),
+                    Code = x.Code,
+                    Name = x.Name,
+                    AlternativeCode = x.AlternativeCode ?? String.Empty,
+                    DisplayOrder = x.DisplayOrder ?? 0,
+                    DiscountPercent = (float)(x.DiscountPercent ?? 0),
+                    DiscountPrice = (float)(x.DiscountPrice ?? 0),
+                    Price = (float)x.Price,
+                    PriceCOGS = (float)(x.PriceCOGS ?? 0),
+                    IsActive = x.IsActive,
+                    Size = x.Size ?? String.Empty,
+                    IsMenuDisplay = x.IsMenuDisplay ?? false,
+                    Sku = x.Sku ?? String.Empty,
+                    Status = (ProductVariantStatus) x.Status,
+                }).ToList()
+            }
+        };
+        
+        return response;
+    }
     // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     // {
     //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();

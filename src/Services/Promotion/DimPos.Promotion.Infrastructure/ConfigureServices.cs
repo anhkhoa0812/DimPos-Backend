@@ -29,6 +29,8 @@ public static class ConfigureServices
                     policy.RequireAuthenticatedUser().RequireRole(ClaimTypes.Role, "BrandAdmin"));
                 options.AddPolicy("StorePolicy", policy => 
                     policy.RequireAuthenticatedUser().RequireRole(ClaimTypes.Role, "StoreAdmin"));
+                options.AddPolicy("StaffPolicy", policy => 
+                    policy.RequireAuthenticatedUser().RequireRole(ClaimTypes.Role, "Staff"));
             }
         );        
         services.AddEndpointsApiExplorer();

@@ -108,6 +108,7 @@ public static class ServiceExtension
             }
         }
     }
+
     public static void UseScalar(this WebApplication app)
     {
 
@@ -118,12 +119,6 @@ public static class ServiceExtension
                 options.Theme = ScalarTheme.DeepSpace;
                 options.Favicon = "/assets/images/dimposlogo.png";
             })
-            .RequireAuthorization(options =>
-            {
-                options.RequireAssertion(context =>
-                {
-                    return true;
-                });
-            });
+            .RequireAuthorization(options => { options.RequireAssertion(context => { return true; }); });
     }
 }

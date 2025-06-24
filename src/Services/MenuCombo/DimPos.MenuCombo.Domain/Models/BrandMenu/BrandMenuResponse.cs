@@ -2,7 +2,7 @@ using DimPos.MenuCombo.Domain.Enums;
 
 namespace DimPos.MenuCombo.Domain.Models.BrandMenu;
 
-public record BrandMenuResponse
+public class BrandMenuResponse
 {
     public Guid Id { get; set; }
     public string Name { get; set; }

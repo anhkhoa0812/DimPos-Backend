@@ -1,0 +1,68 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Basket.Application.Common.Protos";
+
+
+service BasketGrpcService {
+  rpc GetCartByCartId (GetCartByCartIdRequest) returns (GetCartByCartIdResponse);
+}
+message GetCartByCartIdRequest 
+{
+  string staffAccountId = 1;
+  string cartId = 2;
+}
+message GetCartByCartIdResponse 
+{
+  string id = 1;
+  string storeId = 2;
+  string brandId = 3;
+  string posDeviceId = 4;
+  string staffAccountIdCreating = 5;
+  string customerIdLinked = 6;
+  int32 takeNumberDineIn = 7;
+  float subtotalAmount = 8;
+  float totalItemDiscountAmount = 9;
+  float orderLevelDiscountAmount = 10;
+  float taxRate = 11;
+  float totalTaxAmount = 12;
+  float finalTotalAmount = 13;
+  int32 itemCount = 14;
+  int32 totalQuantityOfItems = 15;
+  repeated CartItemResponse cartItems = 16;
+  repeated CartAppliedPromotionDetailResponse appliedPromotions = 17;
+}
+message CartItemResponse {
+  string id = 1;
+  string productVariantId = 2;
+  string productNameSnapshot = 3;
+  string productVariantNameSnapshot = 4;
+  int32 quantity = 5;
+  float unitPriceAtAdditionSnapshot = 6;
+  float itemSubtotalAmount = 7;
+  float itemSpecificDiscountAmount = 8;
+  float itemFinalPrice = 9;
+}
+message CartAppliedPromotionDetailResponse {
+  string id = 1;
+  string promotionRuleId = 2;
+  string promotionNameSnapshot = 3;
+  float discountValueCalculated = 4;
+}
+//message ConditionRule {
+//  ConditionType conditionType = 1;
+//  Operator operator = 2;
+//  string ConditionValue = 3;
+//}
+//enum ConditionType {
+//  MinCartValue = 0;
+//  CartContainsProductVariant = 1;
+//  QuantityOfSpecificProductVariant = 2;
+//}
+//enum Operator {
+//  GreaterThanOrEqual = 0;
+//  Equals = 1;
+//  GreaterThan = 2;
+//  ContainsAnyInList = 3;
+//  ContainsAllInList = 4;
+//  ContainsExactList = 5;
+//}

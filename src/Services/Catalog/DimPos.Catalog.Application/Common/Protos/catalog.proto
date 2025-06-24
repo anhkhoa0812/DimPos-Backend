@@ -7,6 +7,7 @@ service CatalogGrpcService {
   rpc GetProductVariantsByBrand (GetProductVariantsByBrandRequest) returns (GetProductVariantsByBrandResponse);
   rpc CheckProductVariantInBrand (CheckProductVariantInBrandRequest) returns (CheckProductVariantInBrandResponse);
   rpc GetMenuProductByStore (GetMenuProductByStoreRequest) returns (GetMenuProductByStoreResponse);
+  rpc GetProductVariantListByIds (GetProductVariantListByIdsRequest) returns (GetProductVariantListByIdsResponse);
 }
 message GetProductVariantsByBrandRequest {
   int32 page = 1;
@@ -24,6 +25,13 @@ message GetProductVariantsByBrandResponse {
 message CheckProductVariantInBrandRequest {
   string brandId = 1;
   ListProductVariantId listProductVariantId = 2;
+}
+message GetProductVariantListByIdsRequest {
+  string brandId = 1;
+  repeated string productVariantIds = 2;
+}
+message GetProductVariantListByIdsResponse {
+  repeated ProductVariant productVariants = 1;
 }
 message ListProductVariantId {
   repeated string productVariantId = 1;

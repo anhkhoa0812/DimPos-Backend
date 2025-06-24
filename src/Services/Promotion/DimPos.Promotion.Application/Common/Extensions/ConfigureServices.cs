@@ -1,9 +1,11 @@
+using DimPos.Basket.Application.Common.Protos;
 using DimPos.Promotion.Application.Common.Behaviours;
 using DimPos.Promotion.Application.Common.Utils;
 using DimPos.Promotion.Application.Features.Campaign.Command.CreateCampaign;
 using DimPos.Promotion.Application.Features.PromotionRule.Command.CreatePromotionRule;
 using DimPos.Promotion.Application.Services.Implement;
 using DimPos.Promotion.Application.Services.Interface;
+using DimPos.Promotion.Domain.Models.Settings;
 using FluentValidation;
 using Mediator;
 
@@ -29,7 +31,22 @@ public static class ConfigureServices
         });
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();
+        services.AddGrpcServices(configuration);
         services.AddHealthChecks();
+        return services;
+    }
+    public static IServiceCollection AddGrpcServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var settings = configuration.GetSection("GrpcSettings")
+            .Get<GrpcSettings>();
+        if (settings == null || string.IsNullOrEmpty(settings.BasketUrl))
+            throw new ArgumentNullException("Grpc is not configured.");
+
+        services.AddGrpcClient<BasketGrpcService.BasketGrpcServiceClient>(x =>
+            {
+                x.Address = new Uri(settings.BasketUrl);
+            }
+        );
         return services;
     }
 }
