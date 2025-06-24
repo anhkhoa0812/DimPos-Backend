@@ -1,3 +1,5 @@
+using DimPos.MenuCombo.Domain.Enums;
+
 namespace DimPos.MenuCombo.Domain.Models.StoreMenu;
 
 public class StoreMenuResponse
@@ -57,7 +59,7 @@ public record ModifierGroupsResponses
 {
     public Guid Id { get; set; }
     public string? Description { get; set; }
-    // public ESelectedTypeModifier SelectedType { get; set; }
+    public ESelectedTypeModifier SelectedType { get; set; }
     public int? DisplayOrder { get; set; }
     public bool IsActive { get; set; }
     public Guid BrandId { get; set; }
