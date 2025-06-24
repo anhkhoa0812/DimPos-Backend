@@ -17,6 +17,7 @@ public class Cart
     public decimal SubtotalAmount { get; set; }
     public decimal TotalItemDiscountAmount { get; set; }
     public decimal OrderLevelDiscountAmount { get; set; }
+    public decimal? TaxRate { get; set; }
     public decimal TotalTaxAmount { get; set; }
     public decimal FinalTotalAmount { get; set; }
     public string? CustomerNotesForOrder { get; set; }

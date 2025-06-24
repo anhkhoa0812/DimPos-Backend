@@ -3,6 +3,7 @@ using Carter;
 using Common.Logging;
 using DimPos.Basket.Application.Common.Extensions;
 using DimPos.Basket.Application.Common.Middlewares;
+using DimPos.Basket.Application.GrpcServices;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,7 @@ try
     );
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddCors();
+    builder.Services.AddGrpc();
     var app = builder.Build();
 
     if (app.Environment.IsDevelopment() || app.Environment.IsProduction() || app.Environment.IsStaging())
@@ -44,6 +46,7 @@ try
             .AllowAnyHeader());
     app.UseAuthentication();
     app.UseAuthorization();
+    app.MapGrpcService<BasketGrpcService>();
     app.UseHttpsRedirection();
     app.Run();
 }

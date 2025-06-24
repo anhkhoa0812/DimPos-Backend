@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
         <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
         <PackageReference Include="Mediator.SourceGenerator" Version="2.1.7">
           <PrivateAssets>all</PrivateAssets>
@@ -26,6 +27,13 @@
 
     <ItemGroup>
       <Folder Include="Features\Campaign\Query\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\basket.proto" GrpcServices="Client">
+            <Link>Common\Protos\basket.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
     </ItemGroup>
 
 </Project>

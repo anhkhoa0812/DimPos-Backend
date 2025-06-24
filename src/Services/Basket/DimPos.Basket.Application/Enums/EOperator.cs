@@ -4,7 +4,8 @@ public enum EOperator
 {
     GreaterThanOrEqual = 0,
     Equals = 1,
-    NotEquals = 2,
-    InList = 3,
-    NotInList = 4,
+    GreaterThan = 2,
+    ContainsAnyInList = 3,
+    ContainsAllInList = 4,
+    ContainsExactList = 5,
 }

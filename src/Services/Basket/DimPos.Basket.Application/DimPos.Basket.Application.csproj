@@ -8,14 +8,27 @@
 
     <ItemGroup>
         <PackageReference Include="Carter" Version="8.2.0" />
+        <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
         <PackageReference Include="Scalar.AspNetCore" Version="2.2.7" />
         <PackageReference Include="StackExchange.Redis" Version="2.8.37" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\BuildingBlocks\Shared\Common.Logging\Common.Logging.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Remove="Common\Protos\basket.proto" />
+        <Protobuf Include="Common\Protos\basket.proto" GrpcServices="Server">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <ProtoRoot></ProtoRoot>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net9.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+        </Protobuf>
     </ItemGroup>
 
 </Project>
