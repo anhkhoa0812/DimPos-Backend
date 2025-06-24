@@ -1,5 +1,6 @@
 using DimPos.Catalog.Application.Common.Protos;
 using DimPos.MenuCombo.Application.Services.Interface;
+using DimPos.MenuCombo.Domain.Enums;
 using DimPos.MenuCombo.Domain.Models.Common;
 using DimPos.MenuCombo.Domain.Models.StoreMenu;
 using DimPos.MenuCombo.Infrastructure.Persistence;
@@ -151,7 +152,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             IsActive = modifierGroup.IsActive,
             ProductVariantIds = modifierGroup.ProductVariantId?.Select(x => Guid.Parse(x)).ToList() ?? new List<Guid>(),
             BrandId = Guid.Parse(modifierGroup.BrandId),
-            // SelectedType = modifierGroup.SelectedType, // Assuming SelectedType is an enum, you may need to map it accordingly
+            SelectedType = (ESelectedTypeModifier) modifierGroup.SelectedType,
             ModifierOptions = modifierGroup.ModifierOptions.ModifierOptions.Select(mo => new ModifierOptionsResponses()
             {
                 Id = Guid.Parse(mo.Id),

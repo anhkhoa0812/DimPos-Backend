@@ -23,20 +23,12 @@ public class CreateBrandMenuCommandHandler: IRequestHandler<CreateBrandMenuComma
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if (brandId == Guid.Empty)
         {
-            return new ApiResponse
-            {
-                Status = 404,
-                Message = "Id thương hiệu không hợp lệ",
-            };
+            throw new BadHttpRequestException("Id thương hiệu không hợp lệ");
         }
 
         if (request.ValidFrom == null && request.ValidTo == null && (request.ValidTo <= request.ValidFrom ))
         { 
-            return new ApiResponse
-            {
-                Status = 400,
-                Message = "Thời gian không hợp lệ",
-            };
+            throw new BadHttpRequestException("Thời gian hiệu lực không hợp lệ. Vui lòng kiểm tra lại.");
         }
 
         var brandMenu = BrandMenuMapper.ToBrandMenu(request);
