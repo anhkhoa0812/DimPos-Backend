@@ -74,6 +74,10 @@ namespace DimPos.Promotion.Infrastructure.Migrations
                     b.Property<Guid>("BrandId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
@@ -92,9 +96,6 @@ namespace DimPos.Promotion.Infrastructure.Migrations
 
                     b.Property<int?>("MaxUsagePerCustomerLimit")
                         .HasColumnType("int");
-
-                    b.Property<string>("MetaData")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()

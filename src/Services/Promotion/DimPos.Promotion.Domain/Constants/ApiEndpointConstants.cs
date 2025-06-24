@@ -10,5 +10,9 @@ public static class ApiEndpointConstants
     {
         public const string PromotionRulesEndpoint = ApiEndpoint + "/promotion-rules";
     }
+    public static class Campaigns
+    {
+        public const string CampaignsEndpoint = ApiEndpoint + "/campaigns";
+    }
     
 }
