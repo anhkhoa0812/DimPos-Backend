@@ -11,5 +11,5 @@ public class RuleActions : EntityBase<Guid>
     public string TargetCriteriaForItemAction { get; set; } = string.Empty;
     public decimal MaxDiscountAmountForPercentage { get; set; }
     
-    public virtual PromotionRules PromotionRule { get; set; } = new PromotionRules();
+    public virtual PromotionRules PromotionRule { get; set; }
 }

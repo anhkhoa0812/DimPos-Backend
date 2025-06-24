@@ -22,6 +22,7 @@ var menuComboApi = builder.AddProject<Projects.DimPos_MenuCombo_Application>("me
 var mediaApi = builder.AddProject<Projects.DimPos_Media_Application>("media-api");
 
 var basketApi = builder.AddProject<Projects.DimPos_Basket_Application>("basket-api");
+var promotionApi = builder.AddProject<Projects.DimPos_Promotion_Application>("promotion-api");
 var orchestrator = builder.AddProject<Projects.DimPos_Orchestrator>("orchestrator")
         .WithReference(brandApi)
         .WithReference(catalogApi)
