@@ -10,7 +10,7 @@ public class PromotionRules : EntityAuditBase<Guid>
     public bool IsActive { get; set; }
     public int Priority { get; set; }
     
-    public virtual ICollection<CampaignRuleLinks> CampaignRuleLinks { get; set; } = new List<CampaignRuleLinks>();
+    public virtual ICollection<CampaignRuleLinks>? CampaignRuleLinks { get; set; } = new List<CampaignRuleLinks>();
     public virtual RuleActions RuleActions { get; set; }
     public virtual ICollection<RuleConditions> RuleConditions { get; set; } = new List<RuleConditions>();
 }

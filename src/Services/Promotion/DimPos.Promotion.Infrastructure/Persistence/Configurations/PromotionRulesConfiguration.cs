@@ -21,6 +21,5 @@ public class PromotionRulesConfiguration : IEntityTypeConfiguration<PromotionRul
             .IsRequired();
         builder.Property(cr => cr.Priority)
             .IsRequired();
-
     }
 }

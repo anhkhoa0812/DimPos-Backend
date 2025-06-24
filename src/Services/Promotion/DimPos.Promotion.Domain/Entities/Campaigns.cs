@@ -11,11 +11,11 @@ public class Campaigns : EntityAuditBase<Guid>
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public ECampaignsStatus Status { get; set; }
+    public ECampaignChannel Channel { get; set; }
     public int Priority { get; set; }
     public int? MaxTotalUsageLimit { get; set; }
     public int? MaxUsagePerCustomerLimit { get; set; }
-    public string? MetaData { get; set; }
     
-    public virtual ICollection<CampaignStores> CampaignStores { get; set; } = new List<CampaignStores>();
-    public virtual ICollection<CampaignRuleLinks> CampaignRuleLinks { get; set; } = new List<CampaignRuleLinks>();
+    public virtual ICollection<CampaignStores>? CampaignStores { get; set; }
+    public virtual ICollection<CampaignRuleLinks>? CampaignRuleLinks { get; set; } = new List<CampaignRuleLinks>();
 }

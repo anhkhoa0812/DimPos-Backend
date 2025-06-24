@@ -33,7 +33,12 @@ public class CampaignsConfiguration : IEntityTypeConfiguration<Campaigns>
                 v => v.ToString(),
                 v => (ECampaignsStatus)Enum.Parse(typeof(ECampaignsStatus), v)
             );
-
+        builder.Property(c => c.Channel)
+            .IsRequired()
+            .HasConversion(
+                v => v.ToString(),
+                v => (ECampaignChannel)Enum.Parse(typeof(ECampaignChannel), v)
+            );
         builder.Property(c => c.Priority)
             .IsRequired();
         

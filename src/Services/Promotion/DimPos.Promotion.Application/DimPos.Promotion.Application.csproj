@@ -24,4 +24,8 @@
       <ProjectReference Include="..\DimPos.Promotion.Infrastructure\DimPos.Promotion.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Campaign\Query\" />
+    </ItemGroup>
+
 </Project>
