@@ -15,7 +15,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
-    public override async Task<GetStoresByBrandResponse> GetStoresByBrand(GetStoresByBrandRequest request, ServerCallContext context)
+    public override async Task<GetStoresByBrandPagingResponse> GetStoresByBrandPaging(GetStoresByBrandPagingRequest request, ServerCallContext context)
     {
         var storesPagingByBrand = await _unitOfWork.GetRepository<Domain.Entities.Store>().GetPagingListAsync(
             predicate: x => x.BrandId == Guid.Parse(request.BrandId),
@@ -24,7 +24,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             isAsc: request.IsAsc,
             sortBy: request.SortBy
         );
-        var response = new GetStoresByBrandResponse();
+        var response = new GetStoresByBrandPagingResponse();
         response.Total = storesPagingByBrand.Total;
         response.TotalPages = storesPagingByBrand.TotalPages;
         if (storesPagingByBrand != null)
@@ -41,6 +41,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
                     Phone = store.Phone ?? String.Empty,
                     Latitude = store.Latitude ?? String.Empty,
                     Longitude = store.Longitude ?? String.Empty,
+                    Status = (StoreStatus) store.Status
                 };
                 response.Stores.Add(storeResponse);
             }
@@ -91,5 +92,34 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
         {
             StoreId = storeId.ToString()
         };
+    }
+
+    public override async Task<GetStoresByBrandIdResponse> GetStoresByBrandId(GetStoresByBrandIdRequest request, ServerCallContext context)
+    {
+        var brandId = Guid.Parse(request.BrandId);
+        var requestedIds = request.StoreIds
+            .Select(Guid.Parse)
+            .ToList();
+        var stores = await _unitOfWork.GetRepository<Domain.Entities.Store>().GetListAsync(
+            predicate: x => x.BrandId == brandId && requestedIds.Contains(x.Id)
+        );
+        var response = new GetStoresByBrandIdResponse();
+        foreach (var store in stores)
+        {
+            var storeResponse = new StoreResponse()
+            {
+                Id = store.Id.ToString(),
+                Name = store.Name ?? String.Empty,
+                Description = store.Description ?? String.Empty,
+                Address = store.Address ?? String.Empty,
+                Email = store.Email ?? String.Empty,
+                Phone = store.Phone ?? String.Empty,
+                Latitude = store.Latitude ?? String.Empty,
+                Longitude = store.Longitude ?? String.Empty,
+                Status = (StoreStatus) store.Status
+            };
+            response.Stores.Add(storeResponse);
+        }
+        return response;
     }
 }

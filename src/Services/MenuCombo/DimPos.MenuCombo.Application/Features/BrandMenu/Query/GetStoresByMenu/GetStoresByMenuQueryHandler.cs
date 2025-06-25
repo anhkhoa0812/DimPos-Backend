@@ -1,4 +1,5 @@
 using DimPos.MenuCombo.Application.Services.Interface;
+using DimPos.MenuCombo.Domain.Enums;
 using DimPos.MenuCombo.Domain.Models.Common;
 using DimPos.MenuCombo.Domain.Models.Stores;
 using DimPos.MenuCombo.Infrastructure.Paginate;
@@ -35,11 +36,7 @@ public class GetStoresByMenuQueryHandler : IRequestHandler<GetStoresByMenuQuery,
         );
         if (brandMenu == null)
             throw new BadHttpRequestException("Không tìm thấy BrandMenu");
-        var existingStoreId = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().GetListAsync(
-            selector: x => x.StoreId,
-            predicate: x => x.BrandMenuId == brandMenu.Id
-        );
-        var storeGrpcResponse = _storeGrpcService.GetStoresByBrand(new GetStoresByBrandRequest()
+        var storeGrpcResponse = await _storeGrpcService.GetStoresByBrandPagingAsync(new GetStoresByBrandPagingRequest()
         {
             BrandId = brandId.ToString(),
             Page = request.Page,
@@ -60,7 +57,7 @@ public class GetStoresByMenuQueryHandler : IRequestHandler<GetStoresByMenuQuery,
                 Phone = store.Phone,
                 Latitude = store.Latitude,
                 Longitude = store.Longitude,
-                IsSelected = existingStoreId.Contains(Guid.Parse(store.Id))
+                Status = (EStoreStatus) store.Status,
             };
             response.Add(storeResponse);
         }

@@ -14,7 +14,7 @@ public class Store : EntityAuditBase<Guid>
     public string Address { get; set; }
     public string? Latitude { get; set; }
     public string? Longitude { get; set; }
-    public EStoreStatus? Status { get; set; }
+    public EStoreStatus Status { get; set; }
     public string? WifiName { get; set; }
     public string? WifiPassword { get; set; }
     public int? Index { get; set; }

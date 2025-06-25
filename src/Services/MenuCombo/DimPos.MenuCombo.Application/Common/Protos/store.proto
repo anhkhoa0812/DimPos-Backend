@@ -1,20 +1,20 @@
 syntax="proto3";
 
 option csharp_namespace = "DimPos.Store.Application.Common.Protos";
-
-
 service StoreGrpcService {
-  rpc GetStoresByBrand (GetStoresByBrandRequest) returns (GetStoresByBrandResponse);
+  rpc GetStoresByBrandPaging (GetStoresByBrandPagingRequest) returns (GetStoresByBrandPagingResponse);
   rpc CheckStoresInBrand (CheckStoresInBrandRequest) returns (CheckStoresInBrandResponse);
+  rpc GetStoreIdByAccountId (GetStoreIdByAccountIdRequest) returns (GetStoreIdByAccountIdResponse);
+  rpc GetStoresByBrandId (GetStoresByBrandIdRequest) returns (GetStoresByBrandIdResponse);
 }
-message GetStoresByBrandRequest {
+message GetStoresByBrandPagingRequest {
   int32 page = 1;
   int32 size = 2;
   optional string sortBy = 3;
   bool isAsc = 4;
   string brandId = 6;
 }
-message GetStoresByBrandResponse {
+message GetStoresByBrandPagingResponse {
   int32 total = 1;
   int32 totalPages = 2;
   repeated StoreResponse stores = 3;
@@ -29,6 +29,12 @@ message StoreResponse {
   string address = 6;
   string latitude = 7;
   string longitude = 8;
+  StoreStatus status = 9;
+}
+enum StoreStatus {
+  Active = 0;
+  InactiveDueToBrand = 1;
+  InactiveDueToStore = 2;
 }
 message CheckStoresInBrandResponse {
   bool isValid = 1;
@@ -39,4 +45,17 @@ message CheckStoresInBrandRequest {
 }
 message ListStoreId {
   repeated string storeId = 1;
+}
+message GetStoreIdByAccountIdRequest {
+  string accountId = 1;
+}
+message GetStoreIdByAccountIdResponse {
+  string storeId = 1;
+}
+message GetStoresByBrandIdRequest {
+  string brandId = 1;
+  repeated string storeIds = 2;
+}
+message GetStoresByBrandIdResponse {
+  repeated StoreResponse stores = 1;
 }
