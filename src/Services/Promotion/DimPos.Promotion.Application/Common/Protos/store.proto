@@ -1,0 +1,47 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Store.Application.Common.Protos";
+service StoreGrpcService {
+  rpc GetStoresByBrand (GetStoresByBrandRequest) returns (GetStoresByBrandResponse);
+  rpc CheckStoresInBrand (CheckStoresInBrandRequest) returns (CheckStoresInBrandResponse);
+  rpc GetStoreIdByAccountId (GetStoreIdByAccountIdRequest) returns (GetStoreIdByAccountIdResponse);
+}
+message GetStoresByBrandRequest {
+  int32 page = 1;
+  int32 size = 2;
+  optional string sortBy = 3;
+  bool isAsc = 4;
+  string brandId = 6;
+}
+message GetStoresByBrandResponse {
+  int32 total = 1;
+  int32 totalPages = 2;
+  repeated StoreResponse stores = 3;
+}
+
+message StoreResponse {
+  string id = 1;
+  string name = 2;
+  string phone = 3;
+  string email = 4;
+  string description = 5;
+  string address = 6;
+  string latitude = 7;
+  string longitude = 8;
+}
+message CheckStoresInBrandResponse {
+  bool isValid = 1;
+}
+message CheckStoresInBrandRequest {
+  string brandId = 1;
+  ListStoreId listStoreId = 2;
+}
+message ListStoreId {
+  repeated string storeId = 1;
+}
+message GetStoreIdByAccountIdRequest {
+  string accountId = 1;
+}
+message GetStoreIdByAccountIdResponse {
+  string storeId = 1;
+}

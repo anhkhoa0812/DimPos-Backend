@@ -2,9 +2,11 @@ using Carter;
 using DimPos.Promotion.Application.Common.Utils;
 using DimPos.Promotion.Application.Features.PromotionRule.Command.CreatePromotionRule;
 using DimPos.Promotion.Application.Features.PromotionRule.Query.GetPromotionRuleByCart;
+using DimPos.Promotion.Application.Features.PromotionRule.Query.GetPromotionRules;
 using DimPos.Promotion.Domain.Constants;
 using DimPos.Promotion.Domain.Models.Common;
 using DimPos.Promotion.Domain.Models.PromotionRules;
+using DimPos.Promotion.Infrastructure.Paginate.Interface;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,6 +34,14 @@ public class PromotionRuleEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("", GetPromotionRules)
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetPromotionRules))
+            .Produces<ApiResponse<IPaginate<GetPromotionRulesResponse>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     
     public async Task<IResult> CreatePromotionRule(IMediator mediator, [FromBody] CreatePromotionRuleCommand command, 
@@ -50,6 +60,21 @@ public class PromotionRuleEndpoints : ICarterModule
         var query = new GetPromotionRuleByCartQuery()
         {
             CartId = cartId
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetPromotionRules(IMediator mediator, [FromQuery] int size = 10,
+        [FromQuery] int page = 1, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, 
+        [FromQuery] string? name = null)
+    {
+        var query = new GetPromotionRulesQuery()
+        {
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc,
+            Name = name
         };
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
