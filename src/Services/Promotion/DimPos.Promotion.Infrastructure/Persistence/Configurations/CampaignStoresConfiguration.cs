@@ -21,5 +21,8 @@ public class CampaignStoresConfiguration : IEntityTypeConfiguration<CampaignStor
             .WithMany(c => c.CampaignStores)
             .HasForeignKey(cs => cs.CampaignId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.HasIndex(x => new { x.CampaignId, x.StoreId })
+            .IsUnique();
     }
 }
