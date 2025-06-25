@@ -1,6 +1,7 @@
 using Carter;
 using DimPos.Promotion.Application.Common.Utils;
 using DimPos.Promotion.Application.Features.Campaign.Command.CreateCampaign;
+using DimPos.Promotion.Application.Features.Campaign.Query.GetCampaignById;
 using DimPos.Promotion.Application.Features.Campaign.Query.GetCampaigns;
 using DimPos.Promotion.Application.Features.CampaignStore.Command;
 using DimPos.Promotion.Domain.Constants;
@@ -36,7 +37,16 @@ public class CampaignEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("", GetCampaigns)
             .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetCampaigns))
             .Produces<ApiResponse<IPaginate<GetCampaignsResponse>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("{id:guid}", GetCampaignById)
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetCampaignById))
+            .Produces<ApiResponse<GetCampaignByIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -80,6 +90,15 @@ public class CampaignEndpoints : ICarterModule
             Size = size,
             SortBy = sortBy,
             IsAsc = isAsc
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetCampaignById(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetCampaignByIdQuery()
+        {
+            CampaignId = id
         };
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);

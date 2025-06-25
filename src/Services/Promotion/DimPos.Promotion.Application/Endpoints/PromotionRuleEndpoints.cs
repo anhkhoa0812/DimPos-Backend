@@ -2,6 +2,7 @@ using Carter;
 using DimPos.Promotion.Application.Common.Utils;
 using DimPos.Promotion.Application.Features.PromotionRule.Command.CreatePromotionRule;
 using DimPos.Promotion.Application.Features.PromotionRule.Query.GetPromotionRuleByCart;
+using DimPos.Promotion.Application.Features.PromotionRule.Query.GetPromotionRuleById;
 using DimPos.Promotion.Application.Features.PromotionRule.Query.GetPromotionRules;
 using DimPos.Promotion.Domain.Constants;
 using DimPos.Promotion.Domain.Models.Common;
@@ -42,6 +43,14 @@ public class PromotionRuleEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("{id:guid}", GetPromotionRuleById)
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(GetPromotionRuleById))
+            .Produces<GetPromotionRuleByIdResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     
     public async Task<IResult> CreatePromotionRule(IMediator mediator, [FromBody] CreatePromotionRuleCommand command, 
@@ -75,6 +84,15 @@ public class PromotionRuleEndpoints : ICarterModule
             SortBy = sortBy,
             IsAsc = isAsc,
             Name = name
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetPromotionRuleById(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetPromotionRuleByIdQuery()
+        {
+            PromotionRuleId = id
         };
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
