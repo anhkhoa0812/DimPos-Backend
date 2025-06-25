@@ -13,7 +13,9 @@ public class CampaignRuleLinksConfiguration : IEntityTypeConfiguration<CampaignR
             .IsRequired();
         builder.Property(crl => crl.PromotionRuleId)
             .IsRequired();
-        //todo: Check Unique
+        
+        builder.HasIndex(crl => new { crl.CampaignId, crl.PromotionRuleId })
+            .IsUnique();
         
         builder.HasOne(crl => crl.Campaign)
             .WithMany(c => c.CampaignRuleLinks)

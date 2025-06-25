@@ -4,6 +4,7 @@ using DimPos.Promotion.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DimPos.Promotion.Infrastructure.Migrations
 {
     [DbContext(typeof(PromotionContext))]
-    partial class PromotionContextModelSnapshot : ModelSnapshot
+    [Migration("20250625081946_Add_Unique_For_CampaignId_And_PromotionRuleId_For_CampainRuleLinks")]
+    partial class Add_Unique_For_CampaignId_And_PromotionRuleId_For_CampainRuleLinks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
