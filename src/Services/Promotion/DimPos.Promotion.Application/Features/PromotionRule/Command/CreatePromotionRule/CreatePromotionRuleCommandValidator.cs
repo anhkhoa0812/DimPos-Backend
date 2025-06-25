@@ -46,10 +46,7 @@ public class CreateRuleActionRequestValidator : AbstractValidator<CreateRuleActi
 
         RuleFor(x => x.Value)
             .NotEmpty().NotNull().WithMessage("Giá trị của hành động không được để trống.");
-
-        RuleFor(x => x.TargetCriteriaForItemAction)
-            .NotEmpty().NotNull().WithMessage("Tiêu chí mục tiêu cho hành động mục không được để trống.");
-
+        
         RuleFor(x => x.MaxDiscountAmountForPercentage)
             .GreaterThanOrEqualTo(0).WithMessage("Số tiền giảm giá tối đa cho phần trăm phải lớn hơn hoặc bằng 0.");
     }
