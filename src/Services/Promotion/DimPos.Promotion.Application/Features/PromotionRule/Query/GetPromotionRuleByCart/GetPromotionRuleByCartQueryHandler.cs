@@ -66,6 +66,7 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                 {
                     Id = promotionRule.Id,
                     Name = promotionRule.Name,
+                    ShortDescription = promotionRule.ShortDescription,
                     Description = promotionRule.Description,
                     Priority = promotionRule.Priority,
                 };

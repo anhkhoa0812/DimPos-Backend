@@ -34,6 +34,7 @@ public class GetPromotionRulesQueryHandler : IRequestHandler<GetPromotionRulesQu
             {
                 Id = x.Id,
                 Name = x.Name,
+                ShortDescription = x.ShortDescription,
                 Description = x.Description,
                 Priority = x.Priority,
                 RuleConditions = x.RuleConditions.Select(rc => new RuleConditionsResponse()

@@ -34,6 +34,7 @@ public class CreatePromotionRuleCommandHandler : IRequestHandler<CreatePromotion
         {
             Id = promotionRuleId,
             Name = request.Name,
+            ShortDescription = request.ShortDescription,
             Description = request.Description,
             BrandId = brandId,
             Priority = request.Priority,

@@ -5,8 +5,9 @@ namespace DimPos.Promotion.Domain.Models.PromotionRules;
 public class GetPromotionRulesResponse
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty; 
+    public string ShortDescription { get; set; } = string.Empty;
+    public string? Description { get; set; } = string.Empty;
     public int Priority { get; set; }
     public RuleActionsResponse RuleActions { get; set; } = new ();
     public List<RuleConditionsResponse> RuleConditions { get; set; } = new();

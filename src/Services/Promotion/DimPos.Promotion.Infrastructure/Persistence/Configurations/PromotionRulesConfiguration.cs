@@ -14,8 +14,10 @@ public class PromotionRulesConfiguration : IEntityTypeConfiguration<PromotionRul
         builder.Property(cr => cr.Name)
             .IsRequired()
             .HasMaxLength(100);
-        builder.Property(cr => cr.Description)
+        builder.Property(cr => cr.ShortDescription)
             .IsRequired()
+            .HasMaxLength(500);
+        builder.Property(cr => cr.Description)
             .HasMaxLength(1000);
         builder.Property(cr => cr.IsActive)
             .IsRequired();

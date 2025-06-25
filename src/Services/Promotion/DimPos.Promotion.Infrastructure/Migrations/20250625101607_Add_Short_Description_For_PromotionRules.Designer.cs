@@ -4,6 +4,7 @@ using DimPos.Promotion.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DimPos.Promotion.Infrastructure.Migrations
 {
     [DbContext(typeof(PromotionContext))]
-    partial class PromotionContextModelSnapshot : ModelSnapshot
+    [Migration("20250625101607_Add_Short_Description_For_PromotionRules")]
+    partial class Add_Short_Description_For_PromotionRules
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
