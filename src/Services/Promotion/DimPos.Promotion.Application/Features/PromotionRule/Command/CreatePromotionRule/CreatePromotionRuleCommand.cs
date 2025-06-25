@@ -7,7 +7,8 @@ namespace DimPos.Promotion.Application.Features.PromotionRule.Command.CreateProm
 public class CreatePromotionRuleCommand : IRequest<ApiResponse>
 {
     public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
+    public string ShortDescription { get; set; } = string.Empty;
+    public string? Description { get; set; }
     public int Priority { get; set; }
     public List<CreateRuleConditionRequest> RuleConditions { get; set; } = new List<CreateRuleConditionRequest>();
     public CreateRuleActionRequest RuleActions { get; set; } = new CreateRuleActionRequest();

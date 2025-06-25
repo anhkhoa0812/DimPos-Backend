@@ -2,10 +2,12 @@ using DimPos.Basket.Application.Common.Protos;
 using DimPos.Promotion.Application.Common.Behaviours;
 using DimPos.Promotion.Application.Common.Utils;
 using DimPos.Promotion.Application.Features.Campaign.Command.CreateCampaign;
+using DimPos.Promotion.Application.Features.CampaignStore.Command;
 using DimPos.Promotion.Application.Features.PromotionRule.Command.CreatePromotionRule;
 using DimPos.Promotion.Application.Services.Implement;
 using DimPos.Promotion.Application.Services.Interface;
 using DimPos.Promotion.Domain.Models.Settings;
+using DimPos.Store.Application.Common.Protos;
 using FluentValidation;
 using Mediator;
 
@@ -25,6 +27,7 @@ public static class ConfigureServices
         services.AddScoped(typeof(ValidationUtil<>));
         services.AddScoped<IValidator<CreatePromotionRuleCommand>, CreatePromotionRuleCommandValidator>();
         services.AddScoped<IValidator<CreateCampaignCommand>, CreateCampaignCommandValidator>();
+        services.AddScoped<IValidator<CreateCampaignStoreCommand>, CreateCampaignStoreCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;
@@ -47,6 +50,10 @@ public static class ConfigureServices
                 x.Address = new Uri(settings.BasketUrl);
             }
         );
+        services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.StoreUrl);
+        });
         return services;
     }
 }

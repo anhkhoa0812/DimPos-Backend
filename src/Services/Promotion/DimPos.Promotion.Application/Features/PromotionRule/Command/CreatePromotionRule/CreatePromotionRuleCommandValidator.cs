@@ -9,9 +9,10 @@ public class CreatePromotionRuleCommandValidator : AbstractValidator<CreatePromo
         RuleFor(x => x.Name)
             .NotEmpty().NotNull().WithMessage("Tên của luật khuyến mãi không được để trống.")
             .MaximumLength(100).WithMessage("Tên của luật khuyến mãi không được vượt quá 100 ký tự.");
-        
+        RuleFor(x => x.ShortDescription)
+            .NotEmpty().NotNull().WithMessage("Mô tả ngắn của luật khuyến mãi không được để trống.")
+            .MaximumLength(500).WithMessage("Mô tả ngắn của luật khuyến mãi không được vượt quá 200 ký tự.");
         RuleFor(x => x.Description)
-            .NotEmpty().NotNull().WithMessage("Mô tả của luật khuyến mãi không được để trống.")
             .MaximumLength(1000).WithMessage("Mô tả của luật khuyến mãi không được vượt quá 1000 ký tự.");
 
         RuleFor(x => x.Priority)

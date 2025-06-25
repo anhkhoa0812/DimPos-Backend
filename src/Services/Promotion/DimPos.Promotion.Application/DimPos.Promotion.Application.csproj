@@ -26,12 +26,18 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Campaign\Query\" />
+      <Folder Include="Features\CampaignStore\Query\" />
     </ItemGroup>
 
     <ItemGroup>
         <Protobuf Include=".\Common\Protos\basket.proto" GrpcServices="Client">
             <Link>Common\Protos\basket.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\store.proto" GrpcServices="Client">
+            <Link>Common\Protos\store.proto</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Protobuf>
     </ItemGroup>
