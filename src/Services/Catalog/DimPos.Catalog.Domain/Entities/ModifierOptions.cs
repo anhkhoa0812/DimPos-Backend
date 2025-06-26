@@ -9,5 +9,5 @@ public class ModifierOptions : EntityAuditBase<Guid>
     public bool IsActive { get; set; }
     public decimal? PriceDelta { get; set; }
     public Guid ModifierGroupId { get; set; }
-    public virtual ModifierGroups ModifierGroup {get; set; } = new ModifierGroups();
+    public virtual ModifierGroups ModifierGroup {get; set; }
 }
