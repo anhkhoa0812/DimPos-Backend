@@ -28,11 +28,5 @@ public class RuleActionsConfiguration : IEntityTypeConfiguration<RuleActions>
             .WithOne(ra => ra.RuleActions)
             .HasForeignKey<RuleActions>(ra => ra.PromotionRuleId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.Property(ra => ra.TargetCriteriaForItemAction)
-            .IsRequired();
-
-        builder.Property(ra => ra.MaxDiscountAmountForPercentage)
-            .IsRequired();
     }
 }

@@ -169,14 +169,13 @@ namespace DimPos.Promotion.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("MaxDiscountAmountForPercentage")
+                    b.Property<decimal?>("MaxDiscountAmountForPercentage")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("PromotionRuleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("TargetCriteriaForItemAction")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Value")

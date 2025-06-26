@@ -13,7 +13,7 @@ namespace DimPos.Promotion.Infrastructure.Configurations
             {
                 opt.AddDocumentTransformer((document, context, cancellationToken) =>
                 {
-                    document.Info.Title = "Store";
+                    document.Info.Title = "Promotion";
                     document.Info.Contact = new OpenApiContact
                     {
                         Email = "tahoanganhkhoa2014@gmail.com",

@@ -5,6 +5,7 @@ using DimPos.MenuCombo.Domain.Models.BrandMenu;
 using DimPos.MenuCombo.Domain.Models.Common;
 using DimPos.MenuCombo.Infrastructure.Persistence;
 using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
+using DimPos.Store.Application.Common.Protos;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,14 +17,16 @@ public class GetBrandMenuByIdQueryHandler : IRequestHandler<GetBrandMenuByIdQuer
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     private readonly CatalogGrpcService.CatalogGrpcServiceClient _catalogGrpcService;
+    private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
     
     public GetBrandMenuByIdQueryHandler(IUnitOfWork<MenuComboContext> unitOfWork, ILogger logger, IClaimService claimService,
-        CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService)
+        CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService, StoreGrpcService.StoreGrpcServiceClient storeGrpcService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _claimService = claimService;
         _catalogGrpcService = catalogGrpcService;
+        _storeGrpcService = storeGrpcService;
     }
     
     public async ValueTask<ApiResponse> Handle(GetBrandMenuByIdQuery request, CancellationToken cancellationToken)
@@ -42,6 +45,10 @@ public class GetBrandMenuByIdQueryHandler : IRequestHandler<GetBrandMenuByIdQuer
         {
             throw new BadHttpRequestException("Không tìm thấy menu của thương hiệu");
         }
+        var existingStoreId = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().GetListAsync(
+            selector: x => x.StoreId,
+            predicate: x => x.BrandMenuId == brandMenu.Id
+        );
         var productVariantsIdInBrandMenu = 
             (brandMenu.MenuItems.Select(x => x.ProductVariantId.ToString())).ToList();
         var productVariantsGrpcResponse = await _catalogGrpcService.GetProductVariantListByIdsAsync(
@@ -50,6 +57,14 @@ public class GetBrandMenuByIdQueryHandler : IRequestHandler<GetBrandMenuByIdQuer
                 BrandId = brandId.ToString(),
                 ProductVariantIds = { productVariantsIdInBrandMenu }
             });
+        var storesGrpcResponse = await _storeGrpcService.GetStoresByBrandIdAsync(new GetStoresByBrandIdRequest()
+        {
+            StoreIds =
+            {
+                existingStoreId.Select(x => x.ToString()).ToList()
+            },
+            BrandId = brandId.ToString()
+        });
         var brandMenuResponse = new Domain.Models.BrandMenu.BrandMenuByIdResponse()
         {
             Id = brandMenu.Id,
@@ -76,7 +91,19 @@ public class GetBrandMenuByIdQueryHandler : IRequestHandler<GetBrandMenuByIdQuer
                     IsMenuDisplay = x.IsMenuDisplay,
                     Status = (EProductVariantStatus)x.Status,
                     Sku = x.Sku
-                }).ToList()
+                }).ToList(),
+            Stores = storesGrpcResponse.Stores.Select(store => new BrandMenuByIdResponseWithStore()
+            {
+                Id = Guid.Parse(store.Id),
+                Name = store.Name,
+                Description = store.Description,
+                Address = store.Address,
+                Email = store.Email,
+                Phone = store.Phone,
+                Latitude = store.Latitude,
+                Longitude = store.Longitude,
+                Status = (EStoreStatus) store.Status
+            }).ToList()
         };
         _logger.Information("Brand menu found: {@BrandMenuResponse}", brandMenuResponse);
         return new ApiResponse

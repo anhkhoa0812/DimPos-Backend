@@ -37,6 +37,7 @@ public class StoreConfiguration : IEntityTypeConfiguration<Domain.Entities.Store
                 v => (EStoreType)Enum.Parse(typeof(EStoreType), v)
             );
         builder.Property(s => s.Status)
+            .IsRequired()
             .HasConversion(
                 v => v.ToString(),
                 v => (EStoreStatus)Enum.Parse(typeof(EStoreStatus), v)

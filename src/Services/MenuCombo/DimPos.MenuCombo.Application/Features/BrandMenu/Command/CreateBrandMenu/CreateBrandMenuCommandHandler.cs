@@ -34,6 +34,7 @@ public class CreateBrandMenuCommandHandler: IRequestHandler<CreateBrandMenuComma
         var brandMenu = BrandMenuMapper.ToBrandMenu(request);
         brandMenu.Id = Guid.CreateVersion7();
         brandMenu.BrandId = brandId;
+        brandMenu.IsActiveByBrand = true; // Mặc định là true khi tạo mới
 
         await _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().InsertAsync(brandMenu);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
