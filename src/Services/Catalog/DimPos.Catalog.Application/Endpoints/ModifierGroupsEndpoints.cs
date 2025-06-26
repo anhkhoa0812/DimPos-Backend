@@ -4,6 +4,7 @@ using DimPos.Catalog.Application.Features.ModifierGroups.Command.CreateModifierG
 using DimPos.Catalog.Application.Features.ModifierGroups.Command.UpdateModifierGroups;
 using DimPos.Catalog.Application.Features.ModifierGroups.Query.GetModifierGroups;
 using DimPos.Catalog.Application.Features.ModifierGroups.Query.GetModifierGroupsById;
+using DimPos.Catalog.Application.Features.ModifierOptions.Command.CreateModifierOption;
 using DimPos.Catalog.Application.Features.ModifierOptions.Query.GetModifierOptionsByModifierGroup;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Models.Common;
@@ -43,6 +44,14 @@ public class ModifierGroupsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPost("/{id}/modifier-options", CreateModifierOption)
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(CreateModifierOption))
+            .Produces<ApiResponse>(StatusCodes.Status201Created)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapPatch("/{id}", UpdateModifierGroup)
             .RequireAuthorization("BrandPolicy")
@@ -121,5 +130,24 @@ public class ModifierGroupsEndpoints : ICarterModule
         }
         var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> CreateModifierOption(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] CreateModifierOptionRequest request, ValidationUtil<CreateModifierOptionCommand> validationUtil)
+    {
+        var command = new CreateModifierOptionCommand()
+        {
+            ModifierGroupId = id,
+            Name = request.Name,
+            Description = request.Description,
+            IsActive = request.IsActive,
+            PriceDelta = request.PriceDelta
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Created($"{ApiEndPointConstants.ModifierGroups.ModifierGroupsEndpoint}/{id}/modifier-options", apiResponse);
     }
 }

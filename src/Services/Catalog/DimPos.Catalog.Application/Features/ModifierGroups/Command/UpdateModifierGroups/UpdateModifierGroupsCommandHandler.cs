@@ -4,6 +4,7 @@ using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Catalog.Application.Features.ModifierGroups.Command.UpdateModifierGroups;
 
@@ -24,7 +25,8 @@ public class UpdateModifierGroupsCommandHandler : IRequestHandler<UpdateModifier
     public async ValueTask<ApiResponse> Handle(UpdateModifierGroupsCommand request, CancellationToken cancellationToken)
     {
         var modifierGroup = await _unitOfWork.GetRepository<Domain.Entities.ModifierGroups>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.Id && x.BrandId == _claimService.GetBrandId
+            predicate: x => x.Id == request.Id && x.BrandId == _claimService.GetBrandId,
+            include: x => x.Include(mg => mg.ModifierOptions)
         );
         if (modifierGroup == null)
         {
@@ -37,6 +39,29 @@ public class UpdateModifierGroupsCommandHandler : IRequestHandler<UpdateModifier
         modifierGroup.SelectedType = request.UpdateModifierGroupsRequest.SelectedType ?? modifierGroup.SelectedType;
         modifierGroup.DisplayOrder = request.UpdateModifierGroupsRequest.DisplayOrder ?? modifierGroup.DisplayOrder;
         modifierGroup.IsActive = request.UpdateModifierGroupsRequest.IsActive ?? modifierGroup.IsActive;
+        
+        if (request.UpdateModifierGroupsRequest.ModifierOptions != null && request.UpdateModifierGroupsRequest.ModifierOptions.Any())
+        {
+            foreach (var option in request.UpdateModifierGroupsRequest.ModifierOptions)
+            {
+                var modifierOption = modifierGroup.ModifierOptions
+                    .FirstOrDefault(mo => mo.Id == option.Id);
+
+                if (modifierOption == null)
+                {
+                    _logger.Warning("Modifier option with ID {OptionId} not found for modifier group {GroupId}.", option.Id, modifierGroup.Id);
+                    continue;
+                }
+
+                modifierOption.Name = option.Name ?? modifierOption.Name;
+                modifierOption.Description = option.Description ?? modifierOption.Description;
+                modifierOption.IsActive = option.IsActive ?? modifierOption.IsActive;
+                modifierOption.PriceDelta = option.PriceDelta ?? modifierOption.PriceDelta;
+
+                _unitOfWork.GetRepository<Domain.Entities.ModifierOptions>().UpdateAsync(modifierOption);
+            }
+        }
+        
         _unitOfWork.GetRepository<Domain.Entities.ModifierGroups>().UpdateAsync(modifierGroup);
         
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

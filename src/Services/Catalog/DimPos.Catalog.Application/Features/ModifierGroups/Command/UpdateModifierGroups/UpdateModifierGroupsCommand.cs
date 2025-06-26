@@ -17,4 +17,13 @@ public class UpdateModifierGroupsRequest
     public ESelectedTypeModifier? SelectedType { get; set; }
     public int? DisplayOrder { get; set; }
     public bool? IsActive { get; set; }
+    public List<UpdateModifierOptions>? ModifierOptions { get; set; }
+}
+public class UpdateModifierOptions
+{
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public bool? IsActive { get; set; }
+    public decimal? PriceDelta { get; set; }
 }
