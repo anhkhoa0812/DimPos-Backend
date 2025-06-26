@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.OpenApi;
 
-namespace DimPos.Promotion.Infrastructure.Configurations
+namespace DimPos.Order.Infrastructure.Configurations
 {
     public static class OpenApiConfig
     {
@@ -13,7 +13,7 @@ namespace DimPos.Promotion.Infrastructure.Configurations
             {
                 opt.AddDocumentTransformer((document, context, cancellationToken) =>
                 {
-                    document.Info.Title = "Promotion";
+                    document.Info.Title = "Order";
                     document.Info.Contact = new OpenApiContact
                     {
                         Email = "tahoanganhkhoa2014@gmail.com",
