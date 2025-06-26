@@ -13,6 +13,7 @@ public class CartAppliedPromotionDetail
     public List<ConditionRule> ConditionRules { get; set; } = new List<ConditionRule>();
     public EActionType ActionType { get; set; }
     public string ActionValue { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
     public List<Guid>? TargetCriteriaForItemAction { get; set; }
     public decimal? MaxDiscountAmountForPercentage { get; set; }
 }

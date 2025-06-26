@@ -10,7 +10,7 @@ public class ApplyPromotionRequest
     public EActionType ActionType { get; set; }
     public string ActionValue { get; set; } = string.Empty;
     public List<ConditionRuleRequest> ConditionRules { get; set; } = new List<ConditionRuleRequest>();
-    public string? TargetCriteriaForItemAction { get; set; }
+    public List<Guid>? TargetCriteriaForItemAction { get; set; }
     public decimal MaxDiscountAmountForPercentage { get; set; }
     public List<Guid>? ApplicableCartItemIds { get; set; }
 }

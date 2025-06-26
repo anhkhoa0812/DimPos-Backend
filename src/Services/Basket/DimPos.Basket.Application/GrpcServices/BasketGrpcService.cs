@@ -76,9 +76,7 @@ public class BasketGrpcService : Common.Protos.BasketGrpcService.BasketGrpcServi
                             ProductVariantNameSnapshot = cartItem.ProductVariantNameSnapshot,
                             Quantity = cartItem.Quantity,
                             UnitPriceAtAdditionSnapshot = (float)cartItem.UnitPriceAtAdditionSnapshot,
-                            ItemSubtotalAmount = (float)cartItem.ItemSubtotalAmount,
-                            ItemSpecificDiscountAmount = (float)cartItem.ItemSpecificDiscountAmount,
-                            ItemFinalPrice = (float)cartItem.ItemFinalPrice,
+                            ItemSubtotalAmount = (float)cartItem.ItemSubtotalAmount
                         });
                         // response.CartItems.Add(cartItemResponse);
                     }

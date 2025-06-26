@@ -47,8 +47,6 @@ public class CartService : ICartService
                 Quantity = request.Quantity, 
                 ItemSubtotalAmount = request.UnitPriceAtAdditionSnapshot * request.Quantity, 
                 AddedAt = DateTime.UtcNow,
-                ItemSpecificDiscountAmount = 0,
-                ItemFinalPrice = request.UnitPriceAtAdditionSnapshot * request.Quantity,
                 ModifierGroupItems = request.ModifierGroupItems?.Select(x => new ModifierGroupItem() 
                 { 
                     ModifierGroupId = x.ModifierGroupId, 
@@ -223,6 +221,7 @@ public class CartService : ICartService
             PromotionRuleId = request.PromotionRuleId,
             PromotionNameSnapshot = request.PromotionNameSnapshot,
             ApplicableCartItemIds = request.ApplicableCartItemIds,
+            CreatedAt = DateTime.UtcNow,
             ConditionRules = request.ConditionRules.Select(x => new ConditionRule()
             {
                 ConditionType = x.ConditionType,
@@ -242,6 +241,8 @@ public class CartService : ICartService
         var cartItemSortedSetKey = $"{cartHashKey}:items:sortedset";
         var cartItemSortedSetExists = await _redisService.GetSortedSetAsync(cartItemSortedSetKey);
         var cartItemList = new List<CartItem>();
+        var promotionSortedSetKey = $"{cartHashKey}:promotion:sortedset";
+        var promotionHashKey = $"{cartHashKey}:promotion";
         foreach (var cartItemId in cartItemSortedSetExists)
         {
             var cartItemJson = await _redisService.GetHashAsync(cartItemHashKey, cartItemId);
@@ -349,15 +350,137 @@ public class CartService : ICartService
                 {
                     cartAppliedPromotionDetail.DiscountValueCalculated = request.MaxDiscountAmountForPercentage;
                 }
-                cart.SubtotalAmount -= cartAppliedPromotionDetail.DiscountValueCalculated;
-                if (cart.TaxRate != null)
-                {
-                    cart.TotalTaxAmount = (cart.SubtotalAmount - cart.OrderLevelDiscountAmount) * (cart.TaxRate.Value / 100);
-                }
-                cart.FinalTotalAmount = (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount) +
-                                        (cart.SubtotalAmount - cart.OrderLevelDiscountAmount);
+                cart.OrderLevelDiscountAmount += cartAppliedPromotionDetail.DiscountValueCalculated;
+                
                 break;
+            case EActionType.CartFixedDiscount:
+                var fixedDiscount = Decimal.Parse(request.ActionValue);
+                if (fixedDiscount < 0)
+                    throw new BadHttpRequestException("Giá trị giảm giá cố định không hợp lệ");
+
+                cartAppliedPromotionDetail.DiscountValueCalculated = fixedDiscount;
+                
+                cart.OrderLevelDiscountAmount += fixedDiscount;
+                
+                break;
+            case EActionType.ItemPercentageDiscount: 
+                var percentageItemDiscount = Decimal.Parse(request.ActionValue);
+                if(percentageItemDiscount < 0 || percentageItemDiscount > 100)
+                {
+                    throw new BadHttpRequestException("Giá trị giảm giá phần trăm cho sản phẩm không hợp lệ");
+                }
+
+                if (request.TargetCriteriaForItemAction == null)
+                {
+                    break;
+                }
+
+                var cartItemForActionList = cartItemList
+                    .Where(ci => request.TargetCriteriaForItemAction.Contains(ci.Id))
+                    .ToList();
+                foreach (var cartItemForAction in cartItemForActionList)
+                {
+                    var itemDiscountAmount = cartItemForAction.ItemSubtotalAmount * (percentageItemDiscount / 100);
+                    cartAppliedPromotionDetail.DiscountValueCalculated += itemDiscountAmount * cartItemForAction.Quantity;
+                }
+                cart.TotalItemDiscountAmount += cartAppliedPromotionDetail.DiscountValueCalculated;
+                break;
+            case EActionType.OneItemPercentageDiscount: 
+                var percentageFixedItemDiscount = Decimal.Parse(request.ActionValue);
+                if(percentageFixedItemDiscount > 0 || percentageFixedItemDiscount < 100)
+                {
+                    throw new BadHttpRequestException("Giá trị giảm giá phần trăm cố định cho sản phẩm không hợp lệ");
+                }
+                if (request.TargetCriteriaForItemAction == null || request.TargetCriteriaForItemAction.Count != 1)
+                {
+                    throw new BadHttpRequestException("Chỉ có thể áp dụng giảm giá phần trăm cố định cho một sản phẩm");
+                }
+                
+                var targetCartItem = cartItemList
+                    .FirstOrDefault(ci => ci.Id == request.TargetCriteriaForItemAction.FirstOrDefault());
+                var itemDiscount = targetCartItem.ItemSubtotalAmount * (percentageFixedItemDiscount / 100);
+                cartAppliedPromotionDetail.DiscountValueCalculated = itemDiscount;
+                cart.TotalItemDiscountAmount += cartAppliedPromotionDetail.DiscountValueCalculated;
+                break;
+            case EActionType.ItemFixedAmountDiscount:
+                var amountDiscount = Decimal.Parse(request.ActionValue);
+                if (amountDiscount < 0)
+                {
+                    throw new BadHttpRequestException("Giá trị giảm giá cố định cho sản phẩm không hợp lệ");
+                }
+                if (request.TargetCriteriaForItemAction == null)
+                {
+                    break;
+                }
+                var cartItemForFixedActionList = cartItemList
+                    .Where(ci => request.TargetCriteriaForItemAction.Contains(ci.Id))
+                    .ToList();
+                foreach (var cartItemForFixedAction in cartItemForFixedActionList)
+                {
+                    var cartItemForFixedActionFixed = cartItemForFixedAction.ItemSubtotalAmount - amountDiscount;
+                    cartAppliedPromotionDetail.DiscountValueCalculated += cartItemForFixedActionFixed * cartItemForFixedAction.Quantity;
+                }
+                cart.TotalItemDiscountAmount += cartAppliedPromotionDetail.DiscountValueCalculated;
+                break;
+            case EActionType.OneItemFixedAmountDiscount:
+                var amountDiscountForOne = Decimal.Parse(request.ActionValue);
+                if(amountDiscountForOne < 0)
+                {
+                    throw new BadHttpRequestException("Giá trị giảm giá cố định cho một sản phẩm không hợp lệ");
+                }
+                if(request.TargetCriteriaForItemAction == null)
+                {
+                    break;
+                }
+                if(request.TargetCriteriaForItemAction.Count != 1)
+                {
+                    throw new BadHttpRequestException("Chỉ có thể áp dụng giảm giá cố định cho một sản phẩm");
+                }
+                var targetCartItemForFixed = cartItemList
+                    .FirstOrDefault(ci => ci.Id == request.TargetCriteriaForItemAction.FirstOrDefault());
+                var itemFixedDiscount = targetCartItemForFixed.ItemSubtotalAmount - amountDiscountForOne;
+                cartAppliedPromotionDetail.DiscountValueCalculated = itemFixedDiscount;
+                cart.TotalItemDiscountAmount += cartAppliedPromotionDetail.DiscountValueCalculated;
+                break;
+            case EActionType.GiveFreeItemSku:
+                var quantityFree = int.Parse(request.ActionValue);
+                if (quantityFree < 0)
+                {
+                    throw new BadHttpRequestException("Số lượng sản phẩm miễn phí không hợp lệ");
+                }
+                if(request.TargetCriteriaForItemAction == null || request.TargetCriteriaForItemAction.Count != 1)
+                {
+                    throw new BadHttpRequestException("Chỉ có thể áp dụng sản phẩm miễn phí cho một sản phẩm");
+                }
+                var targetCartItemForFreeList = cartItemList
+                    .Where(ci => request.TargetCriteriaForItemAction.Contains(ci.Id)).ToList();
+                foreach (var targetCartItemForFree in targetCartItemForFreeList)
+                {
+                    targetCartItemForFree.Quantity += quantityFree;
+                    cartAppliedPromotionDetail.DiscountValueCalculated += targetCartItemForFree.UnitPriceAtAdditionSnapshot * quantityFree;
+                    await _redisService.SetHashAsync(cartItemHashKey, targetCartItemForFree.Id.ToString(), JsonSerializer.Serialize(targetCartItemForFree));
+                }
+                cart.TotalItemDiscountAmount += cartAppliedPromotionDetail.DiscountValueCalculated;
+                break;
+            default: 
+                throw new BadHttpRequestException("Kiểu hành động không hợp lệ");
         }
-        throw new BadHttpRequestException("");
+        if (cart.TaxRate != null)
+        {
+            cart.TotalTaxAmount = (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount) * (cart.TaxRate.Value / 100);
+        }
+        cart.FinalTotalAmount = cart.TotalTaxAmount +
+                                (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount);
+        var cartAppliedPromotionDetailJson = JsonSerializer.Serialize(cartAppliedPromotionDetail);
+        await _redisService.SetHashAsync(promotionHashKey, cartAppliedPromotionDetail.Id.ToString(), cartAppliedPromotionDetailJson);
+        await _redisService.SetSortedSetAsync(promotionSortedSetKey, cartAppliedPromotionDetail.Id.ToString(), cartAppliedPromotionDetail.CreatedAt.Ticks);
+        var updatedCartJson = JsonSerializer.Serialize(cart);
+        await _redisService.SetHashAsync(cartHashKey, cart.Id.ToString(), updatedCartJson);
+        return new ApiResponse()
+        {
+            Status = StatusCodes.Status200OK,
+            Message = "Áp dụng khuyến mãi thành công",
+            Data = null
+        };
     }
 }
