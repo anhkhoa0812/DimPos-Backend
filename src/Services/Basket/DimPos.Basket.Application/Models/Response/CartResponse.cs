@@ -28,6 +28,7 @@ public class CartResponse
     public DateTime? UpdatedAt { get; set; }
     public DateTime? ExpireAt { get; set; }
     public List<CartItemResponse>? CartItems { get; set; } = new List<CartItemResponse>();
+    public List<PromotionResponse>? PromotionsApplied { get; set; } = new List<PromotionResponse>();
 }
 
 public class CartItemResponse
@@ -47,10 +48,33 @@ public class CartItemResponse
     public DateTime AddedAt { get; set; }
     public List<ModifierGroupItemResponse>? ModifierGroupItems { get; set; }
 }
+
 public class ModifierGroupItemResponse
 {
     public Guid ModifierGroupId { get; set; }
     public Guid ModifierOptionId { get; set; }
     public string ModifierGroupNameSnapshot { get; set; } = string.Empty;
     public string ModifierOptionSnapshot { get; set; } = string.Empty;
+}
+
+public class PromotionResponse
+{
+    public Guid Id { get; set; }
+    public Guid PromotionRuleId { get; set; }
+    public string PromotionNameSnapshot { get; set; } = string.Empty;
+    public decimal DiscountValueCalculated { get; set; }
+    public List<Guid>? ApplicableCartItemIds { get; set; }
+    public List<ConditionRuleResponse> ConditionRules { get; set; }
+    public EActionType ActionType { get; set; }
+    public string ActionValue { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public List<Guid>? TargetCriteriaForItemAction { get; set; }
+    public decimal? MaxDiscountAmountForPercentage { get; set; }
+    
+}
+public class ConditionRuleResponse
+{
+    public EConditionType ConditionType { get; set; }
+    public EOperator Operator { get; set; }
+    public string ConditionValue { get; set; } = string.Empty;
 }
