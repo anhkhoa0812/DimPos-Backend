@@ -17,7 +17,7 @@ public class CartEndpoints : ICarterModule
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
-        group.MapPost("{id}/cartItems", AddToCart)
+        group.MapPost("{id}/cart-items", AddToCart)
             .RequireAuthorization("StaffPolicy")
             .WithName(nameof(AddToCart))
             .Produces(StatusCodes.Status201Created)
@@ -49,6 +49,21 @@ public class CartEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapDelete("{id:guid}/promotions", RemoveAppliedPromotion)
+            .WithName(nameof(RemoveAppliedPromotion))
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("{id:guid}/cart-items/{cartItemId:guid}", UpdateCartItem)
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     public async Task<IResult> CreateCart([FromBody] CreateNewCartRequest request, [FromServices] ICartService cartService)
     {
@@ -57,8 +72,8 @@ public class CartEndpoints : ICarterModule
     }
     public async Task<IResult> AddToCart([FromRoute] Guid id, [FromBody] AddToCartRequest request, [FromServices] ICartService cartService)
     {
-        await cartService.AddToCartAsync(id, request);
-        return Results.CreatedAtRoute(nameof(AddToCart));
+        var apiResponse = await cartService.AddToCartAsync(id, request);
+        return Results.Created($"api/{id}/cart-items", apiResponse);
     }
 
     public async Task<IResult> DeleteCart([FromRoute] Guid id, [FromServices] ICartService cartService)
@@ -82,4 +97,15 @@ public class CartEndpoints : ICarterModule
         var apiResponse = await cartService.UpdateCartAsync(id, request);
         return Results.Ok(apiResponse);
     }
+    public async Task<IResult> RemoveAppliedPromotion([FromRoute] Guid id, [FromBody] RemoveCartAppliedPromotionDetailRequest request, [FromServices] ICartService cartService)
+    {
+        var apiResponse = await cartService.RemoveAppliedPromotionAsync(id, request);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> UpdateCartItem([FromRoute] Guid id, [FromRoute] Guid cartItemId, [FromBody] UpdateCartItemRequest request, [FromServices] ICartService cartService)
+    {
+        var apiResponse = await cartService.UpdateCartItemAsync(id, cartItemId, request);
+        return Results.Ok(apiResponse);
+    }
+    
 }
