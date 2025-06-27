@@ -12,4 +12,7 @@ public interface ICartService
     public Task<ApiResponse> GetCartAsync();
 
     public Task<ApiResponse> ApplePromotionAsync(Guid cartId, ApplyPromotionRequest request);
+    
+    public Task<ApiResponse> UpdateCartAsync(Guid cartId, UpdateCartRequest request);
+    Task<ApiResponse> UpdateCartItemAsync(Guid cartItemId, UpdateCartItemRequest request);
 }

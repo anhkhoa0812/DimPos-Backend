@@ -10,5 +10,5 @@ public class StoreMenuItemAvailability : EntityAuditBase<Guid>
     public Guid BrandMenuItemId { get; set; }
     public Guid StoreMenuAssignmentId { get; set; }
 
-    public virtual StoreMenuAssignments StoreMenuAssignment { get; set; } = new StoreMenuAssignments();
+    public virtual StoreMenuAssignments StoreMenuAssignment { get; set; } = null!;
 }

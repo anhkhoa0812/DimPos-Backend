@@ -12,20 +12,6 @@ public class RedisService : IRedisService
         _db = redis.GetDatabase();
         _redisConnection = redis;
     }
-    public async Task<string?> GetStringAsync(string key)
-    {
-        return await _db.StringGetAsync(key);
-    }
-
-    public async Task<bool> RemoveKeyAsync(string key)
-    {
-        return await _db.KeyDeleteAsync(key);
-    }
-
-    public async Task<bool> SetStringAsync(string key, string value, TimeSpan? expiry = null)
-    {
-        return await _db.StringSetAsync(key, value, expiry);
-    }
     
     public async Task PushToListAsync(string key, string value)
     {
