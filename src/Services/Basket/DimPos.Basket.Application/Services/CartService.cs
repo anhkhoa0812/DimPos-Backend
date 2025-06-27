@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DimPos.Basket.Application.Common.Protos;
 using DimPos.Basket.Application.Enums;
 using DimPos.Basket.Application.Models;
 using DimPos.Basket.Application.Models.Base;
@@ -6,6 +7,7 @@ using DimPos.Basket.Application.Models.ConditionRuleModel;
 using DimPos.Basket.Application.Models.Request;
 using DimPos.Basket.Application.Models.Response;
 using DimPos.Basket.Application.Services.Interface;
+using CartItemResponse = DimPos.Basket.Application.Models.Response.CartItemResponse;
 
 namespace DimPos.Basket.Application.Services;
 
@@ -84,8 +86,6 @@ public class CartService : ICartService
 
     public async Task<ApiResponse> CreateNewCartAsync(CreateNewCartRequest request)
     {
-        try
-        {
             var staffAccountId = _claimService.GetCurrentUserId;
             if (staffAccountId == Guid.Empty)
             {
@@ -113,24 +113,25 @@ public class CartService : ICartService
                 TaxRate = request.TaxRate
             };
             var cartJson = JsonSerializer.Serialize(cart);
-            await _redisService.SetHashAsync(hashkey, cart.Id.ToString(), cartJson);
-            await _redisService.SetSortedSetAsync(sortedSetKey, cart.Id.ToString(), cart.CreatedAt.Ticks);
-            return new ApiResponse()
+            try
             {
-                Status = StatusCodes.Status200OK,
-                Message = "Tạo giỏ hàng mới thành công",
-            };
-        }
-        catch (Exception e)
-        {
-            throw new Exception("Lỗi khi tạo giỏ hàng mới", e);
-        }
+                await _redisService.SetHashAsync(hashkey, cart.Id.ToString(), cartJson);
+                await _redisService.SetSortedSetAsync(sortedSetKey, cart.Id.ToString(), cart.CreatedAt.Ticks);
+                return new ApiResponse()
+                {
+                    Status = StatusCodes.Status200OK,
+                    Message = "Tạo giỏ hàng mới thành công",
+                };
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Lỗi khi tạo giỏ hàng mới", e);
+            }
     }
 
     public async Task<ApiResponse> DeleteCartAsync(Guid cartId)
     {
-        // var staffAccountId = _claimService.GetCurrentUserId;
-        var staffAccountId = Guid.Parse("0197543b-b4c5-7068-934d-e9bc0acefb05");
+        var staffAccountId = _claimService.GetCurrentUserId;
         if (staffAccountId == Guid.Empty)
         {
             throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
@@ -194,6 +195,21 @@ public class CartService : ICartService
                             }
                         }
                     }
+                    var promotionSortedSetKey = $"{hashCartKey}:promotion:sortedset";
+                    var promotionHashKey = $"{hashCartKey}:promotion";
+                    var promotionIds = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
+                    foreach (var promotionId in promotionIds)
+                    {
+                        var promotionJson = await _redisService.GetHashAsync(promotionHashKey, promotionId);
+                        if (!string.IsNullOrEmpty(promotionJson))
+                        {
+                            var promotionDetail = JsonSerializer.Deserialize<PromotionResponse>(promotionJson);
+                            if (promotionDetail != null)
+                            {
+                                cart.PromotionsApplied?.Add(promotionDetail);
+                            }
+                        }
+                    }
                     response.Add(cart);
                 }
             }
@@ -243,6 +259,27 @@ public class CartService : ICartService
         var cartItemList = new List<CartItem>();
         var promotionSortedSetKey = $"{cartHashKey}:promotion:sortedset";
         var promotionHashKey = $"{cartHashKey}:promotion";
+        var promotionSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
+        if (promotionSortedSetExists.Any() &&
+            (request.ActionType == EActionType.CartFixedDiscount || request.ActionType == EActionType.CartPercentageDiscount))
+        {
+            foreach (var promotionId in promotionSortedSetExists)
+            {
+                var promotionJson = await _redisService.GetHashAsync(promotionHashKey, promotionId);
+                if (!string.IsNullOrEmpty(promotionJson))
+                {
+                    var existingPromotion = JsonSerializer.Deserialize<CartAppliedPromotionDetail>(promotionJson);
+                    if(existingPromotion != null && (existingPromotion.ActionType == EActionType.CartFixedDiscount ||
+                       existingPromotion.ActionType == EActionType.CartPercentageDiscount))
+                    {
+                        throw new BadHttpRequestException("Giỏ hàng đã áp dụng khuyến mãi với loại hành động tương tự");
+                    }
+                }
+            }
+        }
+        {
+            
+        }
         foreach (var cartItemId in cartItemSortedSetExists)
         {
             var cartItemJson = await _redisService.GetHashAsync(cartItemHashKey, cartItemId);
@@ -417,7 +454,7 @@ public class CartService : ICartService
                     .ToList();
                 foreach (var cartItemForFixedAction in cartItemForFixedActionList)
                 {
-                    var cartItemForFixedActionFixed = cartItemForFixedAction.ItemSubtotalAmount - amountDiscount;
+                    var cartItemForFixedActionFixed = amountDiscount;
                     cartAppliedPromotionDetail.DiscountValueCalculated += cartItemForFixedActionFixed * cartItemForFixedAction.Quantity;
                 }
                 cart.TotalItemDiscountAmount += cartAppliedPromotionDetail.DiscountValueCalculated;
@@ -437,9 +474,12 @@ public class CartService : ICartService
                     throw new BadHttpRequestException("Chỉ có thể áp dụng giảm giá cố định cho một sản phẩm");
                 }
                 var targetCartItemForFixed = cartItemList
-                    .FirstOrDefault(ci => ci.Id == request.TargetCriteriaForItemAction.FirstOrDefault());
-                var itemFixedDiscount = targetCartItemForFixed.ItemSubtotalAmount - amountDiscountForOne;
-                cartAppliedPromotionDetail.DiscountValueCalculated = itemFixedDiscount;
+                    .FirstOrDefault(ci => ci.ProductVariantId == request.TargetCriteriaForItemAction.FirstOrDefault());
+                if (targetCartItemForFixed == null)
+                {
+                    throw new BadHttpRequestException("Không tìm thấy sản phẩm để áp dụng giảm giá cố định");
+                }
+                cartAppliedPromotionDetail.DiscountValueCalculated = amountDiscountForOne;
                 cart.TotalItemDiscountAmount += cartAppliedPromotionDetail.DiscountValueCalculated;
                 break;
             case EActionType.GiveFreeItemSku:

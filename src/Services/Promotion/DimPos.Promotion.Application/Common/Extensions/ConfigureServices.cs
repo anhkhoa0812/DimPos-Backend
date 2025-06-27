@@ -32,6 +32,11 @@ public static class ConfigureServices
         {
             options.ThrowOnBadRequest = true;
         });
+        // services.AddHostedService<CheckCampaignExpiredService>();
+        // services.Configure<HostOptions>(hostOptions =>
+        // {
+        //     hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+        // });
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();
         services.AddGrpcServices(configuration);

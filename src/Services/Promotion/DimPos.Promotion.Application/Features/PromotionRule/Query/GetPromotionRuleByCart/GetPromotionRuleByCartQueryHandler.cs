@@ -8,6 +8,7 @@ using DimPos.Promotion.Domain.Models.PromotionRules;
 using DimPos.Promotion.Infrastructure.Persistence;
 using DimPos.Promotion.Infrastructure.Repositories.Interface;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Promotion.Application.Features.PromotionRule.Query.GetPromotionRuleByCart;
 
@@ -53,7 +54,11 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
         var promotionRules = await _unitOfWork.GetRepository<PromotionRules>().GetListAsync(
             predicate: x => x.CampaignRuleLinks.Any(x => x.Campaign.Status == ECampaignsStatus.Active
                             && x.Campaign.CampaignStores.Any(cs => cs.StoreId == storeId))
-            && x.BrandId == Guid.Parse(cart.BrandId)
+            && x.BrandId == Guid.Parse(cart.BrandId),
+            include: x => x.Include(pr => pr.CampaignRuleLinks)
+                .ThenInclude(crl => crl.Campaign)
+                .Include(pr => pr.RuleConditions)
+                .Include(pr => pr.RuleActions)
         );
         
         var promotionRuleListResponse = new List<PromotionRulesByCartResponse>();
@@ -69,6 +74,7 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                     ShortDescription = promotionRule.ShortDescription,
                     Description = promotionRule.Description,
                     Priority = promotionRule.Priority,
+                    IsValid = true
                 };
                 if (!promotionRule.IsActive)
                 {
@@ -84,13 +90,21 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                                 var conditionValueDecimal = Decimal.Parse(conditionRule.Value);
                                 if (conditionRule.Operator == EOperator.GreaterThanOrEqual)
                                 {
-                                   if((decimal) cart.SubtotalAmount < conditionValueDecimal) 
+                                    if ((decimal)cart.SubtotalAmount < conditionValueDecimal)
+                                    {
                                         promotionRuleResponse.IsValid = false;
+                                        _logger.Information("Giá trị giỏ hàng hiện tại: {CurrentValue}, Giá trị điều kiện: {ConditionValue}, Toán tử: {Operator}",
+                                            cart.SubtotalAmount, conditionValueDecimal, conditionRule.Operator);
+                                    }
                                 }
                                 else if (conditionRule.Operator == EOperator.GreaterThan)
                                 {
-                                   if((decimal) cart.SubtotalAmount <= conditionValueDecimal) 
-                                       promotionRuleResponse.IsValid = false;
+                                    if ((decimal)cart.SubtotalAmount <= conditionValueDecimal)
+                                    {
+                                        promotionRuleResponse.IsValid = false;
+                                        _logger.Information("Giá trị giỏ hàng hiện tại: {CurrentValue}, Giá trị điều kiện: {ConditionValue}, Toán tử: {Operator}, Id cua PromotionRule: {PromotionRuleId}",
+                                            cart.SubtotalAmount, conditionValueDecimal, conditionRule.Operator, promotionRule.Id);
+                                    }
                                 }
                                 else
                                 {
@@ -106,6 +120,8 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                                     if (!cart.CartItems.Any(ci => productVariantIds.Contains(Guid.Parse(ci.ProductVariantId)))) 
                                     { 
                                         promotionRuleResponse.IsValid = false;
+                                        _logger.Information("Giỏ hàng không chứa bất kỳ sản phẩm nào trong danh sách: {ProductVariantIds}, Id cua PromotionRule: {PromotionRuleId}", 
+                                            productVariantIds, promotionRule.Id);
                                     } 
                                 }
                                 else if (conditionRule.Operator == EOperator.ContainsAllInList) 
@@ -113,6 +129,8 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                                     if (!productVariantIds.All(pvId => cart.CartItems.Any(ci => Guid.Parse(ci.ProductVariantId) == pvId))) 
                                     { 
                                         promotionRuleResponse.IsValid = false;
+                                        _logger.Information("Giỏ hàng không chứa tất cả sản phẩm trong danh sách: {ProductVariantIds}, Id cua PromotionRule: {PromotionRuleId}", 
+                                            productVariantIds, promotionRule.Id);
                                     } 
                                 }
                                 else if(conditionRule.Operator == EOperator.ContainsExactList) 
@@ -121,11 +139,15 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                                         !productVariantIds.All(pvId => cart.CartItems.Any(ci => Guid.Parse(ci.ProductVariantId) == pvId)))
                                     {
                                         promotionRuleResponse.IsValid = false;
+                                        _logger.Information("Giỏ hàng không chứa đúng danh sách sản phẩm: {ProductVariantIds}, Id cua PromotionRule: {PromotionRuleId}", 
+                                            productVariantIds, promotionRule.Id);
                                     }
                                 }
                                 else
                                 {
                                     promotionRuleResponse.IsValid = false;
+                                    _logger.Information("Toán tử không hợp lệ cho điều kiện chứa sản phẩm trong giỏ hàng: {Operator}, Id cua PromotionRule: {PromotionRuleId}", 
+                                        conditionRule.Operator, promotionRule.Id);
                                 }
                                 break; 
                             case EConditionType.QuantityOfSpecificProductVariant: 
@@ -137,6 +159,8 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                                                                && ci.Quantity >= quantityOfSpecificProductVariantModel.Quantity)) 
                                     { 
                                         promotionRuleResponse.IsValid = false;
+                                        _logger.Information("Số lượng sản phẩm cụ thể trong giỏ hàng không đủ: {ProductVariantId}, Số lượng yêu cầu: {RequiredQuantity}, Id cua PromotionRule: {PromotionRuleId}",
+                                            quantityOfSpecificProductVariantModel.ProductVariantId, quantityOfSpecificProductVariantModel.Quantity, promotionRule.Id);
                                     } 
                                 }
                                 else if (conditionRule.Operator == EOperator.Equals) 
@@ -146,15 +170,21 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                                           && ci.Quantity == quantityOfSpecificProductVariantModel.Quantity)) 
                                     { 
                                         promotionRuleResponse.IsValid = false;
+                                        _logger.Information("Số lượng sản phẩm cụ thể trong giỏ hàng không đúng: {ProductVariantId}, Số lượng yêu cầu: {RequiredQuantity}, Id cua PromotionRule: {PromotionRuleId}",
+                                            quantityOfSpecificProductVariantModel.ProductVariantId, quantityOfSpecificProductVariantModel.Quantity, promotionRule.Id);
                                     } 
                                 }
                                 else 
                                 { 
                                     promotionRuleResponse.IsValid = false;
+                                    _logger.Information("Toán tử không hợp lệ cho điều kiện số lượng sản phẩm cụ thể: {Operator}, Id cua PromotionRule: {PromotionRuleId}", 
+                                        conditionRule.Operator, promotionRule.Id);
                                 } 
                                 break; 
                             default: 
                                 promotionRuleResponse.IsValid = false; 
+                                _logger.Information("Loại điều kiện không hợp lệ: {ConditionType}, Id cua PromotionRule: {PromotionRuleId}", 
+                                    conditionRule.ConditionType, promotionRule.Id);
                                 break;
                         } 
                     }
