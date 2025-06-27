@@ -57,8 +57,8 @@ public class BasketGrpcService : Common.Protos.BasketGrpcService.BasketGrpcServi
             response.ItemCount = cart.ItemCount;
             response.TotalQuantityOfItems = cart.TotalQuantityOfItems;
             
-            var cartItemSortedSetKey = $"{cartHashKey}:items:sortedset";
-            var cartItemHashKey = $"{cartHashKey}:items";
+            var cartItemSortedSetKey = $"{cartHashKey}:items:{cart.Id.ToString()}:sortedset";
+            var cartItemHashKey = $"{cartHashKey}:items:{cart.Id.ToString()}";
             var cartItemIds = await _redisService.GetSortedSetAsync(cartItemSortedSetKey);
             foreach (var itemId in cartItemIds)
             {
@@ -82,8 +82,8 @@ public class BasketGrpcService : Common.Protos.BasketGrpcService.BasketGrpcServi
                     }
                 }
             }
-            var promotionSortedSetKey = $"{cartHashKey}:promotion:sortedset";
-            var promotionHashKey = $"{cartHashKey}:promotion";
+            var promotionSortedSetKey = $"{cartHashKey}:promotion:{cart.Id.ToString()}:sortedset";
+            var promotionHashKey = $"{cartHashKey}:promotion:{cart.Id.ToString()}";
             
             var promotionIds = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
             foreach (var promotionId in promotionIds)
