@@ -38,12 +38,9 @@ public class CartItemResponse
     public Guid ProductVariantId { get; set; }
     public string ProductNameSnapshot { get; set; } = string.Empty;
     public string ProductVariantNameSnapshot { get; set; } = string.Empty;
-
     public int Quantity { get; set; }
     public decimal UnitPriceAtAdditionSnapshot { get; set; }
     public decimal ItemSubtotalAmount { get; set; }
-    public decimal ItemSpecificDiscountAmount { get; set; }
-    public decimal ItemFinalPrice { get; set; }
     public string? NotesForItem { get; set; }
     public DateTime AddedAt { get; set; }
     public List<ModifierGroupItemResponse>? ModifierGroupItems { get; set; }

@@ -259,6 +259,27 @@ public class CartService : ICartService
         var cartItemList = new List<CartItem>();
         var promotionSortedSetKey = $"{cartHashKey}:promotion:sortedset";
         var promotionHashKey = $"{cartHashKey}:promotion";
+        var promotionSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
+        if (promotionSortedSetExists.Any() &&
+            (request.ActionType == EActionType.CartFixedDiscount || request.ActionType == EActionType.CartPercentageDiscount))
+        {
+            foreach (var promotionId in promotionSortedSetExists)
+            {
+                var promotionJson = await _redisService.GetHashAsync(promotionHashKey, promotionId);
+                if (!string.IsNullOrEmpty(promotionJson))
+                {
+                    var existingPromotion = JsonSerializer.Deserialize<CartAppliedPromotionDetail>(promotionJson);
+                    if(existingPromotion != null && (existingPromotion.ActionType == EActionType.CartFixedDiscount ||
+                       existingPromotion.ActionType == EActionType.CartPercentageDiscount))
+                    {
+                        throw new BadHttpRequestException("Giỏ hàng đã áp dụng khuyến mãi với loại hành động tương tự");
+                    }
+                }
+            }
+        }
+        {
+            
+        }
         foreach (var cartItemId in cartItemSortedSetExists)
         {
             var cartItemJson = await _redisService.GetHashAsync(cartItemHashKey, cartItemId);
