@@ -41,6 +41,14 @@ public class CartEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("{id:guid}", UpdateCart)
+            .WithName(nameof(UpdateCart))
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     public async Task<IResult> CreateCart([FromBody] CreateNewCartRequest request, [FromServices] ICartService cartService)
     {
@@ -68,5 +76,10 @@ public class CartEndpoints : ICarterModule
     {
         var apiResponse = await cartService.ApplePromotionAsync(id, request);
         return Results.Created($"/api/carts/{id}/promotions", apiResponse);
+    }
+    public async Task<IResult> UpdateCart([FromRoute] Guid id, [FromBody] UpdateCartRequest request, [FromServices] ICartService cartService)
+    {
+        var apiResponse = await cartService.UpdateCartAsync(id, request);
+        return Results.Ok(apiResponse);
     }
 }

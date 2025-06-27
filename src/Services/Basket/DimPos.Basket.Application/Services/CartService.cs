@@ -60,18 +60,87 @@ public class CartService : ICartService
             var cartItemHashKey = $"{cartKey}:items"; 
             var cartItemSortedSetKey = $"{cartKey}:items:sortedset";
             var cartItemJson = JsonSerializer.Serialize(cartItem); 
+            
+            var promotionSortedSetKey = $"{cartKey}:promotion:sortedset";
+            var promotionHashKey = $"{cartKey}:promotion";
+            
+            var promotionSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
+            if (promotionSortedSetExists.Any())
+            {
+                foreach (var promotionId in promotionSortedSetExists)
+                {
+                    var promotionJson = await _redisService.GetHashAsync(promotionHashKey, promotionId);
+                    if (!string.IsNullOrEmpty(promotionJson))
+                    {
+                        var existingPromotion = JsonSerializer.Deserialize<CartAppliedPromotionDetail>(promotionJson);
+                        switch (existingPromotion.ActionType)
+                        {
+                            case EActionType.CartPercentageDiscount:
+                                var percentageDiscount = Decimal.Parse(existingPromotion.ActionValue);
+                                if (percentageDiscount < 0 || percentageDiscount > 100)
+                                {
+                                    throw new BadHttpRequestException("Giá trị giảm giá phần trăm không hợp lệ");
+                                }
+                                cart.SubtotalAmount += cartItem.ItemSubtotalAmount;
+                                existingPromotion.DiscountValueCalculated = cart.SubtotalAmount * (percentageDiscount / 100);
+                                break;
+                            case EActionType.ItemFixedAmountDiscount:
+                                var amountDiscount = Decimal.Parse(existingPromotion.ActionValue);
+                                if (amountDiscount < 0)
+                                {
+                                    throw new BadHttpRequestException("Giá trị giảm giá cố định cho sản phẩm không hợp lệ");
+                                }
+                                if (existingPromotion.TargetCriteriaForItemAction == null)
+                                {
+                                    break;
+                                }
+
+                                if (existingPromotion.TargetCriteriaForItemAction != null &&
+                                    existingPromotion.TargetCriteriaForItemAction.Contains(cartItem.Id))
+                                {
+                                    existingPromotion.DiscountValueCalculated += amountDiscount * cartItem.Quantity;
+                                    cart.TotalItemDiscountAmount += existingPromotion.DiscountValueCalculated;
+                                }
+                                break;
+                            case EActionType.ItemPercentageDiscount:
+                                var percentageItemDiscount = Decimal.Parse(existingPromotion.ActionValue);
+                                if (percentageItemDiscount < 0 || percentageItemDiscount > 100)
+                                {
+                                    throw new BadHttpRequestException("Giá trị giảm giá phần trăm cho sản phẩm không hợp lệ");
+                                }
+                                if(existingPromotion.TargetCriteriaForItemAction != null &&
+                                   existingPromotion.TargetCriteriaForItemAction.Contains(cartItem.Id))
+                                {
+                                    var itemDiscountAmount = cartItem.ItemSubtotalAmount * (percentageItemDiscount / 100);
+                                    existingPromotion.DiscountValueCalculated += itemDiscountAmount * cartItem.Quantity;
+                                    cart.TotalItemDiscountAmount += existingPromotion.DiscountValueCalculated;
+                                }
+                                break;
+                            case EActionType.OneItemPercentageDiscount:
+                                break;
+                            case EActionType.OneItemFixedAmountDiscount:
+                                break;
+                            case EActionType.GiveFreeItemSku:
+                                break;
+                            case EActionType.CartFixedDiscount:
+                                break;
+                            default:
+                                throw new BadHttpRequestException("Kiểu hành động không hợp lệ");
+                        }
+                        await _redisService.SetHashAsync(promotionHashKey, promotionId, JsonSerializer.Serialize(existingPromotion));
+                    }
+                }
+            }
             await _redisService.SetHashAsync(cartItemHashKey, cartItem.Id.ToString(), cartItemJson);
             await _redisService.SetSortedSetAsync(cartItemSortedSetKey, cartItem.Id.ToString(), cartItem.AddedAt.Ticks);
             
-            if (cart != null) 
-            { 
-                cart.SubtotalAmount += cartItem.ItemSubtotalAmount; 
-                cart.ItemCount += 1; 
-                cart.TotalQuantityOfItems += request.Quantity; 
-                cart.UpdatedAt = DateTime.UtcNow; 
-                var updatedCartJson = JsonSerializer.Serialize(cart); 
-                await _redisService.SetHashAsync(cartKey, cartId.ToString(), updatedCartJson); 
-            } 
+            cart.SubtotalAmount += cartItem.ItemSubtotalAmount; 
+            cart.ItemCount += 1; 
+            cart.TotalQuantityOfItems += request.Quantity; 
+            cart.UpdatedAt = DateTime.UtcNow; 
+            var updatedCartJson = JsonSerializer.Serialize(cart); 
+            await _redisService.SetHashAsync(cartKey, cartId.ToString(), updatedCartJson); 
+            
             return new ApiResponse 
             { 
                 Status = StatusCodes.Status200OK, 
@@ -123,6 +192,7 @@ public class CartService : ICartService
                     Message = "Tạo giỏ hàng mới thành công",
                 };
             }
+            
             catch (Exception e)
             {
                 throw new Exception("Lỗi khi tạo giỏ hàng mới", e);
@@ -523,4 +593,177 @@ public class CartService : ICartService
             Data = null
         };
     }
+
+    public async Task<ApiResponse> UpdateCartAsync(Guid cartId, UpdateCartRequest request)
+    {
+        var accountId = _claimService.GetCurrentUserId;
+        if (accountId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
+        }
+        
+        var cartHashKey = $"cart:{accountId}";
+        var cartJson = await _redisService.GetHashAsync(cartHashKey, cartId.ToString());
+        if (string.IsNullOrEmpty(cartJson))
+        {
+            throw new BadHttpRequestException("Không tìm thấy giỏ hàng");
+        }
+        var cart = JsonSerializer.Deserialize<Cart>(cartJson);
+        cart.TakeNumberDineIn = request.TakeNumberDineIn ?? cart.TakeNumberDineIn;
+        cart.ServiceMethod = request.ServiceMethod ?? cart.ServiceMethod;
+        
+        await _redisService.SetHashAsync(cartHashKey, cart.Id.ToString(), JsonSerializer.Serialize(cart));
+        return new ApiResponse
+        {
+            Status = StatusCodes.Status200OK,
+            Message = "Cập nhật giỏ hàng thành công",
+            Data = null
+        };
+    }
+
+    public async Task<ApiResponse> UpdateCartItemAsync(Guid cartItemId, UpdateCartItemRequest request)
+    {
+        var accountId = _claimService.GetCurrentUserId;
+        if (accountId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
+        }
+        
+        var cartHashKey = $"cart:{accountId}";
+        var cartItemHashKey = $"{cartHashKey}:items";
+        var cartJson = await _redisService.GetHashAsync(cartHashKey, cartItemId.ToString());
+        if (string.IsNullOrEmpty(cartJson))
+        {
+            throw new BadHttpRequestException("Không tìm thấy giỏ hàng");
+        }
+        var cart = JsonSerializer.Deserialize<Cart>(cartJson);
+        var cartItemJson = await _redisService.GetHashAsync(cartItemHashKey, cartItemId.ToString());
+        if (string.IsNullOrEmpty(cartItemJson))
+        {
+            throw new BadHttpRequestException("Không tìm thấy sản phẩm trong giỏ hàng");
+        }
+        
+        var cartItem = JsonSerializer.Deserialize<CartItem>(cartItemJson);
+        if (cartItem == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy sản phẩm trong giỏ hàng");
+        }
+
+        if (request.Quantity != null)
+        {
+            if (request.Quantity < 0)
+            {
+                throw new BadHttpRequestException("Số lượng sản phẩm không hợp lệ");
+            }
+
+            if (request.Quantity == 0)
+            {
+                // Xoá sản phẩm khỏi giỏ hàng nếu số lượng là 0
+                var cartItemSortedSetKey = $"{cartHashKey}:items:sortedset";
+                await _redisService.RemoveSortedSetAsync(cartItemSortedSetKey, cartItemId.ToString());
+                await _redisService.RemoveHashAsync(cartItemHashKey, cartItemId.ToString());
+            }
+            else
+            {
+                cartItem.Quantity = request.Quantity.Value;
+                cartItem.ItemSubtotalAmount = cartItem.UnitPriceAtAdditionSnapshot * cartItem.Quantity;
+                cart.SubtotalAmount += cartItem.UnitPriceAtAdditionSnapshot * request.Quantity.Value;
+                var promotionSortedSetKey = $"{cartHashKey}:promotion:sortedset";
+                var promotionHashKey = $"{cartHashKey}:promotion";
+                var promotionIdSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
+                if (promotionIdSortedSetExists.Any())
+                {
+                    foreach (var promotionIdSortedSetExist in promotionIdSortedSetExists)
+                    {
+                        var promotionJson =
+                            await _redisService.GetHashAsync(promotionHashKey, promotionIdSortedSetExist);
+                        if (!string.IsNullOrEmpty(promotionJson))
+                        {
+                            var existingPromotion =
+                                JsonSerializer.Deserialize<CartAppliedPromotionDetail>(promotionJson);
+                            var existingPromotionDiscountValue = existingPromotion.DiscountValueCalculated;
+                            switch (existingPromotion.ActionType)
+                            {
+                                case EActionType.CartPercentageDiscount:
+                                    var percentageDiscount = Decimal.Parse(existingPromotion.ActionValue);
+                                    if (percentageDiscount < 0 || percentageDiscount > 100)
+                                    {
+                                        throw new BadHttpRequestException("Giá trị giảm giá phần trăm không hợp lệ");
+                                    }
+
+                                    existingPromotion.DiscountValueCalculated = cart.SubtotalAmount * (percentageDiscount / 100);
+                                    if (existingPromotion.MaxDiscountAmountForPercentage.HasValue &&
+                                        existingPromotion.DiscountValueCalculated >
+                                        existingPromotion.MaxDiscountAmountForPercentage.Value)
+                                    {
+                                        existingPromotion.DiscountValueCalculated =
+                                            existingPromotion.MaxDiscountAmountForPercentage.Value;
+                                    }
+                                    cart.OrderLevelDiscountAmount += existingPromotion.DiscountValueCalculated - existingPromotionDiscountValue;
+                                    break;
+                                case EActionType.ItemPercentageDiscount:
+                                    var itemPercentageAmount = Decimal.Parse(existingPromotion.ActionValue);
+                                    if (itemPercentageAmount < 0 || itemPercentageAmount > 100)
+                                    {
+                                        throw new BadHttpRequestException("Giá trị giảm giá phần trăm cho sản phẩm không hợp lệ");
+                                    }
+                                    if (existingPromotion.TargetCriteriaForItemAction != null &&
+                                        existingPromotion.TargetCriteriaForItemAction.Contains(cartItem.Id))
+                                    {
+                                        var itemDiscountAmount = cartItem.ItemSubtotalAmount * (itemPercentageAmount / 100);
+                                        existingPromotion.DiscountValueCalculated = itemDiscountAmount * cartItem.Quantity;
+                                        cart.TotalItemDiscountAmount += existingPromotion.DiscountValueCalculated - existingPromotionDiscountValue;
+                                    }
+                                    break;
+                                case EActionType.ItemFixedAmountDiscount:
+                                    var itemFixedAmount = Decimal.Parse(existingPromotion.ActionValue);
+                                    if (itemFixedAmount < 0)
+                                    {
+                                        throw new BadHttpRequestException("Giá trị giảm giá cố định cho sản phẩm không hợp lệ");
+                                    }
+                                    if (existingPromotion.TargetCriteriaForItemAction != null &&
+                                        existingPromotion.TargetCriteriaForItemAction.Contains(cartItem.Id))
+                                    {
+                                        existingPromotion.DiscountValueCalculated = itemFixedAmount * cartItem.Quantity;
+                                        cart.TotalItemDiscountAmount += existingPromotion.DiscountValueCalculated - existingPromotionDiscountValue;
+                                    }
+                                    break;
+                                case EActionType.CartFixedDiscount:
+                                    break;
+                                case EActionType.OneItemFixedAmountDiscount:
+                                    break;
+                                case EActionType.OneItemPercentageDiscount:
+                                    break;
+                                default:
+                                    throw new BadHttpRequestException("Kiểu hành động không hợp lệ");
+                            }
+                            await _redisService.SetHashAsync(promotionHashKey, existingPromotion.Id.ToString(), JsonSerializer.Serialize(existingPromotion));
+                        }
+                    }
+                }
+                await _redisService.SetHashAsync(cartItemHashKey, cartItem.Id.ToString(), JsonSerializer.Serialize(cartItem));
+                await _redisService.SetHashAsync(cartHashKey, cart.Id.ToString(), JsonSerializer.Serialize(cart));
+            }
+        }
+
+        if (request.ModifierGroupItems != null && request.ModifierGroupItems.Any())
+        {
+            var modifierGroupItems = request.ModifierGroupItems.Select(x => new ModifierGroupItem()
+            {
+                ModifierGroupId = x.ModifierGroupId,
+                ModifierOptionId = x.ModifierOptionId,
+                ModifierGroupNameSnapshot = x.ModifierGroupNameSnapshot,
+                ModifierOptionSnapshot = x.ModifierOptionSnapshot
+            }).ToList();
+            cartItem.ModifierGroupItems = modifierGroupItems;
+            await _redisService.SetHashAsync(cartItemHashKey, cartItem.Id.ToString(), JsonSerializer.Serialize(cartItem));
+        }
+        return new ApiResponse
+        {
+            Status = StatusCodes.Status200OK,
+            Message = "Cập nhật sản phẩm trong giỏ hàng thành công",
+            Data = null
+        };
+    }
+    
 }
