@@ -20,7 +20,18 @@ public class CartService : ICartService
         _redisService = redisService;
         _claimService = claimService;
     }
-
+    private static string GetCartHashKey(Guid staffId) => $"cart:{staffId.ToString()}";
+    private static string GetCartSortedSetKey(Guid staffId)
+        => $"cart:{staffId.ToString()}:sortedset";
+    private static string GetCartItemsHashKey(Guid staffId, Guid cartId)
+        => $"cart:{staffId.ToString()}:items:{cartId.ToString()}";
+    private static string GetCartItemsSortedSetKey(Guid staffId, Guid cartId)
+        => $"cart:{staffId.ToString()}:items:{cartId.ToString()}:sortedset";
+    private static string GetCartPromotionHashKey(Guid staffId, Guid cartId)
+        => $"cart:{staffId.ToString()}:promotion:{cartId.ToString()}";
+    private static string GetCartPromotionSortedSetKey(Guid staffId, Guid cartId)
+        => $"cart:{staffId.ToString()}:promotion:{cartId.ToString()}:sortedset";
+    
     public async Task<ApiResponse> AddToCartAsync(Guid cartId, AddToCartRequest request)
     {
         try
@@ -30,13 +41,31 @@ public class CartService : ICartService
             {
                 throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
             }
-            var cartKey = $"cart:{staffAccountId}"; 
+            var cartKey = GetCartHashKey(staffAccountId); 
             var existingCartJson = await _redisService.GetHashAsync(cartKey, cartId.ToString()); 
             if (string.IsNullOrEmpty(existingCartJson)) 
             { 
                 throw new BadHttpRequestException("Không tìm thấy giỏ hàng"); 
             } 
             var cart = JsonSerializer.Deserialize<Cart>(existingCartJson); 
+            var cartItemHashKey = GetCartItemsHashKey(staffAccountId, cartId);
+            var cartItemSortedSetKey = GetCartItemsSortedSetKey(staffAccountId, cartId);
+            var cartItemIdSortedSetExists = await _redisService.GetSortedSetAsync(cartItemSortedSetKey);
+            foreach (var cartItemIdExisting in cartItemIdSortedSetExists)
+            {
+                var existingCartItemJson = await _redisService.GetHashAsync(cartItemHashKey, cartItemIdExisting);
+                var existingCartItem = JsonSerializer.Deserialize<CartItem>(existingCartItemJson);
+                if (existingCartItem != null)
+                {
+                    var firstIds  = existingCartItem.ModifierGroupItems.Select(x => x.ModifierOptionId).OrderBy(id => id);
+                    var secondIds = request.ModifierGroupItems.Select(x => x.ModifierOptionId).OrderBy(id => id);
+                    if (existingCartItem.ProductVariantId == request.ProductVariantId
+                        && firstIds.SequenceEqual(secondIds))
+                    {
+                        throw new BadHttpRequestException("Sản phẩm đã tồn tại trong giỏ hàng với cùng biến thể và tùy chọn sửa đổi");
+                    }
+                }
+            }
             var cartItem = new CartItem() 
             { 
                 Id = Guid.CreateVersion7(),
@@ -57,12 +86,10 @@ public class CartService : ICartService
                     ModifierOptionSnapshot = x.ModifierOptionSnapshot 
                 }).ToList() 
             }; 
-            var cartItemHashKey = $"{cartKey}:items:{cart.Id.ToString()}"; 
-            var cartItemSortedSetKey = $"{cartKey}:items:{cart.Id.ToString()}:sortedset";
             var cartItemJson = JsonSerializer.Serialize(cartItem); 
             
-            var promotionSortedSetKey = $"{cartKey}:promotion:{cart.Id.ToString()}:sortedset";
-            var promotionHashKey = $"{cartKey}:promotion:{cart.Id.ToString()}";
+            var promotionSortedSetKey = GetCartPromotionSortedSetKey(staffAccountId, cartId);
+            var promotionHashKey = GetCartPromotionHashKey(staffAccountId, cartId);
             
             var promotionSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
             if (promotionSortedSetExists.Any())
@@ -83,6 +110,13 @@ public class CartService : ICartService
                                 }
                                 cart.SubtotalAmount += cartItem.ItemSubtotalAmount;
                                 existingPromotion.DiscountValueCalculated = cart.SubtotalAmount * (percentageDiscount / 100);
+                                if (existingPromotion.MaxDiscountAmountForPercentage != null &&
+                                    existingPromotion.MaxDiscountAmountForPercentage > 0 &&
+                                    existingPromotion.DiscountValueCalculated > existingPromotion.MaxDiscountAmountForPercentage)
+                                {
+                                    existingPromotion.DiscountValueCalculated = existingPromotion.MaxDiscountAmountForPercentage.Value;
+                                }
+                                cart.OrderLevelDiscountAmount += existingPromotion.DiscountValueCalculated;
                                 break;
                             case EActionType.ItemFixedAmountDiscount:
                                 var amountDiscount = Decimal.Parse(existingPromotion.ActionValue);
@@ -117,12 +151,10 @@ public class CartService : ICartService
                                 }
                                 break;
                             case EActionType.OneItemPercentageDiscount:
-                                break;
                             case EActionType.OneItemFixedAmountDiscount:
-                                break;
                             case EActionType.GiveFreeItemSku:
-                                break;
                             case EActionType.CartFixedDiscount:
+                                cart.SubtotalAmount += cartItem.ItemSubtotalAmount;
                                 break;
                             default:
                                 throw new BadHttpRequestException("Kiểu hành động không hợp lệ");
@@ -134,10 +166,15 @@ public class CartService : ICartService
             await _redisService.SetHashAsync(cartItemHashKey, cartItem.Id.ToString(), cartItemJson);
             await _redisService.SetSortedSetAsync(cartItemSortedSetKey, cartItem.Id.ToString(), cartItem.AddedAt.Ticks);
             
-            cart.SubtotalAmount += cartItem.ItemSubtotalAmount; 
             cart.ItemCount += 1; 
             cart.TotalQuantityOfItems += request.Quantity; 
-            cart.UpdatedAt = DateTime.UtcNow; 
+            cart.UpdatedAt = DateTime.UtcNow;
+            if (cart.TaxRate != null)
+            {
+                cart.TotalTaxAmount = (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount) * (cart.TaxRate.Value / 100);
+            }
+            cart.FinalTotalAmount = cart.TotalTaxAmount +
+                                    (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount);
             var updatedCartJson = JsonSerializer.Serialize(cart); 
             await _redisService.SetHashAsync(cartKey, cartId.ToString(), updatedCartJson); 
             
@@ -161,8 +198,8 @@ public class CartService : ICartService
                 throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
             }
             var cartId = Guid.CreateVersion7();
-            var hashkey = $"cart:{staffAccountId}";
-            var sortedSetKey = $"{hashkey}:sortedset";
+            var hashkey = GetCartHashKey(staffAccountId);
+            var sortedSetKey = GetCartSortedSetKey(staffAccountId);
             var sortedSetExists = await _redisService.GetSortedSetAsync(sortedSetKey);
             if (sortedSetExists.Count >= 3)
             {
@@ -206,7 +243,7 @@ public class CartService : ICartService
         {
             throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
         }
-        var hashCartKey = $"cart:{staffAccountId}";
+        var hashCartKey = GetCartHashKey(staffAccountId);
 
         var cartJson = await _redisService.GetHashAsync(hashCartKey, cartId.ToString());
         if (string.IsNullOrEmpty(cartJson))
@@ -218,12 +255,12 @@ public class CartService : ICartService
         {
             throw new BadHttpRequestException("Không tìm thấy giỏ hàng");
         }
-        
-        var sortedSetCartKey = $"cart:{staffAccountId}:sortedset";
-        var cartItemHashKey = $"{hashCartKey}:items:{cart.Id.ToString()}";
-        var cartItemSortedSetKey = $"{hashCartKey}:items:{cart.Id.ToString()}:sortedset";
-        var promotionSortedSetKey = $"{hashCartKey}:promotion:{cart.Id.ToString()}sortedset";
-        var promotionHashKey = $"{hashCartKey}:promotion:{cart.Id.ToString()}";
+
+        var sortedSetCartKey = GetCartSortedSetKey(staffAccountId);
+        var cartItemHashKey = GetCartItemsHashKey(staffAccountId, cart.Id);
+        var cartItemSortedSetKey = GetCartItemsSortedSetKey(staffAccountId, cart.Id);
+        var promotionSortedSetKey = GetCartPromotionSortedSetKey(staffAccountId, cart.Id);
+        var promotionHashKey = GetCartPromotionHashKey(staffAccountId, cart.Id);
         
         var cartItemId = await _redisService.GetSortedSetAsync(cartItemSortedSetKey);
         if (cartItemId.Any())
@@ -260,8 +297,8 @@ public class CartService : ICartService
         {
             throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
         }
-        var hashCartKey = $"cart:{accountId}";
-        var sortedSetCartKey = $"cart:{accountId}:sortedset";
+        var hashCartKey = GetCartHashKey(accountId);
+        var sortedSetCartKey = GetCartSortedSetKey(accountId);
         var cartIds = await _redisService.GetSortedSetAsync(sortedSetCartKey);
         
         var response = new List<CartResponse>();
@@ -274,8 +311,8 @@ public class CartService : ICartService
                 var cart = JsonSerializer.Deserialize<CartResponse>(cartJson);
                 if (cart != null)
                 {
-                    var hashCartItemKey = $"{hashCartKey}:items:{cart.Id.ToString()}";
-                    var sortedSetCartItemKey = $"{hashCartKey}:items:{cart.Id.ToString()}:sortedset";
+                    var hashCartItemKey = GetCartItemsHashKey(accountId, cart.Id);
+                    var sortedSetCartItemKey = GetCartItemsSortedSetKey(accountId, cart.Id);
                     var cartItemIds = await _redisService.GetSortedSetAsync(sortedSetCartItemKey);
                     foreach (var cartItemId in cartItemIds)
                     {
@@ -289,8 +326,8 @@ public class CartService : ICartService
                             }
                         }
                     }
-                    var promotionSortedSetKey = $"{hashCartKey}:promotion:{cart.Id.ToString()}:sortedset";
-                    var promotionHashKey = $"{hashCartKey}:promotion:{cart.Id.ToString()}";
+                    var promotionSortedSetKey = GetCartPromotionSortedSetKey(accountId, cart.Id);
+                    var promotionHashKey = GetCartPromotionHashKey(accountId, cart.Id);
                     var promotionIds = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
                     foreach (var promotionId in promotionIds)
                     {
@@ -316,7 +353,7 @@ public class CartService : ICartService
         };
     }
 
-    public async Task<ApiResponse> ApplePromotionAsync(Guid cartId, ApplyPromotionRequest request)
+    public async Task<ApiResponse> ApplyPromotionAsync(Guid cartId, ApplyPromotionRequest request)
     {
         var staffAccountId = _claimService.GetCurrentUserId;
         if (staffAccountId == Guid.Empty)
@@ -342,20 +379,19 @@ public class CartService : ICartService
             ActionValue = request.ActionValue,
             MaxDiscountAmountForPercentage = request.MaxDiscountAmountForPercentage
         };
-        var cartHashKey = $"cart:{staffAccountId}";
+        var cartHashKey = GetCartHashKey(staffAccountId);
         var cartJson = await _redisService.GetHashAsync(cartHashKey, cartId.ToString());
         if(string.IsNullOrEmpty(cartJson))
             throw new BadHttpRequestException("Không tìm thấy giỏ hàng");
         var cart = JsonSerializer.Deserialize<Cart>(cartJson);
-        var cartItemHashKey = $"{cartHashKey}:items:{cart.Id.ToString()}";
-        var cartItemSortedSetKey = $"{cartHashKey}:items:{cart.Id.ToString()}:sortedset";
+        var cartItemHashKey = GetCartItemsHashKey(staffAccountId, cartId);
+        var cartItemSortedSetKey = GetCartItemsSortedSetKey(staffAccountId, cartId);
         var cartItemSortedSetExists = await _redisService.GetSortedSetAsync(cartItemSortedSetKey);
         var cartItemList = new List<CartItem>();
-        var promotionSortedSetKey = $"{cartHashKey}:promotion:{cart.Id.ToString()}:sortedset";
-        var promotionHashKey = $"{cartHashKey}:promotion:{cart.Id.ToString()}";
+        var promotionSortedSetKey = GetCartPromotionSortedSetKey(staffAccountId, cartId);
+        var promotionHashKey = GetCartPromotionHashKey(staffAccountId, cartId);
         var promotionSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
-        if (promotionSortedSetExists.Any() &&
-            (request.ActionType == EActionType.CartFixedDiscount || request.ActionType == EActionType.CartPercentageDiscount))
+        if (promotionSortedSetExists.Any())
         {
             foreach (var promotionId in promotionSortedSetExists)
             {
@@ -363,16 +399,21 @@ public class CartService : ICartService
                 if (!string.IsNullOrEmpty(promotionJson))
                 {
                     var existingPromotion = JsonSerializer.Deserialize<CartAppliedPromotionDetail>(promotionJson);
-                    if(existingPromotion != null && (existingPromotion.ActionType == EActionType.CartFixedDiscount ||
-                       existingPromotion.ActionType == EActionType.CartPercentageDiscount))
+                    if (existingPromotion != null)
                     {
-                        throw new BadHttpRequestException("Giỏ hàng đã áp dụng khuyến mãi với loại hành động tương tự");
+                        if (existingPromotion.PromotionRuleId.Equals(request.PromotionRuleId))
+                        {
+                            throw new BadHttpRequestException("Khuyến mãi đã được áp dụng cho giỏ hàng này");
+                        }
+                        if((request.ActionType == EActionType.CartFixedDiscount || request.ActionType == EActionType.CartPercentageDiscount)
+                           && (existingPromotion.ActionType == EActionType.CartFixedDiscount ||
+                               existingPromotion.ActionType == EActionType.CartPercentageDiscount))
+                        {
+                            throw new BadHttpRequestException("Giỏ hàng đã áp dụng khuyến mãi với loại hành động tương tự");
+                        }
                     }
                 }
             }
-        }
-        {
-            
         }
         foreach (var cartItemId in cartItemSortedSetExists)
         {
@@ -625,8 +666,8 @@ public class CartService : ICartService
         {
             throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
         }
-        
-        var cartHashKey = $"cart:{accountId}";
+
+        var cartHashKey = GetCartHashKey(accountId);
         var cartJson = await _redisService.GetHashAsync(cartHashKey, cartId.ToString());
         if (string.IsNullOrEmpty(cartJson))
         {
@@ -652,9 +693,9 @@ public class CartService : ICartService
         {
             throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
         }
-        
-        var cartHashKey = $"cart:{accountId}";
-        var cartItemHashKey = $"{cartHashKey}:items:{cartId.ToString()}";
+
+        var cartHashKey = GetCartHashKey(accountId);
+        var cartItemHashKey = GetCartItemsHashKey(accountId, cartId);
         var cartJson = await _redisService.GetHashAsync(cartHashKey, cartId.ToString());
         if (string.IsNullOrEmpty(cartJson))
         {
@@ -683,7 +724,7 @@ public class CartService : ICartService
             if (request.Quantity == 0)
             {
                 // Xoá sản phẩm khỏi giỏ hàng nếu số lượng là 0
-                var cartItemSortedSetKey = $"{cartHashKey}:items:{cart.Id.ToString()}:sortedset";
+                var cartItemSortedSetKey = GetCartItemsSortedSetKey(accountId, cartId);
                 await _redisService.RemoveSortedSetAsync(cartItemSortedSetKey, cartItemId.ToString());
                 await _redisService.RemoveHashAsync(cartItemHashKey, cartItemId.ToString());
             }
@@ -692,8 +733,8 @@ public class CartService : ICartService
                 cartItem.Quantity = request.Quantity.Value;
                 cartItem.ItemSubtotalAmount = cartItem.UnitPriceAtAdditionSnapshot * cartItem.Quantity;
                 cart.SubtotalAmount += cartItem.UnitPriceAtAdditionSnapshot * request.Quantity.Value;
-                var promotionSortedSetKey = $"{cartHashKey}:promotion:{cart.Id.ToString()}:sortedset";
-                var promotionHashKey = $"{cartHashKey}:promotion:{cart.Id.ToString()}";
+                var promotionSortedSetKey = GetCartPromotionSortedSetKey(accountId, cartId);
+                var promotionHashKey = GetCartPromotionHashKey(accountId, cartId);
                 var promotionIdSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
                 if (promotionIdSortedSetExists.Any())
                 {
@@ -798,7 +839,7 @@ public class CartService : ICartService
             throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
         }
         
-        var cartHashKey = $"cart:{currentUserId}";
+        var cartHashKey = GetCartHashKey(currentUserId);
         var cartJson = await _redisService.GetHashAsync(cartHashKey, cartId.ToString());
         if (string.IsNullOrEmpty(cartJson))
         {
@@ -810,8 +851,8 @@ public class CartService : ICartService
             throw new BadHttpRequestException("Không tìm thấy giỏ hàng");
         }
         
-        var promotionSortedSetKey = $"{cartHashKey}:promotion:{cart.Id.ToString()}:sortedset";
-        var promotionHashKey = $"{cartHashKey}:promotion:{cart.Id.ToString()}";
+        var promotionSortedSetKey = GetCartPromotionSortedSetKey(currentUserId, cart.Id);
+        var promotionHashKey = GetCartPromotionHashKey(currentUserId, cart.Id);
         var promotionIdSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
         foreach (var promotionIdRequest in request.PromotionIds)
         {
@@ -833,8 +874,8 @@ public class CartService : ICartService
             switch (promotionDetail.ActionType)
             {
                 case EActionType.GiveFreeItemSku:
-                    var cartItemHashKey = $"{cartHashKey}:items:{cart.Id.ToString()}";
-                    var cartItemSortedSetKey = $"{cartHashKey}:items:{cart.Id.ToString()}:sortedset";
+                    var cartItemHashKey = GetCartItemsHashKey(currentUserId, cart.Id);
+                    var cartItemSortedSetKey = GetCartItemsSortedSetKey(currentUserId, cart.Id);
                     var cartItemSortedSetExists = await _redisService.GetSortedSetAsync(cartItemSortedSetKey);
                     var targetProductVariantId = promotionDetail.TargetCriteriaForItemAction.FirstOrDefault();
                     var targetQuantity = int.Parse(promotionDetail.ActionValue);
