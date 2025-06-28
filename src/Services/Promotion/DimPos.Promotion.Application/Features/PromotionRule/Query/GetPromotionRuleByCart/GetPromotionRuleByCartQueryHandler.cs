@@ -74,7 +74,22 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                     ShortDescription = promotionRule.ShortDescription,
                     Description = promotionRule.Description,
                     Priority = promotionRule.Priority,
-                    IsValid = true
+                    IsValid = true,
+                    RuleConditions = promotionRule.RuleConditions.Select(x => new RuleConditionsForCartResponse()
+                    {
+                        Id = x.Id,
+                        ConditionType = x.ConditionType,
+                        Operator = x.Operator,
+                        Value = x.Value
+                    }).ToList(),
+                    RuleAction = new RuleActionsForCartResponse()
+                    {
+                        Id = promotionRule.RuleActions.Id,
+                        ActionType = promotionRule.RuleActions.ActionType,
+                        Value = promotionRule.RuleActions.Value,
+                        TargetCriteriaForItemAction = promotionRule.RuleActions.TargetCriteriaForItemAction,
+                        MaxDiscountAmountForPercentage = promotionRule.RuleActions.MaxDiscountAmountForPercentage
+                    }
                 };
                 if (!promotionRule.IsActive)
                 {
