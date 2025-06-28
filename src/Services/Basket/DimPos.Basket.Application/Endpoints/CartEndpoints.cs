@@ -89,7 +89,7 @@ public class CartEndpoints : ICarterModule
     }
     public async Task<IResult> ApplyPromotionToCart([FromRoute] Guid id, [FromBody] ApplyPromotionRequest request, [FromServices] ICartService cartService)
     {
-        var apiResponse = await cartService.ApplePromotionAsync(id, request);
+        var apiResponse = await cartService.ApplyPromotionAsync(id, request);
         return Results.Created($"/api/carts/{id}/promotions", apiResponse);
     }
     public async Task<IResult> UpdateCart([FromRoute] Guid id, [FromBody] UpdateCartRequest request, [FromServices] ICartService cartService)
