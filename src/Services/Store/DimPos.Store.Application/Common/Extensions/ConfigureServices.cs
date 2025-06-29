@@ -1,6 +1,8 @@
 using DimPos.Store.Application.Common.Behaviours;
 using DimPos.Store.Application.Common.Utils;
 using DimPos.Store.Application.Features.FinancialShift.Command.OpenFinancialShift;
+using DimPos.Store.Application.Features.FinancialShiftConfig.Command.CreateFinancialShiftConfig;
+using DimPos.Store.Application.Features.FinancialShiftConfig.Command.UpdateFinancialShiftConfig;
 using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
 using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
@@ -29,6 +31,9 @@ public static class ConfigureServices
         services.AddScoped<IValidator<OpenFinancialShiftCommand>, OpenFinancialShiftCommandValidator>();
         services.AddScoped<IValidator<CreateTaxRateCommand>, CreateTaxRateCommandValidator>();
         services.AddScoped<IValidator<UpdateTaxRateCommand>, UpdateTaxRateCommandValidator>();
+        services.AddScoped<IValidator<CreateFinancialShiftConfigCommand>, CreateFinancialShiftConfigCommandValidator>();
+        services.AddScoped<IValidator<UpdateFinancialShiftConfigCommand>, UpdateFinancialShiftConfigCommandValidator>();
+        services.AddScoped<IValidator<OpenFinancialShiftCommand>, OpenFinancialShiftCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

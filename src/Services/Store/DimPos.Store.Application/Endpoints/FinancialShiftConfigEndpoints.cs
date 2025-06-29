@@ -1,6 +1,7 @@
 using Carter;
 using DimPos.Store.Application.Common.Utils;
 using DimPos.Store.Application.Features.FinancialShiftConfig.Command.CreateFinancialShiftConfig;
+using DimPos.Store.Application.Features.FinancialShiftConfig.Command.UpdateFinancialShiftConfig;
 using DimPos.Store.Domain.Constants;
 using DimPos.Store.Domain.Models.Common;
 using Mediator;
@@ -22,6 +23,14 @@ public class FinancialShiftConfigEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{id}:guid", UpdateFinancialShiftConfig)
+            .WithName(nameof(UpdateFinancialShiftConfig))
+            .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> CreateFinancialShiftConfig(IMediator mediator,
@@ -35,5 +44,24 @@ public class FinancialShiftConfigEndpoints : ICarterModule
         }
         var result = await mediator.Send(command);
         return Results.Created($"{ApiEndpointConstant.FinancialShiftConfig.FinancialShiftConfigEndpoint}", result);
+    }
+    public async Task<IResult> UpdateFinancialShiftConfig(IMediator mediator, [FromRoute] Guid id, [FromBody] UpdateFinancialShiftConfigRequest request,
+        ValidationUtil<UpdateFinancialShiftConfigCommand> validationUtil)
+    {
+        var command = new UpdateFinancialShiftConfigCommand
+        {
+            FinancialShiftConfigId = id,
+            OpeningTime = request.OpeningTime,
+            ClosingTime = request.ClosingTime,
+            IsActive = request.IsActive
+        };
+
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var result = await mediator.Send(command);
+        return Results.Ok(result);
     }
 }
