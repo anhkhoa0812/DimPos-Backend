@@ -207,11 +207,13 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                 promotionRuleListResponse.Add(promotionRuleResponse);
             }
         }
+
+        var response = promotionRuleListResponse.OrderByDescending(x => x.IsValid).ToList();
         return new ApiResponse()
         {
             Status = StatusCodes.Status200OK,
             Message = "Lấy dữ liệu thành công",
-            Data = promotionRuleListResponse
+            Data = response
         };
         
     }

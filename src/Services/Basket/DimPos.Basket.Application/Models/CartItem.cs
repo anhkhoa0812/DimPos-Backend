@@ -7,6 +7,7 @@ public class CartItem
      public Guid ProductVariantId { get; set; }
      public string ProductNameSnapshot { get; set; } = string.Empty;
      public string ProductVariantNameSnapshot { get; set; } = string.Empty;
+     public string? ProductImageUrlSnapshot { get; set; } = string.Empty;
      public int Quantity { get; set; }
      public decimal UnitPriceAtAdditionSnapshot { get; set; }
      public decimal ItemSubtotalAmount { get; set; }

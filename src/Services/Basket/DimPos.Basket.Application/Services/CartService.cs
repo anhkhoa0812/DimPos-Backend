@@ -20,6 +20,7 @@ public class CartService : ICartService
         _redisService = redisService;
         _claimService = claimService;
     }
+    #region Redis Keys
     private static string GetCartHashKey(Guid staffId) => $"cart:{staffId.ToString()}";
     private static string GetCartSortedSetKey(Guid staffId)
         => $"cart:{staffId.ToString()}:sortedset";
@@ -31,7 +32,7 @@ public class CartService : ICartService
         => $"cart:{staffId.ToString()}:promotion:{cartId.ToString()}";
     private static string GetCartPromotionSortedSetKey(Guid staffId, Guid cartId)
         => $"cart:{staffId.ToString()}:promotion:{cartId.ToString()}:sortedset";
-    
+    #endregion
     public async Task<ApiResponse> AddToCartAsync(Guid cartId, AddToCartRequest request)
     {
         try
@@ -73,6 +74,7 @@ public class CartService : ICartService
                 ProductVariantId = request.ProductVariantId, 
                 ProductNameSnapshot = request.ProductNameSnapshot, 
                 ProductVariantNameSnapshot = request.ProductVariantNameSnapshot, 
+                ProductImageUrlSnapshot = request.ProductImageUrlSnapshot,
                 NotesForItem = request.NotesForItem, 
                 UnitPriceAtAdditionSnapshot = request.UnitPriceAtAdditionSnapshot, 
                 Quantity = request.Quantity, 
@@ -163,6 +165,10 @@ public class CartService : ICartService
                     }
                 }
             }
+            else
+            {
+                cart.SubtotalAmount += cartItem.ItemSubtotalAmount;
+            }
             await _redisService.SetHashAsync(cartItemHashKey, cartItem.Id.ToString(), cartItemJson);
             await _redisService.SetSortedSetAsync(cartItemSortedSetKey, cartItem.Id.ToString(), cartItem.AddedAt.Ticks);
             
@@ -197,6 +203,13 @@ public class CartService : ICartService
             {
                 throw new BadHttpRequestException("Không tìm thấy tài khoản nhân viên");
             }
+
+            var storeId = _claimService.GetStoreId ?? Guid.Empty;
+            if (storeId == Guid.Empty)
+            {
+                throw new BadHttpRequestException("Không tìm thấy cửa hàng");
+            }
+            
             var cartId = Guid.CreateVersion7();
             var hashkey = GetCartHashKey(staffAccountId);
             var sortedSetKey = GetCartSortedSetKey(staffAccountId);
@@ -209,7 +222,7 @@ public class CartService : ICartService
             {
                 Id = cartId,
                 BrandId = request.BrandId,
-                StoreId = request.StoreId,
+                StoreId = storeId,
                 StaffAccountIdCreating = staffAccountId,
                 CreatedAt = DateTime.UtcNow,
                 ServiceMethod = EServiceMethod.DINE_IN,
@@ -723,6 +736,9 @@ public class CartService : ICartService
 
             if (request.Quantity == 0)
             {
+                cart.ItemCount -= 1;
+                cart.TotalQuantityOfItems -= cartItem.Quantity;
+                cart.SubtotalAmount -= cartItem.ItemSubtotalAmount;
                 // Xoá sản phẩm khỏi giỏ hàng nếu số lượng là 0
                 var cartItemSortedSetKey = GetCartItemsSortedSetKey(accountId, cartId);
                 await _redisService.RemoveSortedSetAsync(cartItemSortedSetKey, cartItemId.ToString());
@@ -730,9 +746,11 @@ public class CartService : ICartService
             }
             else
             {
+                var previousQuantity = cartItem.Quantity;
                 cartItem.Quantity = request.Quantity.Value;
                 cartItem.ItemSubtotalAmount = cartItem.UnitPriceAtAdditionSnapshot * cartItem.Quantity;
-                cart.SubtotalAmount += cartItem.UnitPriceAtAdditionSnapshot * request.Quantity.Value;
+                cart.SubtotalAmount -= (previousQuantity * cartItem.UnitPriceAtAdditionSnapshot) 
+                                        - (cartItem.Quantity * cartItem.UnitPriceAtAdditionSnapshot);
                 var promotionSortedSetKey = GetCartPromotionSortedSetKey(accountId, cartId);
                 var promotionHashKey = GetCartPromotionHashKey(accountId, cartId);
                 var promotionIdSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
@@ -809,6 +827,13 @@ public class CartService : ICartService
                 await _redisService.SetHashAsync(cartItemHashKey, cartItem.Id.ToString(), JsonSerializer.Serialize(cartItem));
                 await _redisService.SetHashAsync(cartHashKey, cart.Id.ToString(), JsonSerializer.Serialize(cart));
             }
+            if (cart.TaxRate != null)
+            {
+                cart.TotalTaxAmount = (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount) * (cart.TaxRate.Value / 100);
+            }
+            cart.FinalTotalAmount = cart.TotalTaxAmount +
+                                    (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount);
+            await _redisService.SetHashAsync(cartHashKey, cart.Id.ToString(), JsonSerializer.Serialize(cart));
         }
 
         if (request.ModifierGroupItems != null && request.ModifierGroupItems.Any())
