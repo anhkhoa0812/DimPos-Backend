@@ -10,4 +10,8 @@ public static class ApiEndpointConstant
     {
         public const string StoreEndpoint = ApiEndpoint + "/stores";
     }
+    public static class FinancialShiftConfig
+    {
+        public const string FinancialShiftConfigEndpoint = ApiEndpoint + "/financial-shift-configs";
+    }
 }
