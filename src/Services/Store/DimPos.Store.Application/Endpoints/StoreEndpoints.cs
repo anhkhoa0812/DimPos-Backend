@@ -2,6 +2,8 @@ using Carter;
 using DimPos.Store.Application.Common.Utils;
 using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
+using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
+using DimPos.Store.Application.Features.TaxRate.Command.UpdateTaxRate;
 using DimPos.Store.Domain.Constants;
 using DimPos.Store.Domain.Models.Common;
 using Mediator;
@@ -16,15 +18,35 @@ public class StoreEndpoints : ICarterModule
         var group = app.MapGroup(ApiEndpointConstant.Store.StoreEndpoint).WithTags("Stores");
         group.MapPost("", CreateStore).RequireAuthorization("BrandPolicy").WithName(nameof(CreateStore))
             .DisableAntiforgery()
+            .WithName(nameof(CreateStore))
             .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapPost("/staff", CreateStaff).RequireAuthorization("StorePolicy").WithName(nameof(CreateStaff))
             .DisableAntiforgery()
+            .WithName(nameof(CreateStaff))
             .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPost("/{id:guid}/tax-rates", CreateTaxRateForStore)
+            .DisableAntiforgery()
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(CreateTaxRateForStore))
+            .Produces<ApiResponse>(StatusCodes.Status201Created)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("/{id:guid}/tax-rates/{taxRateId:guid}", UpdateTaxRateForStore)
+            .DisableAntiforgery()
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(UpdateTaxRateForStore))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     public async Task<IResult> CreateStore(IMediator mediator, [FromBody] CreateStoreCommand command, ValidationUtil<CreateStoreCommand> validationUtil)
@@ -48,5 +70,42 @@ public class StoreEndpoints : ICarterModule
         }
         var result = await mediator.Send(command);
         return Results.Created($"{ApiEndpointConstant.Store.StoreEndpoint}", result);
+    }
+
+    public async Task<IResult> CreateTaxRateForStore(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] CreateTaxRateRequest request, ValidationUtil<CreateTaxRateCommand> validationUtil)
+    {
+        var command = new CreateTaxRateCommand
+        {
+            StoreId = id,
+            Name = request.Name,
+            Rate = request.Rate
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var result = await mediator.Send(command);
+        return Results.Created($"{ApiEndpointConstant.Store.StoreEndpoint}/{id}/tax-rates", result);
+    }
+    public async Task<IResult> UpdateTaxRateForStore(IMediator mediator, [FromRoute] Guid id, [FromRoute] Guid taxRateId,
+        [FromBody] UpdateTaxRateRequest request, ValidationUtil<UpdateTaxRateCommand> validationUtil)
+    {
+        var command = new UpdateTaxRateCommand
+        {
+            StoreId = id,
+            TaxRateId = taxRateId,
+            Name = request.Name,
+            Rate = request.Rate,
+            IsActive = request.IsActive
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var result = await mediator.Send(command);
+        return Results.Ok(result);
     }
 }

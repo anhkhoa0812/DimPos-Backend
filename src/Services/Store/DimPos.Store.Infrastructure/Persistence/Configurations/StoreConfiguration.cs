@@ -28,6 +28,8 @@ public class StoreConfiguration : IEntityTypeConfiguration<Domain.Entities.Store
         builder.Property(s => s.Address)
             .IsRequired()
             .HasMaxLength(1000);
+        builder.Property(s => s.StartingStoreCashLending)
+            .IsRequired();
         builder.Property(s => s.BrandId)
             .IsRequired();
         builder.Property(s => s.Type)

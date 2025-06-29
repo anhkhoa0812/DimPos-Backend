@@ -31,6 +31,8 @@ public class CreateStoreCommandValidator : AbstractValidator<CreateStoreCommand>
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Mật khẩu không được bỏ trống")
             .MaximumLength(50).WithMessage("Mật khẩu không được vượt quá 50 ký tự");
-        
+        RuleFor(x => x.StartingStoreCashLending)
+            .NotEmpty().WithMessage("Số tiền cho vay ban đầu của cửa hàng không được để trống")
+            .GreaterThanOrEqualTo(0).WithMessage("Số tiền cho vay ban đầu của cửa hàng phải lớn hơn hoặc bằng 0");
     }
 }

@@ -36,7 +36,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Features\FinancialShiftConfig\Query\" />
+      <Folder Include="Features\FinancialShift\Query\" />
       <Folder Include="Features\Stores\Query\" />
+      <Folder Include="Features\TaxRate\Query\" />
     </ItemGroup>
 
 </Project>

@@ -14,6 +14,9 @@ public class StoreContext : DbContext
 
     public virtual DbSet<Domain.Entities.Store> Store { get; set; } = null!;
     public virtual DbSet<StoreAccounts> StoreAccounts { get; set; } = null!;
+    public virtual DbSet<FinancialShiftConfigs> FinancialShiftConfigs { get; set; } = null!;
+    public virtual DbSet<FinancialShifts> FinancialShifts { get; set; } = null!;
+    public virtual DbSet<TaxRates> TaxRates { get; set; } = null!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

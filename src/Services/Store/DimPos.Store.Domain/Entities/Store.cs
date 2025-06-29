@@ -20,8 +20,12 @@ public class Store : EntityAuditBase<Guid>
     public int? Index { get; set; }
     public string? LocalPasscode { get; set; }
     public string? ManagerName { get; set; }
+    public decimal StartingStoreCashLending { get; set; }
     public EStoreType Type { get; set; }
     public Guid BrandId { get; set; }
     
     public virtual ICollection<StoreAccounts> StoreAccounts { get; set; } = new List<StoreAccounts>();
+    public virtual ICollection<FinancialShifts> FinancialShifts { get; set; } = new List<FinancialShifts>();
+    public virtual ICollection<TaxRates> TaxRates { get; set; } = new List<TaxRates>();
+    public virtual ICollection<FinancialShiftConfigs>? FinancialShiftConfigs { get; set; } = new List<FinancialShiftConfigs>();
 }
