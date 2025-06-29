@@ -21,7 +21,8 @@ public class FinancialShiftConfigsConfiguration : IEntityTypeConfiguration<Finan
 
         builder.Property(fsc => fsc.CreatedByAccountId)
             .IsRequired();
-        
+        builder.Property(fsc => fsc.IsActive)
+            .IsRequired();
         builder.HasOne(fsc => fsc.Store)
             .WithMany(s => s.FinancialShiftConfigs)
             .HasForeignKey(fsc => fsc.StoreId)

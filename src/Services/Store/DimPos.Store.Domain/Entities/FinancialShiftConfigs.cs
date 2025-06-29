@@ -8,7 +8,7 @@ public class FinancialShiftConfigs : EntityAuditBase<Guid>
     public TimeOnly OpeningTime { get; set; }
     public TimeOnly ClosingTime { get; set; }
     public Guid CreatedByAccountId { get; set; }
-    
+    public bool IsActive { get; set; }
     public virtual Store Store { get; set; }
     public virtual ICollection<FinancialShifts>? FinancialShifts { get; set; } = new List<FinancialShifts>();
 }
