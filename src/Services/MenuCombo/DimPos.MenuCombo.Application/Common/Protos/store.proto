@@ -6,6 +6,7 @@ service StoreGrpcService {
   rpc CheckStoresInBrand (CheckStoresInBrandRequest) returns (CheckStoresInBrandResponse);
   rpc GetStoreIdByAccountId (GetStoreIdByAccountIdRequest) returns (GetStoreIdByAccountIdResponse);
   rpc GetStoresByBrandId (GetStoresByBrandIdRequest) returns (GetStoresByBrandIdResponse);
+  rpc GetTaxRateByStoreId (GetTaxRateForStoreMenuRequest) returns (GetTaxRateForStoreMenuResponse);
 }
 message GetStoresByBrandPagingRequest {
   int32 page = 1;
@@ -58,4 +59,11 @@ message GetStoresByBrandIdRequest {
 }
 message GetStoresByBrandIdResponse {
   repeated StoreResponse stores = 1;
+}
+message GetTaxRateForStoreMenuRequest {
+  string storeId = 1;
+  string brandId = 2;
+}
+message GetTaxRateForStoreMenuResponse {
+  float taxRate = 1;
 }

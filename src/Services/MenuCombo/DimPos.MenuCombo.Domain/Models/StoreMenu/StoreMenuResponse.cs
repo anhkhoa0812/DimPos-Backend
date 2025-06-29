@@ -4,6 +4,8 @@ namespace DimPos.MenuCombo.Domain.Models.StoreMenu;
 
 public class StoreMenuResponse
 {
+    public decimal TaxRate { get; set; }
+    public Guid BrandId { get; set; }
     public List<CategoriesResponse>? Categories { get; set; }
     public List<ProductsResponse>? Products { get; set; }
     public List<ModifierGroupsResponses>? ModifierGroups { get; set; }

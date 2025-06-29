@@ -5,6 +5,7 @@ using DimPos.MenuCombo.Domain.Models.Common;
 using DimPos.MenuCombo.Domain.Models.StoreMenu;
 using DimPos.MenuCombo.Infrastructure.Persistence;
 using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
+using DimPos.Store.Application.Common.Protos;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using ProductResponse = DimPos.Catalog.Application.Common.Protos.ProductResponse;
@@ -18,13 +19,16 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     private readonly CatalogGrpcService.CatalogGrpcServiceClient _catalogGrpcService;
+    private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
     public GetStoreMenuQueryHandler(IUnitOfWork<MenuComboContext> unitOfWork, ILogger logger, IClaimService claimService,
-        CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService)
+        CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService,
+        StoreGrpcService.StoreGrpcServiceClient storeGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
         _catalogGrpcService = catalogGrpcService ?? throw new ArgumentNullException(nameof(catalogGrpcService));
+        _storeGrpcService = storeGrpcService ?? throw new ArgumentNullException(nameof(storeGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(GetStoreMenuQuery request, CancellationToken cancellationToken)
@@ -67,7 +71,16 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
                 ProductVariantId = { variantIdStrings }
             }
         });
-        var response = new StoreMenuResponse();
+        var getTaxRateResponse = await _storeGrpcService.GetTaxRateByStoreIdAsync(new GetTaxRateForStoreMenuRequest()
+        {
+            StoreId = storeId.ToString(),
+            BrandId = brandId.ToString()
+        });
+        var response = new StoreMenuResponse()
+        {
+            TaxRate = (decimal) getTaxRateResponse.TaxRate,
+            BrandId = brandId
+        };
         var listCategory = new List<CategoriesResponse>();
         foreach (var category in storeMenuGrpc.ListCategoryResponse.Categories)
         {

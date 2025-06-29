@@ -1,7 +1,10 @@
 using DimPos.Store.Application.Common.Behaviours;
 using DimPos.Store.Application.Common.Utils;
+using DimPos.Store.Application.Features.FinancialShift.Command.OpenFinancialShift;
 using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
+using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
+using DimPos.Store.Application.Features.TaxRate.Command.UpdateTaxRate;
 using DimPos.Store.Application.Services.Implement;
 using DimPos.Store.Application.Services.Interface;
 using FluentValidation;
@@ -23,6 +26,9 @@ public static class ConfigureServices
         services.AddScoped(typeof(ValidationUtil<>));
         services.AddScoped<IValidator<CreateStoreCommand>, CreateStoreCommandValidator>();
         services.AddScoped<IValidator<CreateStaffCommand>, CreateStaffCommandValidator>();
+        services.AddScoped<IValidator<OpenFinancialShiftCommand>, OpenFinancialShiftCommandValidator>();
+        services.AddScoped<IValidator<CreateTaxRateCommand>, CreateTaxRateCommandValidator>();
+        services.AddScoped<IValidator<UpdateTaxRateCommand>, UpdateTaxRateCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

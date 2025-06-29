@@ -4,6 +4,7 @@ using DimPos.Store.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DimPos.Store.Infrastructure.Migrations
 {
     [DbContext(typeof(StoreContext))]
-    partial class StoreContextModelSnapshot : ModelSnapshot
+    [Migration("20250628122211_Add_TaxRates_And_FinancialShift")]
+    partial class Add_TaxRates_And_FinancialShift
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,37 +24,6 @@ namespace DimPos.Store.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("DimPos.Store.Domain.Entities.FinancialShiftConfigs", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<TimeOnly>("ClosingTime")
-                        .HasColumnType("time");
-
-                    b.Property<Guid>("CreatedByAccountId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<TimeOnly>("OpeningTime")
-                        .HasColumnType("time");
-
-                    b.Property<Guid>("StoreId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoreId");
-
-                    b.ToTable("FinancialShiftConfigs");
-                });
 
             modelBuilder.Entity("DimPos.Store.Domain.Entities.FinancialShifts", b =>
                 {
@@ -62,14 +34,23 @@ namespace DimPos.Store.Infrastructure.Migrations
                     b.Property<Guid?>("ClosedByAccountId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("ClosingCashActualCounted")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("ClosingCashSystemCalculated")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ClosingDifference")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ClosingDifferenceReason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("ClosingTimestamp")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid>("FinancialShiftConfigId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
@@ -94,7 +75,7 @@ namespace DimPos.Store.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("StoreId")
+                    b.Property<Guid>("StoreId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal?>("TotalCashRoundingInShift")
@@ -113,8 +94,6 @@ namespace DimPos.Store.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FinancialShiftConfigId");
 
                     b.HasIndex("StoreId");
 
@@ -181,9 +160,6 @@ namespace DimPos.Store.Infrastructure.Migrations
                     b.Property<string>("ShortName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("StartingStoreCashLending")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -275,30 +251,15 @@ namespace DimPos.Store.Infrastructure.Migrations
                     b.ToTable("TaxRates");
                 });
 
-            modelBuilder.Entity("DimPos.Store.Domain.Entities.FinancialShiftConfigs", b =>
+            modelBuilder.Entity("DimPos.Store.Domain.Entities.FinancialShifts", b =>
                 {
                     b.HasOne("DimPos.Store.Domain.Entities.Store", "Store")
-                        .WithMany("FinancialShiftConfigs")
+                        .WithMany("FinancialShifts")
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Store");
-                });
-
-            modelBuilder.Entity("DimPos.Store.Domain.Entities.FinancialShifts", b =>
-                {
-                    b.HasOne("DimPos.Store.Domain.Entities.FinancialShiftConfigs", "FinancialShiftConfigs")
-                        .WithMany("FinancialShifts")
-                        .HasForeignKey("FinancialShiftConfigId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DimPos.Store.Domain.Entities.Store", null)
-                        .WithMany("FinancialShifts")
-                        .HasForeignKey("StoreId");
-
-                    b.Navigation("FinancialShiftConfigs");
                 });
 
             modelBuilder.Entity("DimPos.Store.Domain.Entities.StoreAccounts", b =>
@@ -323,15 +284,8 @@ namespace DimPos.Store.Infrastructure.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("DimPos.Store.Domain.Entities.FinancialShiftConfigs", b =>
-                {
-                    b.Navigation("FinancialShifts");
-                });
-
             modelBuilder.Entity("DimPos.Store.Domain.Entities.Store", b =>
                 {
-                    b.Navigation("FinancialShiftConfigs");
-
                     b.Navigation("FinancialShifts");
 
                     b.Navigation("StoreAccounts");

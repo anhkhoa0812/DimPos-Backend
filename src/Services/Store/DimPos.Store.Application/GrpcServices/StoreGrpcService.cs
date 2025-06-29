@@ -1,4 +1,5 @@
 using DimPos.Store.Application.Common.Protos;
+using DimPos.Store.Domain.Entities;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
 using Grpc.Core;
@@ -121,5 +122,24 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             response.Stores.Add(storeResponse);
         }
         return response;
+    }
+
+    public override async Task<GetTaxRateForStoreMenuResponse> GetTaxRateByStoreId(GetTaxRateForStoreMenuRequest request, ServerCallContext context)
+    {
+        var taxRate = await _unitOfWork.GetRepository<TaxRates>().SingleOrDefaultAsync(
+            predicate: x => x.StoreId == Guid.Parse(request.StoreId) &&
+                            x.BrandId == Guid.Parse(request.BrandId) && x.IsActive
+        );
+        if (taxRate == null)
+        {
+            return new GetTaxRateForStoreMenuResponse()
+            {
+                TaxRate = 0
+            };
+        }
+        return new GetTaxRateForStoreMenuResponse()
+        {
+            TaxRate = (float)(taxRate.Rate)
+        };
     }
 }
