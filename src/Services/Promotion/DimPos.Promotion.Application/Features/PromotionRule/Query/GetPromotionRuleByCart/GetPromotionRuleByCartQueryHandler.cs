@@ -87,7 +87,9 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
                         Id = promotionRule.RuleActions.Id,
                         ActionType = promotionRule.RuleActions.ActionType,
                         Value = promotionRule.RuleActions.Value,
-                        TargetCriteriaForItemAction = promotionRule.RuleActions.TargetCriteriaForItemAction,
+                        TargetCriteriaForItemAction = !string.IsNullOrEmpty(promotionRule.RuleActions.TargetCriteriaForItemAction)
+                            ? JsonSerializer.Deserialize<List<Guid>>(promotionRule.RuleActions.TargetCriteriaForItemAction) 
+                            : null,
                         MaxDiscountAmountForPercentage = promotionRule.RuleActions.MaxDiscountAmountForPercentage
                     }
                 };

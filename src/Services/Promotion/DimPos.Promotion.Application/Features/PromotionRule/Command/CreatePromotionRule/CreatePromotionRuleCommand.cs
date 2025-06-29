@@ -24,6 +24,6 @@ public class CreateRuleActionRequest
 {
     public EActionType ActionType { get; set; }
     public string Value { get; set; } = string.Empty;
-    public string? TargetCriteriaForItemAction { get; set; } = string.Empty;
+    public List<Guid>? TargetCriteriaForItemAction { get; set; }
     public decimal? MaxDiscountAmountForPercentage { get; set; }
 }
