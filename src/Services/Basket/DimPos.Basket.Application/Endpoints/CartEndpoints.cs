@@ -10,7 +10,7 @@ public class CartEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/carts").WithTags("Cart");
+        var group = app.MapGroup("/api/v1/carts").WithTags("Cart");
         group.MapPost("", CreateCart)
             .RequireAuthorization("StaffPolicy")
             .WithName(nameof(CreateCart))
