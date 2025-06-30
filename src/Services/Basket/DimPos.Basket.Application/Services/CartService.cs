@@ -572,7 +572,7 @@ public class CartService : ICartService
                 break;
             case EActionType.OneItemPercentageDiscount: 
                 var percentageFixedItemDiscount = Decimal.Parse(request.ActionValue);
-                if(percentageFixedItemDiscount > 0 || percentageFixedItemDiscount < 100)
+                if(percentageFixedItemDiscount < 0 || percentageFixedItemDiscount > 100)
                 {
                     throw new BadHttpRequestException("Giá trị giảm giá phần trăm cố định cho sản phẩm không hợp lệ");
                 }
