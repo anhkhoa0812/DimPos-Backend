@@ -2,11 +2,13 @@ using Carter;
 using DimPos.Store.Application.Common.Utils;
 using DimPos.Store.Application.Features.FinancialShiftConfig.Command.CreateFinancialShiftConfig;
 using DimPos.Store.Application.Features.FinancialShiftConfig.Command.UpdateFinancialShiftConfig;
+using DimPos.Store.Application.Features.FinancialShiftConfig.Query.GetFinancialShiftConfigById;
 using DimPos.Store.Application.Features.FinancialShiftConfig.Query.GetFinancialShiftConfigs;
 using DimPos.Store.Domain.Constants;
 using DimPos.Store.Domain.Models.Common;
 using DimPos.Store.Domain.Models.Response;
 using DimPos.Store.Infrastructure.Paginate.Interface;
+using Google.Protobuf.WellKnownTypes;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,6 +40,14 @@ public class FinancialShiftConfigEndpoints : ICarterModule
             .WithName(nameof(GetFinancialShiftConfig))
             .RequireAuthorization("StorePolicy")
             .Produces<ApiResponse<IPaginate<GetFinancialShiftConfigsResponse>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("{id:guid}", GetFinancialShiftConfigById)
+            .WithName(nameof(GetFinancialShiftConfigById))
+            .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse<GetFinancialShiftConfigsResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -90,5 +100,15 @@ public class FinancialShiftConfigEndpoints : ICarterModule
 
         var result = await mediator.Send(query);
         return Results.Ok(result);
+    }
+
+    public async Task<IResult> GetFinancialShiftConfigById(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetFinancialShiftConfigByIdQuery()
+        {
+            FinancialShiftConfigId = id
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
     }
 }
