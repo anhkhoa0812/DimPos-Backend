@@ -1,3 +1,4 @@
+using System.Text.Json;
 using DimPos.Promotion.Application.Services.Interface;
 using DimPos.Promotion.Domain.Entities;
 using DimPos.Promotion.Domain.Models.Common;
@@ -52,7 +53,8 @@ public class CreatePromotionRuleCommandHandler : IRequestHandler<CreatePromotion
                 Id = Guid.CreateVersion7(),
                 ActionType = request.RuleActions.ActionType,
                 Value = request.RuleActions.Value,
-                TargetCriteriaForItemAction = request.RuleActions.TargetCriteriaForItemAction,
+                TargetCriteriaForItemAction = request.RuleActions.TargetCriteriaForItemAction != null ? 
+                    JsonSerializer.Serialize(request.RuleActions.TargetCriteriaForItemAction) : null,
                 MaxDiscountAmountForPercentage = request.RuleActions.MaxDiscountAmountForPercentage,
                 PromotionRuleId = promotionRuleId
             }

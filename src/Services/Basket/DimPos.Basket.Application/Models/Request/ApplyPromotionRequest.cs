@@ -6,7 +6,6 @@ public class ApplyPromotionRequest
 {
     public Guid PromotionRuleId {get; set; }
     public string PromotionNameSnapshot { get; set; } = string.Empty;
-    public decimal DiscountValueCalculated { get; set; }
     public EActionType ActionType { get; set; }
     public string ActionValue { get; set; } = string.Empty;
     public List<ConditionRuleRequest> ConditionRules { get; set; } = new List<ConditionRuleRequest>();
