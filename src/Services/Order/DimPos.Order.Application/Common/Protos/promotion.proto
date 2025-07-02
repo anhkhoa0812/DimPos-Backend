@@ -1,0 +1,31 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Promotion.Application.Common.Protos";
+
+
+service PromotionGrpcService {
+  rpc GetPromotionForOrder (GetPromotionForOrderRequest) returns (GetPromotionForOrderResponse);
+}
+message GetPromotionForOrderRequest {
+  string storeId = 1;
+  string brandId = 2;
+  float subtotalAmount = 3;
+  repeated string promotionRuleIds = 4;
+  repeated OrderItemRequest orderItems = 5;
+}
+message OrderItemRequest {
+  string productVariantId = 1;
+  int32 quantity = 2;
+  float unitPrice = 3;
+}
+message GetPromotionForOrderResponse {
+  repeated PromotionForOrderResponse promotions = 2;
+}
+message PromotionForOrderResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  float discountAmountApplied = 4;
+  bool isGiveFreeItemSku = 5;
+  OrderItemRequest orderItemFree = 6;
+}

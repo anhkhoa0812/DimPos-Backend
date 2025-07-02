@@ -26,6 +26,7 @@
       <ProjectReference Include="..\Services\Identity\DimPos.Identity.Application\DimPos.Identity.Application.csproj" />
       <ProjectReference Include="..\Services\Media\DimPos.Media.Application\DimPos.Media.Application.csproj" />
       <ProjectReference Include="..\Services\MenuCombo\DimPos.MenuCombo.Application\DimPos.MenuCombo.Application.csproj" />
+      <ProjectReference Include="..\Services\Order\DimPos.Order.Application\DimPos.Order.Application.csproj" />
       <ProjectReference Include="..\Services\Promotion\DimPos.Promotion.Application\DimPos.Promotion.Application.csproj" />
       <ProjectReference Include="..\Services\Store\DimPos.Store.Application\DimPos.Store.Application.csproj" />
     </ItemGroup>

@@ -25,10 +25,6 @@ public class OrderItemsConfiguration : IEntityTypeConfiguration<OrderItems>
             .IsRequired();
         builder.Property(oi => oi.TotalPriceBeforeItemDiscount)
             .IsRequired();
-        builder.Property(oi => oi.ItemDiscountAmount)
-            .IsRequired();
-        builder.Property(oi => oi.FinalPrice)
-            .IsRequired();
         builder.Property(oi => oi.Note)
             .HasMaxLength(500);
         builder.HasOne(oi => oi.Order)

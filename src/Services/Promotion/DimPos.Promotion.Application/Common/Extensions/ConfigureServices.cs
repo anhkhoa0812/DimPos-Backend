@@ -39,6 +39,7 @@ public static class ConfigureServices
         // });
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();
+        services.AddGrpc();
         services.AddGrpcServices(configuration);
         services.AddHealthChecks();
         return services;

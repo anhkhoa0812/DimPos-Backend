@@ -27,7 +27,18 @@
     <ItemGroup>
       <Folder Include="Features\CampaignStore\Query\" />
     </ItemGroup>
-
+    <ItemGroup>
+        <None Remove="Common\Protos\promotion.proto" />
+        <Protobuf Include="Common\Protos\promotion.proto" GrpcServices="Server">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <ProtoRoot></ProtoRoot>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net9.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+        </Protobuf>
+    </ItemGroup>
     <ItemGroup>
         <Protobuf Include=".\Common\Protos\basket.proto" GrpcServices="Client">
             <Link>Common\Protos\basket.proto</Link>
