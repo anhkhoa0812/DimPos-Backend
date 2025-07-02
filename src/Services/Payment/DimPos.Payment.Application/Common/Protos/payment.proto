@@ -1,0 +1,40 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Payment.Application.Common.Protos";
+
+service PaymentGrpcService {
+  rpc CreateB2CPayment(CreateB2CPaymentRequest) returns (CreateB2CPaymentResponse);
+  rpc GetSystemPaymentMethodById(GetSystemPaymentMethodByIdRequest) returns (GetSystemPaymentMethodByIdResponse);
+}
+message CreateB2CPaymentRequest {
+  string storeId = 1;
+  optional string customerId = 2;
+  string orderId = 3;
+  PaymentMethod paymentMethod = 4;
+  string amount = 5;
+  string currencyCode = 6;
+  optional string description = 7;
+}
+
+enum PaymentMethod {
+  CASH = 0;
+  QR_VIETQR = 1;
+  QR_EDC = 2;
+  CARD_EDC = 3;
+}
+message CreateB2CPaymentResponse {
+  bool isSuccess = 1;
+  string message = 2;
+  optional string paymentUrl = 3;
+}
+message GetSystemPaymentMethodByIdRequest {
+  string id = 1;
+}
+message GetSystemPaymentMethodByIdResponse {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string description = 4;
+  PaymentMethod paymentMethod = 5;
+  string logoUrl = 6;
+}
