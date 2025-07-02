@@ -18,4 +18,9 @@ public static class ApiEndpointConstant
     {
         public const string FinancialShiftEndpoint = ApiEndpoint + "/financial-shifts";
     }
+
+    public static class StorePaymentMethodConfig
+    {
+        public const string StorePaymentMethodConfigEndpoint = ApiEndpoint + "/store-payment-method-configs";
+    }
 }
