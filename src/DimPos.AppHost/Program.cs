@@ -24,6 +24,7 @@ var mediaApi = builder.AddProject<Projects.DimPos_Media_Application>("media-api"
 var basketApi = builder.AddProject<Projects.DimPos_Basket_Application>("basket-api");
 var promotionApi = builder.AddProject<Projects.DimPos_Promotion_Application>("promotion-api");
 var orderApi = builder.AddProject<Projects.DimPos_Order_Application>("order-api");
+var paymentApi = builder.AddProject<Projects.DimPos_Payment_Application>("payment-api");
 var orchestrator = builder.AddProject<Projects.DimPos_Orchestrator>("orchestrator")
         .WithReference(brandApi)
         .WithReference(catalogApi)
