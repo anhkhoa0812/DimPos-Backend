@@ -15,8 +15,8 @@ public class AppliedOrderPromotionsConfiguration : IEntityTypeConfiguration<Appl
             .HasMaxLength(200);
         builder.Property(aop => aop.DiscountAmountApplied)
             .IsRequired();
-        builder.Property(aop => aop.Description)
-            .HasMaxLength(500);
+        builder.Property(aop => aop.PromotionDescriptionSnapshot)
+            .HasMaxLength(1000);
         
         builder.HasOne(aop => aop.Order)
             .WithMany(o => o.AppliedOrderPromotions)

@@ -304,6 +304,73 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         
         return response;
     }
+
+    public override async Task<GetProductForOrderResponse> GetProductForOrder(GetProductForOrderRequest request, ServerCallContext context)
+    {
+        var storeId = Guid.Parse(request.StoreId);
+        var brandId = Guid.Parse(request.BrandId);
+        var productVariantIds = request.ProductForOrders.Select(x => Guid.Parse(x.Id)).ToList();
+        var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
+            predicate: x => productVariantIds.Contains(x.Id)
+                            && x.IsActive == true && x.Product.Status == EProductStatus.Active 
+                            && x.Product.BrandId == brandId,
+            include: x => x.Include(x => x.Product)
+                .Include(x => x.Product.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
+                .ThenInclude(pmg => pmg.ModifierGroup)
+                .ThenInclude(mg => mg.ModifierOptions));
+            
+        var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
+            predicate: x => x.StoreId == storeId
+                            && productVariantIds.Contains(x.ProductVariantId)
+        );
+        var storePriceMap = storePrices.ToDictionary(x => x.ProductVariantId);
+        var missingVariants = productVariantIds.Except(productVariants.Select(v => v.Id)).ToList();
+        if (missingVariants.Any())
+            throw new RpcException(new Status(StatusCode.NotFound,
+                $"Không tìm thấy Product Variants: {string.Join(',', missingVariants)}"));
+        var missingPrices = productVariantIds.Except(storePriceMap.Keys).ToList();
+        if (missingPrices.Any())
+            throw new RpcException(new Status(StatusCode.NotFound,
+                $"Không tìm thấy giá của Product Variant: {string.Join(',', missingPrices)}"));
+        var response = new GetProductForOrderResponse();
+        foreach (var productForOrder in request.ProductForOrders)
+        {
+            var id = Guid.Parse(productForOrder.Id);
+            var productVariant = productVariants.First(x => x.Id == id);
+            var price = storePriceMap[id];
+            var productForOrderResponse = new ProductForOrderResponse()
+            {
+                Id = productVariant.Id.ToString(),
+                ProductName = productVariant.Product.Name ?? String.Empty,
+                ProductVariantName = productVariant.Name ?? String.Empty,
+                UnitPrice = (float) price.OverridePrice,
+                Quantity = productForOrder.Quantity,
+                Note = productForOrder.Note ?? String.Empty,
+            };
+            foreach (var modifierOptionId in productForOrder.ModifierOptionIds)
+            {
+                if (productVariant.Product.ProductModifierGroups != null)
+                {
+                    var modifierOption = productVariant.Product.ProductModifierGroups
+                        .SelectMany(pmg => pmg.ModifierGroup.ModifierOptions)
+                        .FirstOrDefault(x => x.Id == Guid.Parse(modifierOptionId));
+                    if (modifierOption == null)
+                    {
+                        throw new RpcException(new Status(StatusCode.NotFound, $"Modifier option with ID {modifierOptionId} not found."));
+                    }
+                    productForOrderResponse.ModifierOptions.Add(new ModifierOptionForOrderResponse()
+                    {
+                        Id = modifierOption.Id.ToString(),
+                        ModifierGroupId = modifierOption.Id.ToString(),
+                        ModifierGroupName = modifierOption.ModifierGroup.Name ?? String.Empty,
+                        ModifierOptionName = modifierOption.Name ?? String.Empty
+                    });
+                }
+            }
+            response.ProductForOrders.Add(productForOrderResponse);
+        }
+        return response;
+    }
     // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     // {
     //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();

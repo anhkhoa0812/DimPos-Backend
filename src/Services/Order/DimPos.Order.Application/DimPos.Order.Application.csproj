@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
       <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
       <PackageReference Include="Mediator.SourceGenerator" Version="2.1.7">
         <PrivateAssets>all</PrivateAssets>
@@ -22,4 +23,27 @@
       </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Order\Query\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\catalog.proto" GrpcServices="Client">
+            <Link>Common\Protos\catalog.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\store.proto" GrpcServices="Client">
+            <Link>Common\Protos\store.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\promotion.proto" GrpcServices="Client">
+            <Link>Common\Protos\promotion.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
+    
 </Project>

@@ -134,12 +134,16 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
         {
             return new GetTaxRateForStoreMenuResponse()
             {
-                TaxRate = 0
+                Id = string.Empty,
+                Name = string.Empty,
+                Rate = 0
             };
         }
         return new GetTaxRateForStoreMenuResponse()
         {
-            TaxRate = (float)(taxRate.Rate)
+            Id = taxRate.Id.ToString(),
+            Name = taxRate.Name,
+            Rate = (float)(taxRate.Rate)
         };
     }
 }

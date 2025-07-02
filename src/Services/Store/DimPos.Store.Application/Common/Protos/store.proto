@@ -65,5 +65,7 @@ message GetTaxRateForStoreMenuRequest {
   string brandId = 2;
 }
 message GetTaxRateForStoreMenuResponse {
-  float taxRate = 1;
+  string id = 1;
+  string name = 2;
+  float rate = 3;
 }

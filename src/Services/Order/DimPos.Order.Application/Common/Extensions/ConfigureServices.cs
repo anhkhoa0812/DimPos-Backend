@@ -1,10 +1,16 @@
+using DimPos.Catalog.Application.Common.Protos;
 using DimPos.Order.Application.Common.Behaviours;
 using DimPos.Order.Application.Common.Utils;
+using DimPos.Order.Application.Features.Order.Command.CreateOrder;
 using DimPos.Order.Application.Services.Implement;
 using DimPos.Order.Application.Services.Interface;
+using DimPos.Order.Domain.Models.Settings;
+using DimPos.Promotion.Application.Common.Protos;
+using DimPos.Store.Application.Common.Protos;
+using FluentValidation;
 using Mediator;
 
-namespace DimPos.Promotion.Application.Common.Extensions;
+namespace DimPos.Order.Application.Common.Extensions;
 
 public static class ConfigureServices
 {
@@ -12,20 +18,43 @@ public static class ConfigureServices
     {
         services.AddMediator(options =>
             {
-                options.Namespace = "DimPos.Promotion.Application.Endpoints";
+                options.Namespace = "DimPos.Order.Application.Endpoints";
                 options.ServiceLifetime = ServiceLifetime.Scoped;
             })
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>))
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddScoped(typeof(ValidationUtil<>));
-        
+        services.AddScoped<IValidator<CreateOrderCommand>, CreateOrderCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;
         });
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();
+        services.AddGrpcServices(configuration);
         services.AddHealthChecks();
+        return services;
+    }
+    public static IServiceCollection AddGrpcServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var settings = configuration.GetSection("GrpcSettings")
+            .Get<GrpcSettings>();
+        if (settings == null || string.IsNullOrEmpty(settings.CatalogUrl))
+            throw new ArgumentNullException("Grpc is not configured.");
+
+        services.AddGrpcClient<CatalogGrpcService.CatalogGrpcServiceClient>(x =>
+            {
+                x.Address = new Uri(settings.CatalogUrl);
+            }
+        );
+        services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.StoreUrl);
+        });
+        services.AddGrpcClient<PromotionGrpcService.PromotionGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.PromotionUrl);
+        });
         return services;
     }
 }

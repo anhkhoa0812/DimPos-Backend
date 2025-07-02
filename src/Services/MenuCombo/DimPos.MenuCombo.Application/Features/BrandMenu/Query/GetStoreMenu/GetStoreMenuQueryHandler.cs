@@ -78,7 +78,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
         });
         var response = new StoreMenuResponse()
         {
-            TaxRate = (decimal) getTaxRateResponse.TaxRate,
+            TaxRate = (decimal) getTaxRateResponse.Rate,
             BrandId = brandId
         };
         var listCategory = new List<CategoriesResponse>();

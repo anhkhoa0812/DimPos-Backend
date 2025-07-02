@@ -4,7 +4,7 @@ using DimPos.Order.Application.Common.Middlewares;
 using DimPos.Order.Infrastructure;
 using DimPos.Order.Infrastructure.Configurations;
 using DimPos.Order.Infrastructure.Persistence;
-using DimPos.Promotion.Application.Common.Extensions;
+using DimPos.Order.Application.Common.Extensions;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);

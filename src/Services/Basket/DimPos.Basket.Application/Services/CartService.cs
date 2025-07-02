@@ -640,14 +640,16 @@ public class CartService : ICartService
                 {
                     throw new BadHttpRequestException("Chỉ có thể áp dụng sản phẩm miễn phí cho một sản phẩm");
                 }
-                var targetCartItemForFreeList = cartItemList
-                    .Where(ci => request.TargetCriteriaForItemAction.Contains(ci.Id)).ToList();
-                foreach (var targetCartItemForFree in targetCartItemForFreeList)
+                var targetCartItemForFree = cartItemList
+                    .FirstOrDefault(ci => request.TargetCriteriaForItemAction.Contains(ci.Id));
+                if(targetCartItemForFree == null)
                 {
-                    targetCartItemForFree.Quantity += quantityFree;
-                    cartAppliedPromotionDetail.DiscountValueCalculated += targetCartItemForFree.UnitPriceAtAdditionSnapshot * quantityFree;
-                    await _redisService.SetHashAsync(cartItemHashKey, targetCartItemForFree.Id.ToString(), JsonSerializer.Serialize(targetCartItemForFree));
+                    throw new BadHttpRequestException("Không tìm thấy sản phẩm để áp dụng miễn phí");
                 }
+                targetCartItemForFree.Quantity += quantityFree;
+                cartAppliedPromotionDetail.DiscountValueCalculated += targetCartItemForFree.UnitPriceAtAdditionSnapshot * quantityFree;
+                await _redisService.SetHashAsync(cartItemHashKey, targetCartItemForFree.Id.ToString(), JsonSerializer.Serialize(targetCartItemForFree));
+                
                 cart.TotalItemDiscountAmount += cartAppliedPromotionDetail.DiscountValueCalculated;
                 break;
             default: 
@@ -751,6 +753,7 @@ public class CartService : ICartService
                 cartItem.ItemSubtotalAmount = cartItem.UnitPriceAtAdditionSnapshot * cartItem.Quantity;
                 cart.SubtotalAmount -= (previousQuantity * cartItem.UnitPriceAtAdditionSnapshot) 
                                         - (cartItem.Quantity * cartItem.UnitPriceAtAdditionSnapshot);
+                cart.TotalQuantityOfItems += (cartItem.Quantity - previousQuantity);
                 var promotionSortedSetKey = GetCartPromotionSortedSetKey(accountId, cartId);
                 var promotionHashKey = GetCartPromotionHashKey(accountId, cartId);
                 var promotionIdSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
@@ -831,6 +834,7 @@ public class CartService : ICartService
             {
                 cart.TotalTaxAmount = (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount) * (cart.TaxRate.Value / 100);
             }
+            
             cart.FinalTotalAmount = cart.TotalTaxAmount +
                                     (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount);
             await _redisService.SetHashAsync(cartHashKey, cart.Id.ToString(), JsonSerializer.Serialize(cart));

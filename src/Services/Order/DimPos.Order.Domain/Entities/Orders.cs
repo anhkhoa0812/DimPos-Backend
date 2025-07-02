@@ -8,7 +8,6 @@ public class Orders : EntityAuditBase<Guid>
     public Guid StoreId { get; set; }
     public Guid BrandId { get; set; }
     public Guid? FinancialShiftId { get; set; }
-    // public string OrderNumber { get; set; }
     public EOrderType Type { get; set; }
     public EOrderStatus Status { get; set; }
     public Guid? CustomerId { get; set; }
@@ -23,7 +22,7 @@ public class Orders : EntityAuditBase<Guid>
     public DateTime? PickupTime { get; set; }
     public string? Note { get; set; }
     public string? CancellationReason { get; set; }
-    // public Guid? CancelledByAccountId { get; set; }
+    public Guid? CancelledByAccountId { get; set; }
     public DateTime? ConfirmedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public Guid CreatedByAccountId { get; set; }
@@ -31,4 +30,5 @@ public class Orders : EntityAuditBase<Guid>
     
     public virtual ICollection<OrderItems> OrderItems { get; set; } = new List<OrderItems>();
     public virtual ICollection<AppliedOrderPromotions> AppliedOrderPromotions { get; set; } = new List<AppliedOrderPromotions>();
+    public virtual AppliedTaxes? AppliedTax { get; set; }
 }

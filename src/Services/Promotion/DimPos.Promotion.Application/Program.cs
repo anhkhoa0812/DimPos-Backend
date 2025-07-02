@@ -2,6 +2,7 @@ using Carter;
 using Common.Logging;
 using DimPos.Promotion.Application.Common.Extensions;
 using DimPos.Promotion.Application.Common.Middlewares;
+using DimPos.Promotion.Application.GrpcServices;
 using DimPos.Promotion.Infrastructure;
 using DimPos.Promotion.Infrastructure.Configurations;
 using DimPos.Promotion.Infrastructure.Persistence;
@@ -45,6 +46,7 @@ try
             .AllowAnyMethod()
             .AllowAnyHeader());
     app.UseMiddleware<GlobalException>();
+    app.MapGrpcService<PromotionGrpcService>();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapCarter();

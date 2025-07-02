@@ -14,6 +14,7 @@ public class OrderContext : DbContext
     public DbSet<Orders> Orders { get; set; } = null!;
     public DbSet<OrderItems> OrderItems { get; set; } = null!;
     public DbSet<AppliedOrderPromotions> AppliedOrderPromotions { get; set; } = null!;
+    public DbSet<AppliedTaxes> AppliedTaxes { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
