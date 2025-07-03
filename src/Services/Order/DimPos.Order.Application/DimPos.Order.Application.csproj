@@ -24,10 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Order\Query\" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Protobuf Include=".\Common\Protos\catalog.proto" GrpcServices="Client">
             <Link>Common\Protos\catalog.proto</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
