@@ -1,8 +1,12 @@
 using Carter;
 using DimPos.Order.Application.Common.Utils;
 using DimPos.Order.Application.Features.Order.Command.CreateOrder;
+using DimPos.Order.Application.Features.Order.Query.GetOrderByStore;
 using DimPos.Order.Domain.Constants;
+using DimPos.Order.Domain.Enums;
 using DimPos.Order.Domain.Models.Common;
+using DimPos.Order.Domain.Models.Response;
+using DimPos.Order.Infrastructure.Paginate.Interface;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +26,14 @@ public class OrderEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("", GetOrderByStore)
+            .WithName(nameof(GetOrderByStore))
+            .RequireAuthorization("StoreAndStaffPolicy")
+            .Produces<ApiResponse<IPaginate<GetOrderByStoreResponse>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> CreateOrder(IMediator mediator, [FromBody] CreateOrderCommand command,
@@ -34,5 +46,21 @@ public class OrderEndpoints : ICarterModule
         }
         var apiResponse = await mediator.Send(command);
         return Results.Created($"{ApiEndpointConstants.Orders.OrdersEndpoint}", apiResponse);
+    }
+    public async Task<IResult> GetOrderByStore(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int pageSize = 30,
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,
+        [FromQuery] EOrderStatus? status = null, [FromQuery] EOrderType? type = null)
+    {
+        var query = new GetOrderByStoreQuery()
+        {
+            Page = page,
+            Size = pageSize,
+            SortBy = sortBy,
+            IsAsc = isAsc,
+            Status = status,
+            Type = type
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Json(apiResponse);
     }
 }
