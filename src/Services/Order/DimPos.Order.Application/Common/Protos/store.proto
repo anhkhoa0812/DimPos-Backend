@@ -7,6 +7,7 @@ service StoreGrpcService {
   rpc GetStoreIdByAccountId (GetStoreIdByAccountIdRequest) returns (GetStoreIdByAccountIdResponse);
   rpc GetStoresByBrandId (GetStoresByBrandIdRequest) returns (GetStoresByBrandIdResponse);
   rpc GetTaxRateByStoreId (GetTaxRateForStoreMenuRequest) returns (GetTaxRateForStoreMenuResponse);
+  rpc GetTaxRateAndPaymentMethodConfig(GetTaxRateAndPaymentMethodConfigRequest) returns (GetTaxRateAndPaymentMethodConfigResponse);
 }
 message GetStoresByBrandPagingRequest {
   int32 page = 1;
@@ -68,4 +69,16 @@ message GetTaxRateForStoreMenuResponse {
   string id = 1;
   string name = 2;
   float rate = 3;
+}
+message GetTaxRateAndPaymentMethodConfigRequest {
+  string storeId = 1;
+  string brandId = 2;
+  string storePaymentMethodConfigId = 3;
+}
+message GetTaxRateAndPaymentMethodConfigResponse {
+  string taxRateId = 1;
+  string taxRateName = 2;
+  float rate = 3;
+  string systemPaymentMethodId = 4;
+  string credentialsConfigAtStore = 5;
 }

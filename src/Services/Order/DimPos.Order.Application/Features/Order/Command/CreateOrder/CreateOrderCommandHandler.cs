@@ -5,6 +5,7 @@ using DimPos.Order.Domain.Enums;
 using DimPos.Order.Domain.Models.Common;
 using DimPos.Order.Infrastructure.Persistence;
 using DimPos.Order.Infrastructure.Repositories.Interface;
+using DimPos.Payment.Application.Common.Protos;
 using DimPos.Promotion.Application.Common.Protos;
 using DimPos.Store.Application.Common.Protos;
 using Mediator;
@@ -19,11 +20,13 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
     private readonly CatalogGrpcService.CatalogGrpcServiceClient _catalogGrpcService;
     private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
     private readonly PromotionGrpcService.PromotionGrpcServiceClient _promotionGrpcService;
+    private readonly PaymentGrpcService.PaymentGrpcServiceClient _paymentGrpcService;
 
     public CreateOrderCommandHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService,
         CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService,
         StoreGrpcService.StoreGrpcServiceClient storeGrpcService,
-        PromotionGrpcService.PromotionGrpcServiceClient promotionGrpcService)
+        PromotionGrpcService.PromotionGrpcServiceClient promotionGrpcService,
+        PaymentGrpcService.PaymentGrpcServiceClient paymentGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -31,6 +34,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         _catalogGrpcService = catalogGrpcService ?? throw new ArgumentNullException(nameof(catalogGrpcService));
         _storeGrpcService = storeGrpcService ?? throw new ArgumentNullException(nameof(storeGrpcService));
         _promotionGrpcService = promotionGrpcService ?? throw new ArgumentNullException(nameof(promotionGrpcService));
+        _paymentGrpcService = paymentGrpcService ?? throw new ArgumentNullException(nameof(paymentGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -46,7 +50,6 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         {
             throw new BadHttpRequestException("Không tìm thấy tài khoản người dùng");
         }
-
         var order = new Orders()
         {
             Id = Guid.CreateVersion7(),
@@ -95,20 +98,21 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         order.OrderItems = orderItems;
         order.SubTotalAmount = order.OrderItems.Sum(x => x.TotalPriceBeforeItemDiscount);
 
-        var taxRate = await _storeGrpcService.GetTaxRateByStoreIdAsync(new GetTaxRateForStoreMenuRequest()
+        var storeDetailGrpcResponse = await _storeGrpcService.GetTaxRateAndPaymentMethodConfigAsync(new GetTaxRateAndPaymentMethodConfigRequest()
         {
             StoreId = storeId.ToString(),
-            BrandId = request.BrandId.ToString()
+            BrandId = request.BrandId.ToString(),
+            StorePaymentMethodConfigId = request.StorePaymentMethodConfigId.ToString()
         });
-        if (taxRate.Rate != 0)
+        if (storeDetailGrpcResponse.Rate != 0)
         {
             order.AppliedTax = new AppliedTaxes()
             {
                 Id = Guid.CreateVersion7(),
                 OrderId = order.Id,
-                TaxRateId = Guid.Parse(taxRate.Id),
-                TaxNameSnapshot = taxRate.Name,
-                TaxRateSnapshot = (decimal)taxRate.Rate,
+                TaxRateId = Guid.Parse(storeDetailGrpcResponse.TaxRateId),
+                TaxNameSnapshot = storeDetailGrpcResponse.TaxRateName,
+                TaxRateSnapshot = (decimal)storeDetailGrpcResponse.Rate,
             };
         }
         
@@ -153,9 +157,23 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         }
 
         order.DiscountAmount = order.AppliedOrderPromotions.Sum(x => x.DiscountAmountApplied);
-        order.TaxAmount = (order.SubTotalAmount - order.DiscountAmount) * ((decimal) taxRate.Rate / 100);
+        order.TaxAmount = (order.SubTotalAmount - order.DiscountAmount) * ((decimal) storeDetailGrpcResponse.Rate / 100);
         order.TotalAmount = order.TaxAmount + (order.SubTotalAmount - order.DiscountAmount);
 
+        var paymentGrpcResponse = await _paymentGrpcService.CreatePaymentTransactionAsync(
+            new CreatePaymentTransactionRequest()
+            {
+                OrderId = order.Id.ToString(),
+                BrandId = request.BrandId.ToString(),
+                StoreId = storeId.ToString(),
+                Amount = (float)order.TotalAmount,
+                CredentialsConfig = storeDetailGrpcResponse.CredentialsConfigAtStore,
+                SystemPaymentMethodId = storeDetailGrpcResponse.SystemPaymentMethodId,
+                StorePaymentMethodConfigId = request.StorePaymentMethodConfigId.ToString(),
+                AccountId = accountId.ToString(),
+                CustomerId = request.CustomerId != null ? request.CustomerId.ToString() : String.Empty
+            });
+        
         await _unitOfWork.GetRepository<Orders>().InsertAsync(order);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         
@@ -169,7 +187,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         {
             Status = StatusCodes.Status201Created,
             Message = "Tạo đơn hàng thành công",
-            Data = order.Id.ToString()
+            Data = paymentGrpcResponse.QrLink != String.Empty ? paymentGrpcResponse.QrLink : null
         };
     }
 }

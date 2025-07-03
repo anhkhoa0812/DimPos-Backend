@@ -16,8 +16,8 @@ public interface IMPosService
     Task<CancelEDCResponseData> CancelEDCPayment(CreateCancelEDCRequest request);
     Task<CancelQrResponseData> CancelQrPayment(CreateCancelQrRequest request);
     
-    Task<GetQrStatusResponseData> GetQrStatus(Guid orderId);
+    Task<GetQrStatusResponseData> GetQrStatus(GetQrStatusRequest request);
     
-    Task<GetEDCStatusResponseData> GetEDCStatus(Guid orderId);
-    Task<RefundEDCPaymentResponseData> GetRefundEDCPayment(Guid orderId);
+    Task<GetEDCStatusResponseData> GetEDCStatus(GetEDCStatusRequest request);
+    Task<RefundEDCPaymentResponseData> GetRefundEDCPayment(GetRefundEDCPaymentRequest request);
 } 

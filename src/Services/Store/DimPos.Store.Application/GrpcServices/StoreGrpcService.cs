@@ -3,6 +3,7 @@ using DimPos.Store.Domain.Entities;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
 using Grpc.Core;
+using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Store.Application.GrpcServices;
 
@@ -145,5 +146,54 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             Name = taxRate.Name,
             Rate = (float)(taxRate.Rate)
         };
+    }
+
+    public override async Task<GetTaxRateAndPaymentMethodConfigResponse> GetTaxRateAndPaymentMethodConfig(GetTaxRateAndPaymentMethodConfigRequest request, ServerCallContext context)
+    {
+        var store = await _unitOfWork.GetRepository<Domain.Entities.Store>().SingleOrDefaultAsync(
+            predicate: x => x.Id == Guid.Parse(request.StoreId) && x.BrandId == Guid.Parse(request.BrandId),
+            include: x => x.Include(x => x.TaxRates)
+                .Include(x => x.StorePaymentMethodConfigs)
+        );
+        if (store == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cửa hàng"));
+        }
+        if(store.StorePaymentMethodConfigs == null || !store.StorePaymentMethodConfigs.Any())
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng"));
+        }
+        
+        var storePaymentMethodConfig = store.StorePaymentMethodConfigs.FirstOrDefault(
+            x => x.IsActiveByStore 
+            && x.StoreId == Guid.Parse(request.StoreId)
+            && x.Id == Guid.Parse(request.StorePaymentMethodConfigId)
+        );
+        if (storePaymentMethodConfig == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng"));
+        }
+        var taxRate = store.TaxRates.FirstOrDefault(x => x.IsActive);
+        if (taxRate == null)
+        {
+            return new GetTaxRateAndPaymentMethodConfigResponse()
+            {
+                TaxRateId = String.Empty,
+                TaxRateName = String.Empty,
+                Rate = 0,
+                SystemPaymentMethodId = storePaymentMethodConfig.SystemPaymentMethodTypeId.ToString(),
+                CredentialsConfigAtStore = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
+            };
+        }
+
+        return new GetTaxRateAndPaymentMethodConfigResponse()
+        {
+            TaxRateId = taxRate.Id.ToString(),
+            TaxRateName = taxRate.Name,
+            Rate = (float)(taxRate.Rate),
+            SystemPaymentMethodId = storePaymentMethodConfig.SystemPaymentMethodTypeId.ToString(),
+            CredentialsConfigAtStore = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
+        };
+
     }
 }

@@ -43,7 +43,6 @@
 
     <ItemGroup>
       <Folder Include="Features\FinancialShift\Query\" />
-      <Folder Include="Features\StorePaymentMethodConfig\Query\" />
       <Folder Include="Features\Stores\Query\" />
       <Folder Include="Features\TaxRate\Query\" />
     </ItemGroup>

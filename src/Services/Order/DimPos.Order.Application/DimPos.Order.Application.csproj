@@ -45,5 +45,11 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Protobuf>
     </ItemGroup>
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\payment.proto" GrpcServices="Client">
+            <Link>Common\Protos\payment.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
     
 </Project>

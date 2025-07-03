@@ -77,7 +77,7 @@ public class CreateStorePaymentMethodConfigCommandHandler : IRequestHandler<Crea
             }
 
             storePaymentMethodConfig.CredentialsConfigAtStore =
-                CryptographyUtil.Encode(JsonSerializer.Serialize(mPosModel), storePaymentMethodConfig.Id.ToString("N"));
+                CryptographyUtil.EncodeCredentialsConfig(JsonSerializer.Serialize(mPosModel), storePaymentMethodConfig.Id.ToString("N"));
         }
         await _unitOfWork.GetRepository<StorePaymentMethodConfigs>().InsertAsync(storePaymentMethodConfig);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

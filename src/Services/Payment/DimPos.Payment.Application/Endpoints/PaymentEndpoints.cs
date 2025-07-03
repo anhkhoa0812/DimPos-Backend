@@ -48,20 +48,20 @@ public class PaymentEndpoints : ICarterModule
         var apiResponse = await service.CancelQrPayment(request);
         return Results.Json(apiResponse);
     }
-    public async Task<IResult> GetQrStatus(IMPosService service, [FromQuery] Guid orderId)
+    public async Task<IResult> GetQrStatus(IMPosService service, [FromBody] GetQrStatusRequest request)
     {
-        var apiResponse = await service.GetQrStatus(orderId);
+        var apiResponse = await service.GetQrStatus(request);
         return Results.Json(apiResponse);
     }
 
-    public async Task<IResult> GetEDCStatus(IMPosService service, [FromQuery] Guid orderId)
+    public async Task<IResult> GetEDCStatus(IMPosService service, [FromBody] GetEDCStatusRequest request)
     {
-        var apiResponse = await service.GetEDCStatus(orderId);
+        var apiResponse = await service.GetEDCStatus(request);
         return Results.Json(apiResponse);
     }
-    public async Task<IResult> RefundEDCPayment(IMPosService service, [FromQuery] Guid orderId)
+    public async Task<IResult> RefundEDCPayment(IMPosService service, [FromBody] GetRefundEDCPaymentRequest request)
     {
-        var apiResponse = await service.GetRefundEDCPayment(orderId);
+        var apiResponse = await service.GetRefundEDCPayment(request);
         return Results.Json(apiResponse);
     }
 }

@@ -59,8 +59,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             case ESystemPaymentMethod.QR_VIETQR:
                 var createQrPaymentRequest = new CreateQrPaymentRequest()
                 {
-                    Amount = Double.Parse(request.Amount),
-                    Description = request.Description
+                    
                 };
                 qrPaymentUrl = await _mPosService.CreateQr(createQrPaymentRequest);
                 paymentTransaction.TransactionType = ETransactionType.SALE_CAPTURE_B2C;
@@ -154,6 +153,81 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             Description = systemPaymentMethod.Description ?? String.Empty,
             LogoUrl = systemPaymentMethod.LogoUrl ?? String.Empty,
             PaymentMethod = (PaymentMethod)systemPaymentMethod.Type,
+        };
+    }
+
+    public override async Task<CreatePaymentTransactionResponse> CreatePaymentTransaction(CreatePaymentTransactionRequest request, ServerCallContext context)
+    {
+        var systemPaymentMethod = await _unitOfWork.GetRepository<SystemPaymentMethods>().SingleOrDefaultAsync(
+            predicate: x => x.Id == Guid.Parse(request.SystemPaymentMethodId) && x.IsGloballyActive == true
+        );
+        if (systemPaymentMethod == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy phương thức thanh toán"));
+        }
+
+        var paymentTransaction = new PaymentTransactions()
+        {
+            Id = Guid.CreateVersion7(),
+            StoreId = Guid.Parse(request.StoreId),
+            BrandId = Guid.Parse(request.BrandId),
+            Status = EPaymentTransactionStatus.PENDING,
+            CustomerId = request.CustomerId != String.Empty ? Guid.Parse(request.CustomerId) : Guid.Empty,
+            Amount = (decimal)request.Amount,
+            OrderId = Guid.Parse(request.OrderId),
+            SystemPaymentMethodTypeId = systemPaymentMethod.Id,
+            TransactionType = ETransactionType.SALE_CAPTURE_B2C,
+            CurrencyCode = "VND",
+            ProcessedByAccountId = Guid.Parse(request.AccountId)
+        };
+        var qrLink = String.Empty;
+        switch (systemPaymentMethod.Type)
+        {
+            case ESystemPaymentMethod.QR_EDC:
+                await _mPosService.CreateEDCPayment(new CreateEDCPaymentRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    Amount = paymentTransaction.Amount,
+                    Description = paymentTransaction.Description,
+                    CredentialsConfig = request.CredentialsConfig,
+                    PaymentMethod = EEDCPaymentMethod.QR,
+                    Key = Guid.Parse(request.StorePaymentMethodConfigId).ToString("N")
+                });
+                break;
+            case ESystemPaymentMethod.CARD_EDC:
+                await _mPosService.CreateEDCPayment(new CreateEDCPaymentRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    Amount = paymentTransaction.Amount,
+                    Description = paymentTransaction.Description,
+                    PaymentMethod = EEDCPaymentMethod.CARD,
+                    CredentialsConfig = request.CredentialsConfig,
+                    Key = Guid.Parse(request.StorePaymentMethodConfigId).ToString("N")
+                });
+                break;
+            case ESystemPaymentMethod.CASH:
+                break;
+            case ESystemPaymentMethod.QR_VIETQR:
+                qrLink = await _mPosService.CreateQr(new CreateQrPaymentRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    Amount = (decimal)request.Amount,
+                    CredentialsConfig = request.CredentialsConfig,
+                    Key = Guid.Parse(request.StorePaymentMethodConfigId).ToString("N")
+                });
+                break;
+            default:
+                throw new RpcException(new Status(StatusCode.Unimplemented, "Không hỗ trợ phương thức thanh toán này"));
+        }
+        await _unitOfWork.GetRepository<PaymentTransactions>().InsertAsync(paymentTransaction);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (!isSuccess)
+        {
+            throw new RpcException(new Status(StatusCode.Internal, "Không thể tạo giao dịch thanh toán"));
+        }
+        return new CreatePaymentTransactionResponse()
+        {
+            QrLink = qrLink
         };
     }
 }

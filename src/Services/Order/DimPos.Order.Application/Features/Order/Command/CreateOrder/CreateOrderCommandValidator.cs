@@ -22,6 +22,11 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
             .NotEmpty().WithMessage("Danh sách mặt hàng không được để trống.")
             .NotNull().WithMessage("Danh sách mặt hàng không được để trống.")
             .SetValidator(new CreateOrderItemRequestValidator());
+        RuleFor(x => x.StorePaymentMethodConfigId)
+            .NotEqual(Guid.Empty)
+            .WithMessage("Id của cấu hình phương thức thanh toán cửa hàng không được để trống.")
+            .NotNull().WithMessage("Id của cấu hình phương thức thanh toán cửa hàng không được để trống.")
+            .NotEmpty().WithMessage("Id của cấu hình phương thức thanh toán cửa hàng không được để trống.");
     }
 }
 
