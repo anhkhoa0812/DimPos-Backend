@@ -230,4 +230,31 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             QrLink = qrLink
         };
     }
+
+    public override async Task<GetSystemPaymentMethodListByIdResponse> GetSystemPaymentMethodListById(GetSystemPaymentMethodListByIdRequest request, ServerCallContext context)
+    {
+        var systemPaymentMethodId = request.SystemPaymentMethodIds.Select(Guid.Parse).ToList();
+        
+        var systemPaymentMethods = await _unitOfWork.GetRepository<SystemPaymentMethods>().GetListAsync(
+            predicate: x => systemPaymentMethodId.Contains(x.Id) && x.IsGloballyActive == true
+        );
+        if(systemPaymentMethods.Count != systemPaymentMethodId.Count)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy một hoặc nhiều phương thức thanh toán"));
+        }
+        var response = new GetSystemPaymentMethodListByIdResponse();
+        foreach (var systemPaymentMethod in systemPaymentMethods)
+        {
+            response.SystemPaymentMethods.Add(new GetSystemPaymentMethodByIdResponse()
+            {
+                Id = systemPaymentMethod.Id.ToString(),
+                Name = systemPaymentMethod.Name,
+                Code = systemPaymentMethod.Code,
+                Description = systemPaymentMethod.Description ?? String.Empty,
+                LogoUrl = systemPaymentMethod.LogoUrl ?? String.Empty,
+                PaymentMethod = (PaymentMethod) systemPaymentMethod.Type
+            });
+        }
+        return response;
+    }
 }
