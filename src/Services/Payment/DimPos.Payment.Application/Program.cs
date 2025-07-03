@@ -17,7 +17,7 @@ try
     builder.Services.AddCarter(new DependencyContextAssemblyCatalog([typeof(Program).Assembly]));
     var app = builder.Build();
 
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() || app.Environment.IsProduction() || app.Environment.IsStaging())
     {
         app.UseScalar();
     }

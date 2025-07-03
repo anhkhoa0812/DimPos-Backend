@@ -6,6 +6,7 @@ service PaymentGrpcService {
   rpc CreateB2CPayment(CreateB2CPaymentRequest) returns (CreateB2CPaymentResponse);
   rpc GetSystemPaymentMethodById(GetSystemPaymentMethodByIdRequest) returns (GetSystemPaymentMethodByIdResponse);
   rpc CreatePaymentTransaction(CreatePaymentTransactionRequest) returns (CreatePaymentTransactionResponse);
+  rpc GetSystemPaymentMethodListById(GetSystemPaymentMethodListByIdRequest) returns (GetSystemPaymentMethodListByIdResponse);
 }
 message CreateB2CPaymentRequest {
   string storeId = 1;
@@ -16,7 +17,12 @@ message CreateB2CPaymentRequest {
   string currencyCode = 6;
   optional string description = 7;
 }
-
+message GetSystemPaymentMethodListByIdRequest {
+  repeated string systemPaymentMethodIds = 1;
+}
+message GetSystemPaymentMethodListByIdResponse {
+  repeated GetSystemPaymentMethodByIdResponse systemPaymentMethods = 1;
+}
 enum PaymentMethod {
   CASH = 0;
   QR_VIETQR = 1;

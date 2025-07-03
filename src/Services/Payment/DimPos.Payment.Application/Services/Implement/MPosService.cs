@@ -73,7 +73,7 @@ public class MPosService : IMPosService
         var publicPath = Path.Combine(publicFolder, fileName);
         File.Copy(tempFile, publicPath, true);
         
-        var publicUrl = $"https://localhost:7276/temp/{fileName}";
+        var publicUrl = $"{_settings.QrLink}/{fileName}";
         return publicUrl;
     }
 
