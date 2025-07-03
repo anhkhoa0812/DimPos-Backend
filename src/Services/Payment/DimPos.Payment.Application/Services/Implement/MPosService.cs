@@ -35,17 +35,18 @@ public class MPosService : IMPosService
     }
     public async Task<string> CreateQr(CreateQrPaymentRequest request)
     {
+        var decodeCredentialsConfig = DecodeCredentialsConfig(request.CredentialsConfig, request.Key);
         var createQrRequestData = new CreateQrRequestData()
         {
             ServiceName = nameof(EServiceName.CREATE_QR),
-            OrderId = Guid.CreateVersion7().ToString(),
+            OrderId = request.OrderId.ToString(),
             Amount = request.Amount.ToString(),
             Description = "Mã QR thanh toán đơn haàng",
-            Muid = _settings.Muid,
+            Muid = decodeCredentialsConfig.Muid,
             QrType = nameof(EQrType.VAQR)
         };
         
-        var json = EncodeData(createQrRequestData);
+        var json = EncodeData(createQrRequestData, decodeCredentialsConfig);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync(_qrUrl, content);
@@ -57,7 +58,7 @@ public class MPosService : IMPosService
         {
             throw new Exception("Failed to deserialize MPosResponse");
         }
-        var responseData = DecodeData<CreateQrResponseData>(mPosResponse.ResData);
+        var responseData = DecodeData<CreateQrResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
         
         var qr = QrCode.EncodeText(responseData.QrCode, QrCode.Ecc.Medium);
         string svg = qr.ToSvgString(4);
@@ -78,17 +79,18 @@ public class MPosService : IMPosService
 
     public async Task<EDCPaymentResponseData> CreateEDCPayment(CreateEDCPaymentRequest request)
     {
+        var decodeCredentialsConfig = DecodeCredentialsConfig(request.CredentialsConfig, request.Key);
         var createEDCPaymentRequestData = new EDCPaymentRequestData()
         {
             ServiceName = nameof(EServiceName.ADD_ORDER_INFOR),
-            OrderId = Guid.CreateVersion7().ToString(),
+            OrderId = request.OrderId.ToString(),
             Amount = request.Amount.ToString(),
             Description = "Thanh toán đơn hàng qua EDC",
-            PosId = _settings.PosId,
+            PosId = decodeCredentialsConfig.PosId,
             PaymentType = null,
             PaymentMethod = request.PaymentMethod.ToString()
         };
-        var json = EncodeData(createEDCPaymentRequestData);
+        var json = EncodeData(createEDCPaymentRequestData, decodeCredentialsConfig);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync(_edcPaymentUrl, content);
@@ -100,21 +102,22 @@ public class MPosService : IMPosService
         {
             throw new Exception("Failed to deserialize MPosResponse");
         }
-        var responseData = DecodeData<EDCPaymentResponseData>(mPosResponse.ResData);
+        var responseData = DecodeData<EDCPaymentResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
         return responseData;
     }
 
     public async Task<CancelEDCResponseData> CancelEDCPayment(CreateCancelEDCRequest request)
     {
+        var decodeCredentialsConfig = DecodeCredentialsConfig(request.CredentialsConfig, request.Key);
         var cancelEDCPaymentRequestData = new CancelEDCRequestData()
         {
             ServiceName = nameof(EServiceName.REMOVE_ORDER_INFOR),
             OrderId = request.OrderId.ToString(),
             Amount = request.Amount.ToString(),
-            PosId = _settings.PosId,
+            PosId = decodeCredentialsConfig.PosId,
         };
         
-        var json = EncodeData(cancelEDCPaymentRequestData);
+        var json = EncodeData(cancelEDCPaymentRequestData, decodeCredentialsConfig);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync(_edcPaymentUrl, content);
@@ -126,21 +129,22 @@ public class MPosService : IMPosService
         {
             throw new Exception("Failed to deserialize MPosResponse");
         }
-        var responseData = DecodeData<CancelEDCResponseData>(mPosResponse.ResData);
+        var responseData = DecodeData<CancelEDCResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
         return responseData;
     }
 
     public async Task<CancelQrResponseData> CancelQrPayment(CreateCancelQrRequest request)
     {
+        var decodeCredentialsConfig = DecodeCredentialsConfig(request.CredentialsConfig, request.Key);
         var cancelQrRequestData = new CancelQrRequestData()
         {
             ServiceName = nameof(EServiceName.REMOVE_QR),
             OrderId = request.OrderId.ToString(),
-            Muid = _settings.Muid,
+            Muid = decodeCredentialsConfig.Muid,
             Amount = request.Amount.ToString(),
             QrType = nameof(EQrType.VAQR)
         };
-        var json = EncodeData(cancelQrRequestData);
+        var json = EncodeData(cancelQrRequestData, decodeCredentialsConfig);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync(_qrUrl, content);
@@ -152,21 +156,22 @@ public class MPosService : IMPosService
         {
             throw new Exception("Failed to deserialize MPosResponse");
         }
-        var responseData = DecodeData<CancelQrResponseData>(mPosResponse.ResData);
+        var responseData = DecodeData<CancelQrResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
         return responseData;
     }
 
-    public async Task<GetQrStatusResponseData> GetQrStatus(Guid orderId)
+    public async Task<GetQrStatusResponseData> GetQrStatus(GetQrStatusRequest request)
     {
+        var decodeCredentialsConfig = DecodeCredentialsConfig(request.CredentialsConfig, request.Key);
         var getQrStatusRequestData = new GetQrStatusRequestData()
         {
             ServiceName = nameof(EServiceName.QR_GET_TRANSACTION_STATUS),
-            OrderId = orderId.ToString(),
-            Muid = _settings.Muid,
+            OrderId = request.OrderId.ToString(),
+            Muid = decodeCredentialsConfig.Muid,
             Amount = "0", // Amount không cần thiết trong trường hợp này, nhưng vẫn cần truyền vào để phù hợp với y/cầu
         };
         
-        var json = EncodeData(getQrStatusRequestData);
+        var json = EncodeData(getQrStatusRequestData, decodeCredentialsConfig);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync(_qrUrl, content);
@@ -178,19 +183,20 @@ public class MPosService : IMPosService
         {
             throw new Exception("Failed to deserialize MPosResponse");
         }
-        var responseData = DecodeData<GetQrStatusResponseData>(mPosResponse.ResData);
+        var responseData = DecodeData<GetQrStatusResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
         return responseData;
     }
 
-    public async Task<GetEDCStatusResponseData> GetEDCStatus(Guid orderId)
+    public async Task<GetEDCStatusResponseData> GetEDCStatus(GetEDCStatusRequest request)
     {
+        var decodeCredentialsConfig = DecodeCredentialsConfig(request.CredentialsConfig, request.Key);
         var getEDCStatusRequestData = new GetEDCStatusRequestData()
         {
             ServiceName = nameof(EServiceName.GET_TRANSACTION_STATUS),
-            PosId = _settings.PosId,
-            OrderId = orderId.ToString()
+            PosId = decodeCredentialsConfig.PosId,
+            OrderId = request.OrderId.ToString()
         };
-        var json = EncodeData(getEDCStatusRequestData);
+        var json = EncodeData(getEDCStatusRequestData, decodeCredentialsConfig);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         
         var response = await _httpClient.PostAsync(_edcPaymentUrl, content);
@@ -202,13 +208,19 @@ public class MPosService : IMPosService
         {
             throw new Exception("Failed to deserialize MPosResponse");
         }
-        var responseData = DecodeData<GetEDCStatusResponseData>(mPosResponse.ResData);
+        var responseData = DecodeData<GetEDCStatusResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
         return responseData;
     }
 
-    public async Task<RefundEDCPaymentResponseData> GetRefundEDCPayment(Guid orderId)
+    public async Task<RefundEDCPaymentResponseData> GetRefundEDCPayment(GetRefundEDCPaymentRequest request)
     {
-        var getEDCStatusResponseData = await GetEDCStatus(orderId);
+        var decodeCredentialsConfig = DecodeCredentialsConfig(request.CredentialsConfig, request.Key);
+        var getEDCStatusResponseData = await GetEDCStatus(new GetEDCStatusRequest()
+        {
+            OrderId = request.OrderId,
+            CredentialsConfig = request.CredentialsConfig,
+            Key = request.Key
+        });
         if (getEDCStatusResponseData == null)
         {
             throw new BadHttpRequestException("Không tìm thấy giao dịch của đơn hàng này");
@@ -220,12 +232,12 @@ public class MPosService : IMPosService
         var refundEDCPaymentRequestData = new RefundEDCPaymentRequestData()
         {
             ServiceName = nameof(EServiceName.REFUND_TRANSACTION),
-            OrderId = orderId.ToString(),
-            PosId = _settings.PosId,
+            OrderId = request.OrderId.ToString(),
+            PosId = decodeCredentialsConfig.PosId,
             TransCode = getEDCStatusResponseData.TransCode,
             RefundAmount = getEDCStatusResponseData.Amount
         };
-        var json = EncodeData(refundEDCPaymentRequestData);
+        var json = EncodeData(refundEDCPaymentRequestData, decodeCredentialsConfig);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var response = await _httpClient.PostAsync(_refundEdcUrl, content);
         var responseString = await response.Content.ReadAsStringAsync();
@@ -237,25 +249,32 @@ public class MPosService : IMPosService
             throw new Exception("Lỗi khi thực hiện hoàn tiền: " + mPosResponse.Message);
         }
         
-        var responseData = DecodeData<RefundEDCPaymentResponseData>(mPosResponse.ResData);
+        var responseData = DecodeData<RefundEDCPaymentResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
         return responseData;
 
     }
 
-    private string EncodeData<T>(T data)
+    private string EncodeData<T>(T data, MPosModel credentialsConfig)
     {
         var dataSerialized = JsonSerializer.Serialize(data);
         var mPosRequest = new MPosRequest()
         {
-            MerchantId = _settings.MerchantId,
-            ReqData = CryptographyUtil.Encode(dataSerialized, _settings.SecretKey)
+            MerchantId = credentialsConfig.MerchantId,
+            ReqData = CryptographyUtil.Encode(dataSerialized, credentialsConfig.SecretKey)
         };
         return JsonSerializer.Serialize(mPosRequest);
     }
-    private T DecodeData<T>(string data)
+    private T DecodeData<T>(string data, MPosModel credentialsConfig)
     {
-        var decodedData = CryptographyUtil.Decode(data, _settings.SecretKey);
+        var decodedData = CryptographyUtil.Decode(data, credentialsConfig.SecretKey);
         T decodedResponseData = JsonSerializer.Deserialize<T>(decodedData) ?? throw new ArgumentException("decode data failed");
+        return decodedResponseData;
+    }
+
+    private MPosModel DecodeCredentialsConfig(string data, string key)
+    {
+        var decodedData = CryptographyUtil.DecodeCredentialsConfig(data, key);
+        MPosModel decodedResponseData = JsonSerializer.Deserialize<MPosModel>(decodedData) ?? throw new ArgumentException("decode data failed");
         return decodedResponseData;
     }
 }

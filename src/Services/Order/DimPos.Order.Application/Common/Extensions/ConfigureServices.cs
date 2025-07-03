@@ -5,6 +5,7 @@ using DimPos.Order.Application.Features.Order.Command.CreateOrder;
 using DimPos.Order.Application.Services.Implement;
 using DimPos.Order.Application.Services.Interface;
 using DimPos.Order.Domain.Models.Settings;
+using DimPos.Payment.Application.Common.Protos;
 using DimPos.Promotion.Application.Common.Protos;
 using DimPos.Store.Application.Common.Protos;
 using FluentValidation;
@@ -54,6 +55,10 @@ public static class ConfigureServices
         services.AddGrpcClient<PromotionGrpcService.PromotionGrpcServiceClient>(x =>
         {
             x.Address = new Uri(settings.PromotionUrl);
+        });
+        services.AddGrpcClient<PaymentGrpcService.PaymentGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.PaymentUrl);
         });
         return services;
     }

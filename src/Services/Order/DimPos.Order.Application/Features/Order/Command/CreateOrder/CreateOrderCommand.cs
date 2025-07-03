@@ -10,6 +10,7 @@ public class CreateOrderCommand : IRequest<ApiResponse>
     public DateTime? PickupTime { get; set; }
     public string? Note { get; set; }
     public string? TableNumberDineIn { get; set; }
+    public Guid StorePaymentMethodConfigId { get; set; }
     public List<CreateOrderItemRequest> OrderItems { get; set; }
     public List<Guid>? PromotionRuleIds { get; set; }
 }
