@@ -2,6 +2,7 @@ using Carter;
 using DimPos.Order.Application.Common.Utils;
 using DimPos.Order.Application.Features.Order.Command.CreateOrder;
 using DimPos.Order.Application.Features.Order.Query.GetOrderByStore;
+using DimPos.Order.Application.Features.Order.Query.GetOrderWithIdByStore;
 using DimPos.Order.Domain.Constants;
 using DimPos.Order.Domain.Enums;
 using DimPos.Order.Domain.Models.Common;
@@ -34,6 +35,14 @@ public class OrderEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("{id:guid}", GetOrderWithIdByStore)
+            .WithName(nameof(GetOrderWithIdByStore))
+            .RequireAuthorization("StoreAndStaffPolicy")
+            .Produces<ApiResponse<GetOrderWithIdByStoreResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> CreateOrder(IMediator mediator, [FromBody] CreateOrderCommand command,
@@ -61,6 +70,15 @@ public class OrderEndpoints : ICarterModule
             Type = type
         };
         var apiResponse = await mediator.Send(query);
-        return Results.Json(apiResponse);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetOrderWithIdByStore(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetOrderWithIdByStoreQuery()
+        {
+            OrderId = id
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
     }
 }
