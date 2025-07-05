@@ -6,6 +6,8 @@ service PaymentGrpcService {
   rpc CreateB2CPayment(CreateB2CPaymentRequest) returns (CreateB2CPaymentResponse);
   rpc GetSystemPaymentMethodById(GetSystemPaymentMethodByIdRequest) returns (GetSystemPaymentMethodByIdResponse);
   rpc CreatePaymentTransaction(CreatePaymentTransactionRequest) returns (CreatePaymentTransactionResponse);
+  rpc GetSystemPaymentMethodListById(GetSystemPaymentMethodListByIdRequest) returns (GetSystemPaymentMethodListByIdResponse);
+  rpc UpdatePaymentMethodForOrder (UpdatePaymentMethodForOrderRequest) returns (UpdatePaymentMethodForOrderResponse);
 }
 message CreateB2CPaymentRequest {
   string storeId = 1;
@@ -16,7 +18,12 @@ message CreateB2CPaymentRequest {
   string currencyCode = 6;
   optional string description = 7;
 }
-
+message GetSystemPaymentMethodListByIdRequest {
+  repeated string systemPaymentMethodIds = 1;
+}
+message GetSystemPaymentMethodListByIdResponse {
+  repeated GetSystemPaymentMethodByIdResponse systemPaymentMethods = 1;
+}
 enum PaymentMethod {
   CASH = 0;
   QR_VIETQR = 1;
@@ -30,6 +37,7 @@ message CreateB2CPaymentResponse {
 }
 message CreatePaymentTransactionResponse {
   string qrLink = 1;
+  string systemPaymentMethodName = 2;
 }
 message CreatePaymentTransactionRequest {
   string orderId = 1;
@@ -52,4 +60,15 @@ message GetSystemPaymentMethodByIdResponse {
   string description = 4;
   PaymentMethod paymentMethod = 5;
   string logoUrl = 6;
+}
+message UpdatePaymentMethodForOrderRequest {
+  string orderId = 1;
+  string storeId = 2;
+  string systemPaymentMethodId = 3;
+  string credentialsConfig = 4;
+  float amount = 5;
+}
+message UpdatePaymentMethodForOrderResponse {
+  string qrLink = 1;
+  string systemPaymentMethodName = 2;
 }

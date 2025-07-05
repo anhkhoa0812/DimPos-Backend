@@ -51,8 +51,6 @@ try
     app.MapCarter();
     app.UseHttpsRedirection();
     app.Run();
-
-
 }
 catch (Exception ex)
 {

@@ -1,5 +1,7 @@
+using System.Text.Json;
 using DimPos.Store.Application.Common.Protos;
 using DimPos.Store.Domain.Entities;
+using DimPos.Store.Domain.Models.MPos;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
 using Grpc.Core;
@@ -193,6 +195,25 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             Rate = (float)(taxRate.Rate),
             SystemPaymentMethodId = storePaymentMethodConfig.SystemPaymentMethodTypeId.ToString(),
             CredentialsConfigAtStore = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
+        };
+
+    }
+
+    public override async Task<GetCredentialsConfigByMerchantIdResponse> GetCredentialsConfigByMerchantId(GetCredentialsConfigByMerchantIdRequest request, ServerCallContext context)
+    {
+        var storePaymentMethodConfig = await _unitOfWork.GetRepository<StorePaymentMethodConfigs>().SingleOrDefaultAsync(
+            predicate: x => x.CredentialsConfigAtStore != null
+            && EF.Property<long>(x.CredentialsConfigAtStore, "MerchantId") == request.MerchantId
+        );
+        if (storePaymentMethodConfig == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình thanh toán cho MerchantId"));
+        }
+
+        return new GetCredentialsConfigByMerchantIdResponse()
+        {
+            StoreId = storePaymentMethodConfig.StoreId.ToString(),
+            CredentialsConfig = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
         };
 
     }

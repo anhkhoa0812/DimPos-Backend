@@ -37,6 +37,7 @@ public class ProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapPatch("/{id}", UpdateProductsById)
+            .DisableAntiforgery()
             .WithName(nameof(UpdateProductsById))
             .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)

@@ -48,8 +48,14 @@ public class PaymentEndpoints : ICarterModule
         var apiResponse = await service.CancelQrPayment(request);
         return Results.Json(apiResponse);
     }
-    public async Task<IResult> GetQrStatus(IMPosService service, [FromBody] GetQrStatusRequest request)
+    public async Task<IResult> GetQrStatus(IMPosService service, [FromQuery] Guid orderId, [FromQuery] string credentialsConfig, [FromQuery] string key)
     {
+        var request = new GetQrStatusRequest()
+        {
+            OrderId = orderId,
+            CredentialsConfig = credentialsConfig,
+            Key = key
+        };
         var apiResponse = await service.GetQrStatus(request);
         return Results.Json(apiResponse);
     }

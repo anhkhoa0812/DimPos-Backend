@@ -16,6 +16,7 @@ public class GetOrderWithIdByStoreResponse
     public decimal CashRoundingAmount { get; set; }
     public DateTime? PickupTime { get; set; }
     public string? Note { get; set; }
+    public string SystemPaymentMethodNameSnapshot { get; set; } = string.Empty;
     public DateTime CreatedDate { get; set; }
     public List<GetOrderItemsByOrderByIdResponse> OrderItems { get; set; } = new List<GetOrderItemsByOrderByIdResponse>();
     public List<GetAppliedOrderPromotionsByOrderIdResponse>? AppliedOrderPromotions { get; set; }

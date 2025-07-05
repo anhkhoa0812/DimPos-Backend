@@ -35,7 +35,12 @@
             <Generator>MSBuild:Compile</Generator>
         </Protobuf>
     </ItemGroup>
-    
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\store.proto" GrpcServices="Client">
+            <Link>Common\Protos\store.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
     <ItemGroup>
       <Folder Include="wwwroot\temp\" />
     </ItemGroup>
