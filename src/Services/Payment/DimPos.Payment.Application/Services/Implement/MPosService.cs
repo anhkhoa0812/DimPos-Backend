@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using DimPos.Payment.Application.Common.Utils;
@@ -10,9 +11,11 @@ using DimPos.Payment.Domain.Models.MPos.CreateQr;
 using DimPos.Payment.Domain.Models.MPos.EDCPayment;
 using DimPos.Payment.Domain.Models.MPos.GetEDCStatus;
 using DimPos.Payment.Domain.Models.MPos.GetQrStatus;
+using DimPos.Payment.Domain.Models.MPos.MPosCallback;
 using DimPos.Payment.Domain.Models.MPos.RefundEDCPayment;
 using DimPos.Payment.Domain.Models.Payment;
 using DimPos.Payment.Domain.Settings;
+using DimPos.Store.Application.Common.Protos;
 using Microsoft.Extensions.Options;
 using Net.Codecrete.QrCodeGenerator;
 
@@ -25,10 +28,13 @@ public class MPosService : IMPosService
     private readonly string _qrUrl;
     private readonly string _edcPaymentUrl;
     private readonly string _refundEdcUrl;
-    public MPosService(HttpClient httpClient, IOptions<MPosSettings> settings)
+    private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
+    public MPosService(HttpClient httpClient, IOptions<MPosSettings> settings,
+        StoreGrpcService.StoreGrpcServiceClient storeGrpcService)
     {
         _httpClient = httpClient;
         _settings = settings.Value;
+        _storeGrpcService = storeGrpcService ?? throw new ArgumentNullException(nameof(storeGrpcService));
         _qrUrl = _settings.DevDomain + "/orderQR";
         _edcPaymentUrl = _settings.DevDomain + "/order";
         _refundEdcUrl = _settings.DevDomain + "/transaction";
@@ -42,7 +48,7 @@ public class MPosService : IMPosService
             OrderId = request.OrderId.ToString(),
             Amount = request.Amount.ToString(),
             Description = "Mã QR thanh toán đơn haàng",
-            Muid = decodeCredentialsConfig.Muid,
+            Muid = decodeCredentialsConfig.Settings.Muid,
             QrType = nameof(EQrType.VAQR)
         };
         
@@ -61,10 +67,10 @@ public class MPosService : IMPosService
         var responseData = DecodeData<CreateQrResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
         
         var qr = QrCode.EncodeText(responseData.QrCode, QrCode.Ecc.Medium);
-        string svg = qr.ToSvgString(4);
-        
-        var tempFile = Path.Combine(Path.GetTempPath(), $"{responseData.OrderId}.svg");
-        await File.WriteAllTextAsync(tempFile, svg, Encoding.UTF8);
+        // string svg = qr.ToSvgString(4);
+        byte[] image = qr.ToPng(10, 4);
+        var tempFile = Path.Combine(Path.GetTempPath(), $"{responseData.OrderId}.png");
+        await File.WriteAllBytesAsync(tempFile, image);
 
         var publicFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp");
         Directory.CreateDirectory(publicFolder);
@@ -86,7 +92,7 @@ public class MPosService : IMPosService
             OrderId = request.OrderId.ToString(),
             Amount = request.Amount.ToString(),
             Description = "Thanh toán đơn hàng qua EDC",
-            PosId = decodeCredentialsConfig.PosId,
+            PosId = decodeCredentialsConfig.Settings.PosId,
             PaymentType = null,
             PaymentMethod = request.PaymentMethod.ToString()
         };
@@ -114,7 +120,7 @@ public class MPosService : IMPosService
             ServiceName = nameof(EServiceName.REMOVE_ORDER_INFOR),
             OrderId = request.OrderId.ToString(),
             Amount = request.Amount.ToString(),
-            PosId = decodeCredentialsConfig.PosId,
+            PosId = decodeCredentialsConfig.Settings.PosId,
         };
         
         var json = EncodeData(cancelEDCPaymentRequestData, decodeCredentialsConfig);
@@ -140,7 +146,7 @@ public class MPosService : IMPosService
         {
             ServiceName = nameof(EServiceName.REMOVE_QR),
             OrderId = request.OrderId.ToString(),
-            Muid = decodeCredentialsConfig.Muid,
+            Muid = decodeCredentialsConfig.Settings.Muid,
             Amount = request.Amount.ToString(),
             QrType = nameof(EQrType.VAQR)
         };
@@ -167,7 +173,7 @@ public class MPosService : IMPosService
         {
             ServiceName = nameof(EServiceName.QR_GET_TRANSACTION_STATUS),
             OrderId = request.OrderId.ToString(),
-            Muid = decodeCredentialsConfig.Muid,
+            Muid = decodeCredentialsConfig.Settings.Muid,
             Amount = "0", // Amount không cần thiết trong trường hợp này, nhưng vẫn cần truyền vào để phù hợp với y/cầu
         };
         
@@ -193,7 +199,7 @@ public class MPosService : IMPosService
         var getEDCStatusRequestData = new GetEDCStatusRequestData()
         {
             ServiceName = nameof(EServiceName.GET_TRANSACTION_STATUS),
-            PosId = decodeCredentialsConfig.PosId,
+            PosId = decodeCredentialsConfig.Settings.PosId,
             OrderId = request.OrderId.ToString()
         };
         var json = EncodeData(getEDCStatusRequestData, decodeCredentialsConfig);
@@ -233,7 +239,7 @@ public class MPosService : IMPosService
         {
             ServiceName = nameof(EServiceName.REFUND_TRANSACTION),
             OrderId = request.OrderId.ToString(),
-            PosId = decodeCredentialsConfig.PosId,
+            PosId = decodeCredentialsConfig.Settings.PosId,
             TransCode = getEDCStatusResponseData.TransCode,
             RefundAmount = getEDCStatusResponseData.Amount
         };
@@ -254,27 +260,50 @@ public class MPosService : IMPosService
 
     }
 
-    private string EncodeData<T>(T data, MPosModel credentialsConfig)
+    public async Task HandleMPosCallback(MPosRequest request)
+    {
+        var credentialsConfig = await _storeGrpcService.GetCredentialsConfigByMerchantIdAsync(
+            new GetCredentialsConfigByMerchantIdRequest()
+            {
+                MerchantId = request.MerchantId
+            });
+        if (credentialsConfig == null || string.IsNullOrEmpty(credentialsConfig.CredentialsConfig))
+        {
+            return;
+        }
+        var mPosModelRequest = DecodeCredentialsConfig(credentialsConfig.CredentialsConfig, credentialsConfig.StoreId);
+        var callbackRequestData = DecodeData<MPosCallbackRequest>(request.ReqData, mPosModelRequest );
+        
+        
+    }
+
+    private string EncodeData<T>(T data, MPosModelRequest credentialsConfig)
     {
         var dataSerialized = JsonSerializer.Serialize(data);
         var mPosRequest = new MPosRequest()
         {
             MerchantId = credentialsConfig.MerchantId,
-            ReqData = CryptographyUtil.Encode(dataSerialized, credentialsConfig.SecretKey)
+            ReqData = CryptographyUtil.Encode(dataSerialized, credentialsConfig.Settings.SecretKey)
         };
         return JsonSerializer.Serialize(mPosRequest);
     }
-    private T DecodeData<T>(string data, MPosModel credentialsConfig)
+    private T DecodeData<T>(string data, MPosModelRequest credentialsConfig)
     {
-        var decodedData = CryptographyUtil.Decode(data, credentialsConfig.SecretKey);
+        var decodedData = CryptographyUtil.Decode(data, credentialsConfig.Settings.SecretKey);
         T decodedResponseData = JsonSerializer.Deserialize<T>(decodedData) ?? throw new ArgumentException("decode data failed");
         return decodedResponseData;
     }
 
-    private MPosModel DecodeCredentialsConfig(string data, string key)
+    private MPosModelRequest DecodeCredentialsConfig(string data, string key)
     {
-        var decodedData = CryptographyUtil.DecodeCredentialsConfig(data, key);
-        MPosModel decodedResponseData = JsonSerializer.Deserialize<MPosModel>(decodedData) ?? throw new ArgumentException("decode data failed");
-        return decodedResponseData;
+        var mPosModel = JsonSerializer.Deserialize<MPosModel>(data);
+        var decodedData = CryptographyUtil.DecodeCredentialsConfig(mPosModel.Data, key);
+        var mPosModelRequestData = JsonSerializer.Deserialize<MPosSettingDetails>(decodedData);
+
+        return new MPosModelRequest()
+        {
+            MerchantId = mPosModel.MerchantId,
+            Settings = mPosModelRequestData
+        };
     }
 }

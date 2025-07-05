@@ -1,3 +1,4 @@
+using DimPos.Payment.Domain.Models.MPos.Base;
 using DimPos.Payment.Domain.Models.MPos.CancelEDCPayment;
 using DimPos.Payment.Domain.Models.MPos.CancelQrPayment;
 using DimPos.Payment.Domain.Models.MPos.EDCPayment;
@@ -20,4 +21,5 @@ public interface IMPosService
     
     Task<GetEDCStatusResponseData> GetEDCStatus(GetEDCStatusRequest request);
     Task<RefundEDCPaymentResponseData> GetRefundEDCPayment(GetRefundEDCPaymentRequest request);
+    // Task HandleMPosCallback(MPosRequest request);
 } 

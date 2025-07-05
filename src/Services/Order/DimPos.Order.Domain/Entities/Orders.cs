@@ -23,6 +23,7 @@ public class Orders : EntityAuditBase<Guid>
     public string? Note { get; set; }
     public string? CancellationReason { get; set; }
     public Guid? CancelledByAccountId { get; set; }
+    public string SystemPaymentMethodNameSnapshot { get; set; } = string.Empty;
     public DateTime? ConfirmedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public Guid CreatedByAccountId { get; set; }

@@ -7,6 +7,7 @@ using DimPos.Catalog.Application.Features.ModifierGroups.Command.UpdateModifierG
 using DimPos.Catalog.Application.Features.ModifierOptions.Command.CreateModifierOption;
 using DimPos.Catalog.Application.Features.ModifierOptions.Command.UpdateModifierOptions;
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
+using DimPos.Catalog.Application.Features.Products.Commands.UpdateProducts;
 using DimPos.Catalog.Application.Features.ProductVariants.Command.UpdateProductVariants;
 using DimPos.Catalog.Application.Services.Implement;
 using DimPos.Catalog.Application.Services.Interface;
@@ -38,6 +39,7 @@ public static class ConfigureServices
         services.AddScoped<IValidator<UpdateModifierGroupsCommand>, UpdateModifierGroupsCommandValidator>();
         services.AddScoped<IValidator<UpdateModifierOptionsCommand>, UpdateModifierOptionsCommandValidator>();
         services.AddScoped<IValidator<CreateModifierOptionCommand>, CreateModifierOptionCommandValidator>();
+        services.AddScoped<IValidator<UpdateProductsCommand>, UpdateProductsCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

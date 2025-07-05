@@ -6,6 +6,7 @@ using DimPos.Payment.Domain.Models.Payment;
 using DimPos.Payment.Infrastructure.Persistence;
 using DimPos.Payment.Infrastructure.Repositories.Interface;
 using Grpc.Core;
+using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Payment.Application.GrpcServices;
 
@@ -191,7 +192,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                     Description = paymentTransaction.Description,
                     CredentialsConfig = request.CredentialsConfig,
                     PaymentMethod = EEDCPaymentMethod.QR,
-                    Key = Guid.Parse(request.StorePaymentMethodConfigId).ToString("N")
+                    Key = Guid.Parse(request.StoreId).ToString("N")
                 });
                 break;
             case ESystemPaymentMethod.CARD_EDC:
@@ -202,7 +203,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                     Description = paymentTransaction.Description,
                     PaymentMethod = EEDCPaymentMethod.CARD,
                     CredentialsConfig = request.CredentialsConfig,
-                    Key = Guid.Parse(request.StorePaymentMethodConfigId).ToString("N")
+                    Key = Guid.Parse(request.StoreId).ToString("N")
                 });
                 break;
             case ESystemPaymentMethod.CASH:
@@ -213,7 +214,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                     OrderId = Guid.Parse(request.OrderId),
                     Amount = (decimal)request.Amount,
                     CredentialsConfig = request.CredentialsConfig,
-                    Key = Guid.Parse(request.StorePaymentMethodConfigId).ToString("N")
+                    Key = Guid.Parse(request.StoreId).ToString("N")
                 });
                 break;
             default:
@@ -227,7 +228,8 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
         }
         return new CreatePaymentTransactionResponse()
         {
-            QrLink = qrLink
+            QrLink = qrLink,
+            SystemPaymentMethodName = systemPaymentMethod.Name
         };
     }
 
@@ -256,5 +258,125 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             });
         }
         return response;
+    }
+
+    public override async Task<UpdatePaymentMethodForOrderResponse> UpdatePaymentMethodForOrder(UpdatePaymentMethodForOrderRequest request, ServerCallContext context)
+    {
+        var paymentTransaction = await _unitOfWork.GetRepository<PaymentTransactions>().SingleOrDefaultAsync(
+            predicate: x => x.StoreId == Guid.Parse(request.StoreId) &&
+                            x.OrderId == Guid.Parse(request.OrderId)
+        );
+        if (paymentTransaction == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy giao dịch thanh toán cho đơn hàng này"));
+        }
+
+        if (paymentTransaction.Status != EPaymentTransactionStatus.PENDING)
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Chỉ có thể cập nhật phương thức thanh toán cho giao dịch đang chờ xử lý"));
+        }
+
+        if (paymentTransaction.SystemPaymentMethodTypeId == Guid.Parse(request.SystemPaymentMethodId))
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Phương thức thanh toán đã được cập nhật trước đó"));
+        }
+        var existingPaymentMethod = await _unitOfWork.GetRepository<SystemPaymentMethods>().SingleOrDefaultAsync(
+            predicate: x => x.Id == paymentTransaction.SystemPaymentMethodTypeId && x.IsGloballyActive == true
+        );
+        var systemPaymentMethod = await _unitOfWork.GetRepository<SystemPaymentMethods>().SingleOrDefaultAsync(
+            predicate: x => x.Id == Guid.Parse(request.SystemPaymentMethodId) && x.IsGloballyActive == true
+        );
+        if (systemPaymentMethod == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy phương thức thanh toán"));
+        }
+        
+        var qrLink = String.Empty;
+        switch (existingPaymentMethod.Type)
+        {
+            case ESystemPaymentMethod.CARD_EDC:
+                await _mPosService.CancelEDCPayment(new CreateCancelEDCRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    CredentialsConfig = request.CredentialsConfig,
+                    Key = Guid.Parse(request.StoreId).ToString("N"),
+                    Amount = (decimal)request.Amount,
+                });
+                break;
+            case ESystemPaymentMethod.QR_EDC:
+                await _mPosService.CancelEDCPayment(new CreateCancelEDCRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    CredentialsConfig = request.CredentialsConfig,
+                    Key = Guid.Parse(request.StoreId).ToString("N"),
+                    Amount = (decimal)request.Amount,
+                });
+                break;
+            case ESystemPaymentMethod.QR_VIETQR:
+                await _mPosService.CancelQrPayment(new CreateCancelQrRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    CredentialsConfig = request.CredentialsConfig,
+                    Key = Guid.Parse(request.StoreId).ToString("N"),
+                    Amount = (decimal)request.Amount,
+                });
+                break;
+            case ESystemPaymentMethod.CASH:
+                break;
+            default:
+                throw new RpcException(new Status(StatusCode.Unimplemented, "Không hỗ trợ phương thức thanh toán này"));
+        }
+        switch (systemPaymentMethod.Type)
+        {
+            case ESystemPaymentMethod.QR_EDC:
+                await _mPosService.CreateEDCPayment(new CreateEDCPaymentRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    Amount = (decimal) request.Amount,
+                    Description = paymentTransaction.Description ?? String.Empty,
+                    CredentialsConfig = request.CredentialsConfig,
+                    PaymentMethod = EEDCPaymentMethod.QR,
+                    Key = Guid.Parse(request.StoreId).ToString("N")
+                });
+                break;
+            case ESystemPaymentMethod.CARD_EDC:
+                await _mPosService.CreateEDCPayment(new CreateEDCPaymentRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    Amount = paymentTransaction.Amount,
+                    Description = paymentTransaction.Description,
+                    PaymentMethod = EEDCPaymentMethod.CARD,
+                    CredentialsConfig = request.CredentialsConfig,
+                    Key = Guid.Parse(request.StoreId).ToString("N")
+                });
+                break;
+            case ESystemPaymentMethod.CASH:
+                break;
+            case ESystemPaymentMethod.QR_VIETQR:
+                qrLink = await _mPosService.CreateQr(new CreateQrPaymentRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    Amount = (decimal) request.Amount,
+                    CredentialsConfig = request.CredentialsConfig,
+                    Key = Guid.Parse(request.StoreId).ToString("N")
+                });
+                break;
+            default:
+                throw new RpcException(new Status(StatusCode.Unimplemented, "Không hỗ trợ phương thức thanh toán này"));
+        }
+        
+        paymentTransaction.SystemPaymentMethodTypeId = Guid.Parse(request.SystemPaymentMethodId);
+        _unitOfWork.GetRepository<PaymentTransactions>().UpdateAsync(paymentTransaction);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (!isSuccess)
+        {
+            throw new RpcException(new Status(StatusCode.Internal, "Không thể cập nhật phương thức thanh toán cho giao dịch"));
+        }
+        
+        return new UpdatePaymentMethodForOrderResponse()
+        {
+            QrLink = qrLink,
+            SystemPaymentMethodName = systemPaymentMethod.Name,
+        };
     }
 }

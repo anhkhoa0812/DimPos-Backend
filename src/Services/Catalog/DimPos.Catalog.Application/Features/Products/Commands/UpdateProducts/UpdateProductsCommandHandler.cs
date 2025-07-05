@@ -51,9 +51,12 @@ public class UpdateProductsCommandHandler : IRequestHandler<UpdateProductsComman
 
         var existingMainImageCount = request.UpdateProducts.ExistProductImages?.Count(x => x.IsMainImage) ?? 0;
         var newMainImageCount = request.UpdateProducts.NewProductImages?.Count(x => x.IsMainImage) ?? 0;
-        if (existingMainImageCount + newMainImageCount != 1)
+        if (product.ProductImages != null && product.ProductImages.Any())
         {
-            throw new BadHttpRequestException("Chỉ có thể có một ảnh chính cho sản phẩm.");
+            if (existingMainImageCount + newMainImageCount != 1)
+            {
+                throw new BadHttpRequestException("Chỉ có thể có một ảnh chính cho sản phẩm.");
+            }
         }
 
         if (request.UpdateProducts.ExistProductImages?.Any() == true)
@@ -85,6 +88,10 @@ public class UpdateProductsCommandHandler : IRequestHandler<UpdateProductsComman
 
         if (request.UpdateProducts.NewProductImages != null)
         {
+            if (newMainImageCount != 1)
+            {
+                throw new BadHttpRequestException("Chỉ có thể có một ảnh chính cho sản phẩm mới.");
+            }
             var uploadImageGrpcRequest = new ListImageRequest();
             var productImageList = new List<ProductImages>();
             foreach (var productImage in request.UpdateProducts.NewProductImages)

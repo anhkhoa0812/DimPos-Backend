@@ -1,6 +1,7 @@
 using Carter;
 using DimPos.Order.Application.Common.Utils;
 using DimPos.Order.Application.Features.Order.Command.CreateOrder;
+using DimPos.Order.Application.Features.Order.Command.UpdatePaymentMethod;
 using DimPos.Order.Application.Features.Order.Query.GetOrderByStore;
 using DimPos.Order.Application.Features.Order.Query.GetOrderWithIdByStore;
 using DimPos.Order.Domain.Constants;
@@ -43,6 +44,14 @@ public class OrderEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{id:guid}/payment-method", UpdatePaymentMethod)
+            .WithName(nameof(UpdatePaymentMethod))
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> CreateOrder(IMediator mediator, [FromBody] CreateOrderCommand command,
@@ -79,6 +88,22 @@ public class OrderEndpoints : ICarterModule
             OrderId = id
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> UpdatePaymentMethod(IMediator mediator, [FromRoute] Guid id, [FromBody] UpdatePaymentMethodRequest request,
+        ValidationUtil<UpdatePaymentMethodCommand> validationUtil)
+    {
+        var command = new UpdatePaymentMethodCommand()
+        {
+            OrderId = id,
+            StorePaymentMethodConfigId = request.StorePaymentMethodConfigId
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }

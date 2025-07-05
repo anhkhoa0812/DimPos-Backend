@@ -55,6 +55,7 @@ public class GetOrderWithIdByStoreQueryHandler : IRequestHandler<GetOrderWithIdB
             CashRoundingAmount = order.CashRoundingAmount,
             PickupTime = order.PickupTime,
             Note = order.Note,
+            SystemPaymentMethodNameSnapshot = order.SystemPaymentMethodNameSnapshot,
             CreatedDate = order.CreatedDate,
             OrderItems = order.OrderItems.Select(oi => new GetOrderItemsByOrderByIdResponse()
             {

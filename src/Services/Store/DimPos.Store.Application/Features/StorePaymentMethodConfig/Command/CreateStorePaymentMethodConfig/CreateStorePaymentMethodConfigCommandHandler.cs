@@ -70,14 +70,18 @@ public class CreateStorePaymentMethodConfigCommandHandler : IRequestHandler<Crea
                 throw new BadHttpRequestException("Cấu hình thông tin xác thực không được để trống cho phương thức thanh toán này");
             }
 
-            var mPosModel = JsonSerializer.Deserialize<MPosModel>(request.CredentialsConfigAtStore);
-            if (mPosModel == null)
+            var mPosModelRequest = JsonSerializer.Deserialize<MPosModelRequest>(request.CredentialsConfigAtStore);
+            if (mPosModelRequest == null)
             {
                 throw new BadHttpRequestException("Thông tin xác thực không hợp lệ");
             }
-
+            var data = CryptographyUtil.EncodeCredentialsConfig(JsonSerializer.Serialize(mPosModelRequest.Settings), storeId.ToString("N"));
             storePaymentMethodConfig.CredentialsConfigAtStore =
-                CryptographyUtil.EncodeCredentialsConfig(JsonSerializer.Serialize(mPosModel), storePaymentMethodConfig.Id.ToString("N"));
+                JsonSerializer.Serialize(new MPosModel()
+                {
+                    MerchantId = mPosModelRequest.MerchantId,
+                    Data = data
+                });
         }
         await _unitOfWork.GetRepository<StorePaymentMethodConfigs>().InsertAsync(storePaymentMethodConfig);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
