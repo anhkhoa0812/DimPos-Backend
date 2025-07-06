@@ -10,6 +10,7 @@ using DimPos.Catalog.Application.Features.ModifierOptions.Command.UpdateModifier
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 using DimPos.Catalog.Application.Features.Products.Commands.UpdateProducts;
 using DimPos.Catalog.Application.Features.ProductVariants.Command.UpdateProductVariants;
+using DimPos.Catalog.Application.Features.RecipeItems.Command.CreateRecipeItem;
 using DimPos.Catalog.Application.Services.Implement;
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Models.Settings;
@@ -42,6 +43,7 @@ public static class ConfigureServices
         services.AddScoped<IValidator<CreateModifierOptionCommand>, CreateModifierOptionCommandValidator>();
         services.AddScoped<IValidator<UpdateProductsCommand>, UpdateProductsCommandValidator>();
         services.AddScoped<IValidator<CreateIngredientCommand>, CreateIngredientCommandValidator>();
+        services.AddScoped<IValidator<CreateRecipeItemCommand>, CreateRecipeItemCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;
