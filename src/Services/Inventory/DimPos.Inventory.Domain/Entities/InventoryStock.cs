@@ -1,0 +1,15 @@
+using DimPos.Inventory.Domain.Entities.Common;
+
+namespace DimPos.Inventory.Domain.Entities;
+
+public class InventoryStock : EntityAuditBase<Guid>
+{
+    public Guid StoreId { get; set; }
+    public Guid IngredientId { get; set; }
+    public decimal Quantity { get; set; }
+    public string UnitOfMeasure { get; set; } = string.Empty;
+    public decimal ReOrderLevel { get; set; }
+    public DateTime LastCountedAt { get; set; }
+    
+    public virtual ICollection<InventoryTransactions> InventoryTransactions { get; set; } = new List<InventoryTransactions>();
+}
