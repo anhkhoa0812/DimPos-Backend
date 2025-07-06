@@ -19,7 +19,6 @@ public partial class CatalogContext : DbContext
     public virtual DbSet<Categories> Categories { get; set; } = null!;
     public virtual DbSet<Products> Products { get; set; } = null!;
     public virtual DbSet<Ingredients> Ingredients { get; set; } = null!;
-    public virtual DbSet<Recipes> Recipes { get; set; } = null!;
     public virtual DbSet<RecipeItems> RecipeItems { get; set; } = null!;
     public virtual DbSet<ProductAttributes> ProductAttributes { get; set; } = null!;
     public virtual DbSet<ProductImages> ProductImages { get; set; } = null!;
@@ -31,6 +30,7 @@ public partial class CatalogContext : DbContext
     public virtual DbSet<ProductModifierGroups> ProductModifierGroups { get; set; } = null!;
     public virtual DbSet<ModifierGroups> ModifierGroups { get; set; } = null!;
     public virtual DbSet<ModifierOptions> ModifierOptions { get; set; } = null!;
+    public virtual DbSet<UnitConversions> UnitConversions { get; set; } = null!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

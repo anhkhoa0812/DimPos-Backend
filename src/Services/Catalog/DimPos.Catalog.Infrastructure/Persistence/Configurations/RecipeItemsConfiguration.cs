@@ -21,17 +21,26 @@ public class RecipeItemsConfiguration : IEntityTypeConfiguration<RecipeItems>
     public void Configure(EntityTypeBuilder<RecipeItems> builder)
     {
         builder.HasKey(ri => ri.Id);
-        builder.Property(ri => ri.MeasureUnit)
-            .HasMaxLength(50);
+        builder.HasIndex(ri => new { ri.ProductVariantId, ri.IngredientId })
+            .IsUnique();
+        builder.Property(ri => ri.ProductVariantId)
+            .IsRequired();
+        builder.Property(ri => ri.IsActive)
+            .IsRequired();
+        builder.Property(ri => ri.IngredientId)
+            .IsRequired();
         builder.Property(ri => ri.Quantity)
-            .HasPrecision(18,4);
+            .IsRequired();
+        builder.Property(ri => ri.UnitOfMeasureSnapshot)
+            .IsRequired()
+            .HasMaxLength(50);
         builder.HasOne(ri => ri.Ingredient)
             .WithMany(i => i.RecipeItems)
             .HasForeignKey(ri => ri.IngredientId)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne(ri => ri.Recipe)
-            .WithMany(r => r.RecipeItems)
-            .HasForeignKey(ri => ri.RecipeId)
+        builder.HasOne(ri => ri.ProductVariant)
+            .WithMany(pv => pv.RecipeItems)
+            .HasForeignKey(ri => ri.ProductVariantId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
