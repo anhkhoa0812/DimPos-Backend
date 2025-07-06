@@ -20,5 +20,6 @@ public class ProductVariants : EntityBase<Guid>
     public EProductVariantStatus Status { get; set; }
     public Guid ProductId { get; set; }
     public virtual Products Product { get; set; }
-    // public virtual IEnumerable<Recipes>? Recipes { get; set; }
+    
+    public virtual ICollection<RecipeItems>? RecipeItems { get; set; } = new List<RecipeItems>();
 }

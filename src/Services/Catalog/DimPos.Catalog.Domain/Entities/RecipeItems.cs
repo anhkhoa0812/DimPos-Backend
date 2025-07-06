@@ -6,23 +6,14 @@ namespace DimPos.Catalog.Domain.Entities;
 
 public class RecipeItems : EntityAuditBase<Guid>
 {
-    [Required]
-    [StringLength(maximumLength: 50)]
-    public string? MeasureUnit { get; set; }
+    public Guid ProductVariantId { get; set; }
+    public bool IsActive { get; set; }
+    public Guid IngredientId { get; set; }
+    public decimal Quantity { get; set; }
+    public string UnitOfMeasureSnapshot { get; set; } = string.Empty;
+    public Guid? CreatedByAccountId { get; set; }
     
-    [Required]
-    public decimal? Quantity { get; set; }
-    
-    [Required]
-    public Guid? RecipeId { get; set; }
-    
-    [ForeignKey(nameof(RecipeId))]
-    public virtual Recipes? Recipe { get; set; }
-    
-    [Required]
-    public Guid? IngredientId { get; set; }
-    
-    [ForeignKey(nameof(IngredientId))]
-    public virtual Ingredients? Ingredient { get; set; }
+    public virtual ProductVariants ProductVariant { get; set; } = null!;
+    public virtual Ingredients Ingredient { get; set; } = null!;
     
 }

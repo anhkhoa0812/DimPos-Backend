@@ -18,17 +18,23 @@ public class IngredientsConfiguration : IEntityTypeConfiguration<Ingredients>
     public void Configure(EntityTypeBuilder<Ingredients> builder)
     {
         builder.HasKey(i => i.Id);
+        builder.HasIndex(i => new { i.BrandId, i.Sku })
+            .IsUnique();
+        builder.Property(i => i.BrandId)
+            .IsRequired();
+        builder.HasIndex(i => i.Code)
+            .IsUnique();
         builder.Property(i => i.Code)
             .HasMaxLength(50);
         builder.Property(i => i.Name)
+            .IsRequired()
             .HasMaxLength(200);
         builder.Property(i => i.Description)
             .HasMaxLength(1000);
         builder.Property(i => i.MeasureUnit)
+            .IsRequired()
             .HasMaxLength(50);
-        builder.Property(i => i.Type)
-            .HasMaxLength(50);
-        builder.Property(i => i.CostPerUnit)
-            .HasPrecision(18,4);
+        builder.Property(i => i.IsActive)
+            .IsRequired();
     }
 }
