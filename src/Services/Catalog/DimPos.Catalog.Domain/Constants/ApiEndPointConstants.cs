@@ -27,4 +27,9 @@ public static class ApiEndPointConstants
     {
         public const string ModifierOptionsEndpoint = ApiEndpoint + "/modifier-options";
     }
+
+    public static class Ingredients
+    {
+        public const string IngredientsEndpoint = ApiEndpoint + "/ingredients";
+    }
 }

@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using DimPos.Catalog.Domain.Entities.Common;
 using DimPos.Catalog.Domain.Enums;
 
