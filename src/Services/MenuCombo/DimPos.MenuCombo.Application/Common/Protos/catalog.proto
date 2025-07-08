@@ -8,13 +8,14 @@ service CatalogGrpcService {
   rpc CheckProductVariantInBrand (CheckProductVariantInBrandRequest) returns (CheckProductVariantInBrandResponse);
   rpc GetMenuProductByStore (GetMenuProductByStoreRequest) returns (GetMenuProductByStoreResponse);
   rpc GetProductVariantListByIds (GetProductVariantListByIdsRequest) returns (GetProductVariantListByIdsResponse);
+  rpc GetProductForOrder (GetProductForOrderRequest) returns (GetProductForOrderResponse);
 }
 message GetProductVariantsByBrandRequest {
   int32 page = 1;
   int32 pageSize = 2;
   optional string sortBy = 3;
   bool isAsc = 4;
-  optional ProductVariantStatus status = 5;
+  bool isActive = 5;
   string brandId = 6;
 }
 message GetProductVariantsByBrandResponse {
@@ -42,24 +43,13 @@ message CheckProductVariantInBrandResponse {
 message ProductVariant {
   string id = 1;
   string code = 2;
-  optional string alternativeCode = 3;
   string name = 4;
-  float discountPercent = 5;
-  float discountPrice = 6;
-  float price = 7;
-  float priceCOGS = 8;
-  bool isActive = 9;
-  string size = 10;
-  bool isMenuDisplay = 11;
-  int32 displayOrder = 12;
-  string sku = 13;
-  ProductVariantStatus status = 14;
-}
-enum ProductVariantStatus {
-  Active = 0;
-  Inactive = 1;
-  Discontinued = 2;
-  Archived = 3;
+  string description = 5;
+  float price = 6;
+  bool isActive = 7;
+  string size = 8;
+  int32 displayOrder = 9;
+  string sku = 10;
 }
 message GetMenuProductByStoreRequest {
   string storeId = 1;
@@ -101,13 +91,12 @@ message ListProductResponse {
 message ProductResponse {
   string id = 1;
   string code = 2;
-  optional string alternativeCode = 3;
-  string name = 4;
-  string description = 5;
-  string imageUrl = 6;
-  float price = 7;
-  string categoryId = 8;
-  optional ListProductVariant productVariants = 9;
+  string name = 3;
+  string description = 4;
+  string imageUrl = 5;
+  float price = 6;
+  string categoryId = 7;
+  optional ListProductVariant productVariants = 8;
 }
 message ListModifierGroupResponse {
   repeated ModifierGroupResponse modifierGroups = 1;
@@ -144,15 +133,41 @@ message ListProductVariant {
 message ProductVariantResponse {
   string id = 1;
   string code = 2;
-  optional string alternativeCode = 3;
   string name = 4;
-  float discountPercent = 5;
-  float discountPrice = 6;
-  float price = 7;
-  float priceCOGS = 8;
-  bool isActive = 9;
-  string size = 10;
-  bool isMenuDisplay = 11;
-  int32 displayOrder = 12;
-  string sku = 13;
+  string description = 5;
+  float price = 6;
+  bool isActive = 7;
+  string size = 8;
+  int32 displayOrder = 9;
+  string sku = 10;
+}
+message GetProductForOrderRequest {
+  string storeId = 1;
+  string brandId = 2;
+  repeated ProductForOrderRequest productForOrders = 3;
+}
+message ProductForOrderRequest {
+  string id = 1;
+  string note = 2;
+  int32 quantity = 3;
+  repeated string modifierOptionIds = 4;
+}
+
+message GetProductForOrderResponse {
+  repeated ProductForOrderResponse productForOrders = 1;
+}
+message ProductForOrderResponse {
+  string id = 1;
+  string productName = 2;
+  string productVariantName = 3;
+  int32 quantity = 4;
+  float unitPrice = 5;
+  string note = 6;
+  repeated ModifierOptionForOrderResponse modifierOptions = 7;
+}
+message ModifierOptionForOrderResponse {
+  string id = 1;
+  string modifierGroupId = 2;
+  string modifierGroupName = 3;
+  string modifierOptionName = 4;
 }

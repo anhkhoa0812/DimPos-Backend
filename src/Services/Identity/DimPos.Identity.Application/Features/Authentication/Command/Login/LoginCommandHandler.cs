@@ -7,6 +7,7 @@ using DimPos.Identity.Domain.Models.Authentication;
 using DimPos.Identity.Domain.Models.Common;
 using DimPos.Identity.Infrastructure.Persistence;
 using DimPos.Identity.Infrastructure.Repositories.Interface;
+using DimPos.Identity.Infrastructure.Utils;
 using DimPos.Store.Application.Common.Protos;
 using Mediator;
 
@@ -33,7 +34,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
     }
     public async ValueTask<ApiResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        _logger.Information($"BEGIN: {nameof(LoginCommandHandler)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(LoginCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         var account = await _unitOfWork.GetRepository<Domain.Entities.Accounts>().SingleOrDefaultAsync(
             predicate: x => x.Username == request.Username
         );
@@ -94,7 +95,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
                 RefreshToken = refreshToken,
             }
         };
-        _logger.Information($"END: {nameof(LoginCommandHandler)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(LoginCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         return response;
     }
 }

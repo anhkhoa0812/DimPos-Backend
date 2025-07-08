@@ -7,6 +7,7 @@ using DimPos.Store.Domain.Enums;
 using DimPos.Store.Domain.Models.Common;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
+using DimPos.Store.Infrastructure.Utils;
 using MassTransit;
 using Mediator;
 using SharedProject.Events.Store.CreateStaff;
@@ -47,7 +48,7 @@ public class CreateStaffCommandHandler : IRequestHandler<CreateStaffCommand, Api
             StoreId = store.Id,
             Role = EStoreRole.Staff,
             AccountId = accountId,
-            AssignAt = DateTime.UtcNow
+            AssignAt = TimeUtil.GetCurrentSEATime()
         };
         await _unitOfWork.GetRepository<StoreAccounts>().InsertAsync(storeAccount);
 

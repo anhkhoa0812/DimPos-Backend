@@ -35,10 +35,13 @@ public class GetProductProductVariantsByIdQueryHandler : IRequestHandler<GetProd
             predicate: x => x.Id == request.ProductVariantId && x.Product.BrandId == brandId,
             include: x => x.Include(x => x.Product)
         );
+        if (productVariant == null)
+            throw new BadHttpRequestException("Không tìm thấy biến thể sản phẩm với ID đã cung cấp.");
         var response = ProductVariantMapper.ToGetProductVariantsByIdResponse(productVariant);
         if (response != null)
         {
-            response.CategoryId = productVariant.Product.CategoryId;
+            if (productVariant.Product.CategoryId != null)
+                response.CategoryId = productVariant.Product.CategoryId.Value;
         }
         _logger.Information($"END: {nameof(GetProductProductVariantsByIdQueryHandler)}: {request.ProductVariantId}");
 

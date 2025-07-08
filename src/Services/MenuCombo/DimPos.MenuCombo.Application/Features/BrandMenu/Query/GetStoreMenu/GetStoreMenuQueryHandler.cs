@@ -133,7 +133,6 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             Name = product.Name,
             Code = product.Code,
             Description = product.Description,
-            AlternativeCode = product.AlternativeCode,
             ImageUrl = product.ImageUrl,
             Price = (decimal) product.Price,
             CategoryId = Guid.Parse(product.CategoryId),
@@ -141,15 +140,11 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             {
                 Id = Guid.Parse(pv.Id),
                 Code = pv.Code,
-                AlternativeCode = pv.AlternativeCode,
                 Name = pv.Name,
-                DiscountPercent = (decimal) pv.DiscountPercent,
-                DiscountPrice = (decimal) pv.DiscountPrice,
+                Description = pv.Description,
                 Price = (decimal) pv.Price,
-                PriceCOGS = (decimal) pv.PriceCOGS,
                 IsActive = pv.IsActive,
                 Size = pv.Size,
-                IsMenuDisplay = pv.IsMenuDisplay,
                 DisplayOrder = pv.DisplayOrder,
                 Sku = pv.Sku
             }).ToList()

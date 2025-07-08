@@ -37,7 +37,15 @@ try
     }
     app.UseRouting();
     app.UseDefaultFiles();
-    app.UseStaticFiles();
+    app.UseStaticFiles(options: new StaticFileOptions()
+    {
+        OnPrepareResponse = ctx =>
+        {
+            ctx.Context.Response.Headers.Append(
+                "Access-Control-Allow-Origin", "*"
+            );
+        }
+    });
     app.MapGrpcService<PaymentGrpcService>();
     app.UseCors(builder =>
         builder.AllowAnyOrigin()

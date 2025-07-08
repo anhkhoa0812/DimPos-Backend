@@ -6,6 +6,7 @@ using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
+using DimPos.Catalog.Infrastructure.Utils;
 using DimPos.Media.Application.Common.Protos;
 using Google.Protobuf;
 using Mediator;
@@ -32,7 +33,7 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
-        _logger.Information($"BEGIN: {nameof(CreateCategoriesCommandHandler)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(CreateCategoriesCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         var category = CategoriesMapper.ToCategories(request);
         category.Id = Guid.CreateVersion7();
         category.HasChildCategory = false;
@@ -85,7 +86,7 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
         }
         await _unitOfWork.GetRepository<Domain.Entities.Categories>().InsertAsync(category); 
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        _logger.Information($"END: {nameof(CreateCategoriesCommandHandler)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(CreateCategoriesCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         if (isSuccess)
         {
             return new ApiResponse()

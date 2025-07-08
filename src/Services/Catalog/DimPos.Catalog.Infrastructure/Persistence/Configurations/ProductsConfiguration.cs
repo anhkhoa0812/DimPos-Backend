@@ -17,35 +17,22 @@ public class ProductsConfiguration : IEntityTypeConfiguration<Products>
         builder.Property(p => p.Code)
             .IsRequired()
             .HasMaxLength(50);
-        builder.Property(p => p.AlternativeCode)
-            .HasMaxLength(100);
         builder.HasIndex(p => p.Code)
             .IsUnique();
         builder.Property(p => p.Name)
             .IsRequired()
             .HasMaxLength(200);
         builder.Property(p => p.Description)
-            .IsRequired()
             .HasMaxLength(1000);
         builder.Property(p => p.IsHasVariants)
             .IsRequired();
-        builder.Property(p => p.IsHasRecipe)
-            .IsRequired();
-        builder.Property(p => p.IsAvailable)
-            .IsRequired();
-        builder.Property(p => p.IsMenuDisplay)
-            .IsRequired();
-        builder.Property(p => p.SaleType)
+        builder.Property(p => p.Type)
             .IsRequired()
             .HasConversion(
                 v => v.ToString(),
-                v => (EProductSaleType)Enum.Parse(typeof(EProductSaleType), v)
+                v => (EProductType)Enum.Parse(typeof(EProductType), v)
             );
         builder.Property(p => p.BrandId)
-            .IsRequired();
-        builder.Property(p => p.CategoryId)
-            .IsRequired();
-        builder.Property(p => p.IsMostOrdered)
             .IsRequired();
         builder.HasOne(p => p.Category)
             .WithMany(c => c.Products)

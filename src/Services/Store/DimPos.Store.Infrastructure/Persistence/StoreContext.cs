@@ -1,6 +1,7 @@
 using System.Reflection;
 using DimPos.Store.Domain.Entities;
 using DimPos.Store.Domain.Entities.Common.Interface;
+using DimPos.Store.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Store.Infrastructure.Persistence;
@@ -36,7 +37,7 @@ public class StoreContext : DbContext
                 case EntityState.Added:
                     if (item.Entity is IDateTracking addedEntity)
                     {
-                        addedEntity.CreatedDate = DateTime.UtcNow;
+                        addedEntity.CreatedDate = TimeUtil.GetCurrentSEATime();
                         item.State = EntityState.Added;
                     }
 
@@ -45,7 +46,7 @@ public class StoreContext : DbContext
                     if (item.Entity is IDateTracking modifiedEntity)
                     {
                         Entry(item.Entity).Property("Id").IsModified = false;
-                        modifiedEntity.LastModifiedDate = DateTime.UtcNow;
+                        modifiedEntity.LastModifiedDate = TimeUtil.GetCurrentSEATime();
                         item.State = EntityState.Modified;
                     }
 

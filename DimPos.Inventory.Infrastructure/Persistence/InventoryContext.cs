@@ -1,5 +1,6 @@
 using DimPos.Inventory.Domain.Entities;
 using DimPos.Inventory.Domain.Entities.Common.Interface;
+using DimPos.Inventory.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Inventory.Infrastructure.Persistence;
@@ -37,7 +38,7 @@ public class InventoryContext : DbContext
                     case EntityState.Added:
                         if (item.Entity is IDateTracking addedEntity)
                         {
-                            addedEntity.CreatedDate = DateTime.UtcNow;
+                            addedEntity.CreatedDate = TimeUtil.GetCurrentSEATime();
                             item.State = EntityState.Added;
                         }
 
@@ -46,7 +47,7 @@ public class InventoryContext : DbContext
                         if (item.Entity is IDateTracking modifiedEntity)
                         {
                             Entry(item.Entity).Property("Id").IsModified = false;
-                            modifiedEntity.LastModifiedDate = DateTime.UtcNow;
+                            modifiedEntity.LastModifiedDate = TimeUtil.GetCurrentSEATime();
                             item.State = EntityState.Modified;
                         }
 

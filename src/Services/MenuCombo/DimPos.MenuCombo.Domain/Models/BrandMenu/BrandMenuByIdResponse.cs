@@ -14,21 +14,16 @@ public class BrandMenuByIdResponse
     public List<BrandMenuByIdResponseWithProductVariants> ProductVariants { get; set; } = new List<BrandMenuByIdResponseWithProductVariants>();
     public List<BrandMenuByIdResponseWithStore> Stores { get; set; } = new List<BrandMenuByIdResponseWithStore>();
 }
-public class BrandMenuByIdResponseWithProductVariants : BrandMenuByIdResponse
+public class BrandMenuByIdResponseWithProductVariants
 {
     public Guid Id { get; set; }
     public string Code { get; set; }
-    public string? AlternativeCode { get; set; }
     public string Name { get; set; }
-    public decimal DiscountPercent { get; set; }
-    public decimal DiscountPrice { get; set; }
+    public string? Description { get; set; }
     public decimal Price { get; set; }
-    public decimal PriceCOGS { get; set; }
     public bool IsActive { get; set; }
     public string? Size { get; set; }
-    public bool IsMenuDisplay { get; set; }
     public int DisplayOrder { get; set; }
-    public EProductVariantStatus Status { get; set; }
     public string? Sku { get; set; }
 }
 

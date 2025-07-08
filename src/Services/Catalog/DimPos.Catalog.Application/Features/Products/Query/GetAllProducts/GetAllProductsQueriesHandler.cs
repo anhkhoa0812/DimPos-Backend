@@ -29,36 +29,24 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
             {
                 Id = p.Id,
                 Code = p.Code,
-                AlternativeCode = p.AlternativeCode,
                 Name = p.Name,
                 Description = p.Description,
                 IsHasVariants = p.IsHasVariants,
-                IsHasRecipe = p.IsHasRecipe,
                 Status = p.Status,
-                IsAvailable = p.IsAvailable,
                 DisplayOrder = p.DisplayOrder,
-                IsMenuDisplay = p.IsMenuDisplay,
-                SaleType = p.SaleType,
-                IsMostOrdered = p.IsMostOrdered,
                 Note = p.Note,
-                NumOfUserVoted = p.NumOfUserVoted,
                 CreatedDate = p.CreatedDate,
                 LastModifiedDate = p.LastModifiedDate,
                 ProductVariants = p.ProductVariants.Select(v => new ProductVariantsResponse
                 {
                     Id = v.Id,
                     Code = v.Code,
-                    AlternativeCode = v.AlternativeCode,
                     Name = v.Name,
-                    DiscountPercent = v.DiscountPercent,
-                    DiscountPrice = v.DiscountPrice,
+                    Description = v.Description,
                     Price = v.Price,
-                    PriceCOGS = v.PriceCOGS,
                     IsActive = v.IsActive,
                     Size = v.Size,
-                    IsMenuDisplay = v.IsMenuDisplay,
                     Sku = v.Sku,
-                    Status = v.Status
                 }).ToList(),
                 ProductImages = p.ProductImages.Select(i => new ProductImagesResponse
                 {

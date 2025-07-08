@@ -1,6 +1,7 @@
 using System.Reflection;
 using DimPos.Brand.Domain.Entities;
 using DimPos.Brand.Domain.Entities.Common.Interface;
+using DimPos.Brand.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Brand.Infrastructure.Persistence;
@@ -39,7 +40,7 @@ public partial class BrandContext : DbContext
                 case EntityState.Added:
                     if (item.Entity is IDateTracking addedEntity)
                     {
-                        addedEntity.CreatedDate = DateTime.UtcNow;
+                        addedEntity.CreatedDate = TimeUtil.GetCurrentSEATime();
                         item.State = EntityState.Added;
                     }
 
@@ -48,7 +49,7 @@ public partial class BrandContext : DbContext
                     if (item.Entity is IDateTracking modifiedEntity)
                     {
                         Entry(item.Entity).Property("Id").IsModified = false;
-                        modifiedEntity.LastModifiedDate = DateTime.UtcNow;
+                        modifiedEntity.LastModifiedDate = TimeUtil.GetCurrentSEATime();
                         item.State = EntityState.Modified;
                     }
 

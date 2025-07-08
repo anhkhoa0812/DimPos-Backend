@@ -29,28 +29,18 @@ public class ProductVariantsConfiguration : IEntityTypeConfiguration<ProductVari
         builder.Property(p => p.Name)
             .IsRequired()
             .HasMaxLength(200);
-        builder.Property(p => p.AlternativeCode)
-            .HasMaxLength(100);
+        builder.Property(pv => pv.Description)
+            .HasMaxLength(1000);
         builder.Property(pv => pv.Price)
             .IsRequired()
             .HasPrecision(18, 4);
-        builder.Property(pv => pv.DiscountPercent)
-            .HasPrecision(5, 2);
-        builder.Property(pv => pv.DiscountPrice)
-            .HasPrecision(18, 4);
-        builder.Property(pv => pv.PriceCOGS)
-            .HasPrecision(18, 4);
         builder.Property(pv => pv.Sku)
             .HasMaxLength(255);
+        builder.Property(pv => pv.IsActive)
+            .IsRequired();
         builder.HasOne(pv => pv.Product)
             .WithMany(p => p.ProductVariants)
             .HasForeignKey(pv => pv.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.Property(pv => pv.Status)
-            .IsRequired()
-            .HasConversion(
-                v => v.ToString(),
-                v => (EProductVariantStatus)Enum.Parse(typeof(EProductVariantStatus), v)
-            );
     }
 }

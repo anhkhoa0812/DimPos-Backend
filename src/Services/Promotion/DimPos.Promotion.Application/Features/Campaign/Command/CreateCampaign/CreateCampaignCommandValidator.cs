@@ -1,3 +1,4 @@
+using DimPos.Promotion.Infrastructure.Utils;
 using FluentValidation;
 
 namespace DimPos.Promotion.Application.Features.Campaign.Command.CreateCampaign;
@@ -15,7 +16,7 @@ public class CreateCampaignCommandValidator : AbstractValidator<CreateCampaignCo
         
         RuleFor(x => x.StartDate)
             .NotEmpty().NotNull().WithMessage("Ngày bắt đầu không được để trống.")
-            .GreaterThan(DateTime.UtcNow).WithMessage("Ngày bắt đầu phải lớn hơn ngày hiện tại.");
+            .GreaterThan(TimeUtil.GetCurrentSEATime()).WithMessage("Ngày bắt đầu phải lớn hơn ngày hiện tại.");
         
         RuleFor(x => x.EndDate)
             .NotEmpty().NotNull().WithMessage("Ngày kết thúc không được để trống.")

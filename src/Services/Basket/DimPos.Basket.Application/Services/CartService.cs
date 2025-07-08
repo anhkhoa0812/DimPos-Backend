@@ -1,5 +1,6 @@
 using System.Text.Json;
 using DimPos.Basket.Application.Common.Protos;
+using DimPos.Basket.Application.Common.Utils;
 using DimPos.Basket.Application.Enums;
 using DimPos.Basket.Application.Models;
 using DimPos.Basket.Application.Models.Base;
@@ -79,7 +80,7 @@ public class CartService : ICartService
                 UnitPriceAtAdditionSnapshot = request.UnitPriceAtAdditionSnapshot, 
                 Quantity = request.Quantity, 
                 ItemSubtotalAmount = request.UnitPriceAtAdditionSnapshot * request.Quantity, 
-                AddedAt = DateTime.UtcNow,
+                AddedAt = TimeUtil.GetCurrentSEATime(),
                 ModifierGroupItems = request.ModifierGroupItems?.Select(x => new ModifierGroupItem() 
                 { 
                     ModifierGroupId = x.ModifierGroupId, 
@@ -174,7 +175,7 @@ public class CartService : ICartService
             
             cart.ItemCount += 1; 
             cart.TotalQuantityOfItems += request.Quantity; 
-            cart.UpdatedAt = DateTime.UtcNow;
+            cart.UpdatedAt = TimeUtil.GetCurrentSEATime();
             if (cart.TaxRate != null)
             {
                 cart.TotalTaxAmount = (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount) * (cart.TaxRate.Value / 100);
@@ -224,10 +225,10 @@ public class CartService : ICartService
                 BrandId = request.BrandId,
                 StoreId = storeId,
                 StaffAccountIdCreating = staffAccountId,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = TimeUtil.GetCurrentSEATime(),
                 ServiceMethod = EServiceMethod.DINE_IN,
                 Status = ECartStatus.Active,
-                ExpireAt = DateTime.UtcNow.AddHours(24),
+                ExpireAt = TimeUtil.GetCurrentSEATime().AddHours(24),
                 TakeNumberDineIn = 1, // Default take number for dine-in
                 TaxRate = request.TaxRate
             };
@@ -381,7 +382,7 @@ public class CartService : ICartService
             PromotionRuleId = request.PromotionRuleId,
             PromotionNameSnapshot = request.PromotionNameSnapshot,
             ApplicableCartItemIds = request.ApplicableCartItemIds,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = TimeUtil.GetCurrentSEATime(),
             ConditionRules = request.ConditionRules.Select(x => new ConditionRule()
             {
                 ConditionType = x.ConditionType,

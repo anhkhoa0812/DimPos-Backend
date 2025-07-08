@@ -3,6 +3,7 @@ using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
+using DimPos.Catalog.Infrastructure.Utils;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,10 +34,7 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
         );
         if(productVariant == null)
             throw new BadHttpRequestException("Không tìm thấy biến thể sản phẩm với ID đã cung cấp.");
-        productVariant.AlternativeCode = request.UpdateProductVariants.AlternativeCode ?? productVariant.AlternativeCode;
         productVariant.Name = request.UpdateProductVariants.Name ?? productVariant.Name;
-        productVariant.DiscountPercent = request.UpdateProductVariants.DiscountPercent ?? productVariant.DiscountPercent;
-        productVariant.DiscountPrice = request.UpdateProductVariants.DiscountPrice ?? productVariant.DiscountPrice;
         if (request.UpdateProductVariants.Price != null 
             && request.UpdateProductVariants.Price != productVariant.Price)
         {
@@ -51,7 +49,7 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
                 ProductVariantId = request.ProductVariantId,
                 NewPrice = (Decimal)request.UpdateProductVariants.Price,
                 OldPrice = brandPrice.Price,
-                ChangedAt = DateTime.UtcNow,
+                ChangedAt = TimeUtil.GetCurrentSEATime(),
                 ChangedBy = _claimService.GetCurrentUserId,
             };
             await _unitOfWork.GetRepository<BrandPriceHistory>().InsertAsync(newBrandPriceHistory);
@@ -59,7 +57,6 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
             _unitOfWork.GetRepository<BasePrice>().UpdateAsync(brandPrice);
             productVariant.Price = (decimal)request.UpdateProductVariants.Price;
         } 
-        productVariant.PriceCOGS = request.UpdateProductVariants.PriceCOGS ?? productVariant.PriceCOGS;
         if (request.UpdateProductVariants.IsActive != null)
         {
             if (request.UpdateProductVariants.IsActive == false &&
@@ -72,11 +69,9 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
         }
         productVariant.IsActive = request.UpdateProductVariants.IsActive ?? productVariant.IsActive;
         productVariant.Size = request.UpdateProductVariants.Size ?? productVariant.Size;
-        productVariant.IsMenuDisplay = request.UpdateProductVariants.IsMenuDisplay ?? productVariant.IsMenuDisplay;
         productVariant.DisplayOrder = request.UpdateProductVariants.DisplayOrder ?? productVariant.DisplayOrder;
-        productVariant.Status = request.UpdateProductVariants.Status ?? productVariant.Status;
         productVariant.Sku = request.UpdateProductVariants.Sku ?? productVariant.Sku;
-        
+        productVariant.Description = request.UpdateProductVariants.Description ?? productVariant.Description;
         _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().UpdateAsync(productVariant);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         if(!isSuccess)
