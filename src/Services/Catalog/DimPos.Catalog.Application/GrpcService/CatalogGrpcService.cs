@@ -3,6 +3,7 @@ using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
+using DimPos.Catalog.Infrastructure.Utils;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,9 +23,10 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
     public override async Task<GetProductVariantsByBrandResponse> GetProductVariantsByBrand(
         GetProductVariantsByBrandRequest request, ServerCallContext context)
     {
-        _logger.Information($"BEGIN: {nameof(GetProductVariantsByBrand)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(GetProductVariantsByBrand)} - {TimeUtil.GetCurrentSEATime()}");
         var productVariantsPaging = await _unitOfWork.GetRepository<ProductVariants>().GetPagingListAsync(
-            predicate: x => x.Product!.BrandId == Guid.Parse(request.BrandId),
+            predicate: x => x.Product!.BrandId == Guid.Parse(request.BrandId)
+            && x.Product!.Type == EProductType.CustomerOrder,
             page: request.Page,
             size: request.PageSize,
             isAsc: request.IsAsc,
@@ -43,33 +45,29 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     Id = productVariant.Id.ToString(),
                     Code = productVariant.Code,
                     Name = productVariant.Name,
-                    AlternativeCode = productVariant.AlternativeCode ?? String.Empty,
+                    Description = productVariant.Description ?? String.Empty,
                     DisplayOrder = productVariant.DisplayOrder ?? 0,
-                    DiscountPercent = (float)(productVariant.DiscountPercent ?? 0 ),
-                    DiscountPrice = (float)(productVariant.DiscountPrice ?? 0),
                     Price = (float)productVariant.Price,
-                    PriceCOGS = (float)(productVariant.PriceCOGS ?? 0),
                     IsActive = productVariant.IsActive,
                     Size = productVariant.Size ?? String.Empty,
-                    IsMenuDisplay = productVariant.IsMenuDisplay ?? false,
                     Sku = productVariant.Sku ?? String.Empty,
-                    Status = (ProductVariantStatus) productVariant.Status,
                 };
                 response.ProductVariants.Add(productVariantResponse);
             }
         }
 
-        _logger.Information($"END: {nameof(GetProductVariantsByBrand)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(GetProductVariantsByBrand)} - {TimeUtil.GetCurrentSEATime()}");
         return response;
     }
 
     public override async Task<CheckProductVariantInBrandResponse> CheckProductVariantInBrand(
         CheckProductVariantInBrandRequest request, ServerCallContext context)
     {
-        _logger.Information($"BEGIN: {nameof(CheckProductVariantInBrand)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(CheckProductVariantInBrand)} - {TimeUtil.GetCurrentSEATime()}");
         var productVariantIds = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
             selector: x => x.Id,
-            predicate: x => x.Product.BrandId == Guid.Parse(request.BrandId),
+            predicate: x => x.Product.BrandId == Guid.Parse(request.BrandId) 
+                            && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
         );
         var requestedIds = request.ListProductVariantId.ProductVariantId
@@ -77,7 +75,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             .ToList();
         var variantSet = new HashSet<Guid>(productVariantIds);
         bool allExist = requestedIds.All(variantSet.Contains);
-        _logger.Information($"END: {nameof(CheckProductVariantInBrand)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(CheckProductVariantInBrand)} - {TimeUtil.GetCurrentSEATime()}");
 
         if (!allExist)
         {
@@ -129,11 +127,12 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
             predicate: x => x.BrandId == Guid.Parse(request.BrandId)
                             && x.Status == EProductStatus.Active
+                            && x.Type == EProductType.CustomerOrder
                             && x.ProductVariants.Any(pv =>
-                                variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive),
+                                variantIds.Contains(pv.Id) && pv.IsActive),
             include: x => x.Include(x => x.ProductImages)
                 .Include(x => x.ProductVariants.Where(pv =>
-                    variantIds.Contains(pv.Id) && pv.Status == EProductVariantStatus.Active && pv.IsActive))
+                    variantIds.Contains(pv.Id) && pv.IsActive))
                 .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == Guid.Parse(request.BrandId)))
                 .ThenInclude(pmg => pmg.ModifierGroup)
                 .ThenInclude(mg => mg.ModifierOptions)
@@ -178,10 +177,9 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 Id = variant.Id.ToString(),
                 Code = variant.Code,
                 Name = variant.Name,
-                AlternativeCode = variant.AlternativeCode ?? String.Empty,
                 ImageUrl = product.ProductImages?
                     .SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? String.Empty,
-                Description = product.Description,
+                Description = product.Description ?? String.Empty,
                 Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == variant.Id).OverridePrice,
                 CategoryId = product.CategoryId.ToString(),
                 ProductVariants = null
@@ -195,10 +193,9 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 Id = product.Id.ToString(),
                 Code = product.Code,
                 Name = product.Name,
-                AlternativeCode = product.AlternativeCode ?? String.Empty,
                 ImageUrl = product.ProductImages?
                     .SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? String.Empty,
-                Description = product.Description,
+                Description = product.Description ?? String.Empty,
                 Price = 0,
                 CategoryId = product.CategoryId.ToString(),
                 ProductVariants = new ListProductVariant()
@@ -210,15 +207,11 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             Id = pv.Id.ToString(),
                             Code = pv.Code,
                             Name = pv.Name,
-                            AlternativeCode = pv.AlternativeCode ?? String.Empty,
+                            Description = pv.Description ?? String.Empty,
                             DisplayOrder = pv.DisplayOrder ?? 0,
-                            DiscountPercent = (float) pv.DiscountPercent,
-                            DiscountPrice = (float)pv.DiscountPrice,
                             Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == pv.Id).OverridePrice,
-                            PriceCOGS = (float)pv.PriceCOGS,
                             IsActive = pv.IsActive,
                             Size = pv.Size ?? String.Empty,
-                            IsMenuDisplay = pv.IsMenuDisplay ?? false,
                             Sku = pv.Sku ?? String.Empty,
                         }).ToList()
                     }
@@ -275,7 +268,9 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             .ToList();
 
         var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
-            predicate: x => variantIds.Contains(x.Id) && x.Product.BrandId == brandId,
+            predicate: x => variantIds.Contains(x.Id) 
+                            && x.Product.BrandId == brandId 
+                            && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
         );
         var response = new GetProductVariantListByIdsResponse()
@@ -287,17 +282,12 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     Id = x.Id.ToString(),
                     Code = x.Code,
                     Name = x.Name,
-                    AlternativeCode = x.AlternativeCode ?? String.Empty,
+                    Description = x.Description ?? String.Empty,
                     DisplayOrder = x.DisplayOrder ?? 0,
-                    DiscountPercent = (float)(x.DiscountPercent ?? 0),
-                    DiscountPrice = (float)(x.DiscountPrice ?? 0),
                     Price = (float)x.Price,
-                    PriceCOGS = (float)(x.PriceCOGS ?? 0),
                     IsActive = x.IsActive,
                     Size = x.Size ?? String.Empty,
-                    IsMenuDisplay = x.IsMenuDisplay ?? false,
                     Sku = x.Sku ?? String.Empty,
-                    Status = (ProductVariantStatus) x.Status,
                 }).ToList()
             }
         };
@@ -313,7 +303,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
             predicate: x => productVariantIds.Contains(x.Id)
                             && x.IsActive == true && x.Product.Status == EProductStatus.Active 
-                            && x.Product.BrandId == brandId,
+                            && x.Product.BrandId == brandId && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
                 .Include(x => x.Product.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
                 .ThenInclude(pmg => pmg.ModifierGroup)

@@ -4,6 +4,7 @@ using DimPos.Store.Domain.Entities;
 using DimPos.Store.Domain.Models.MPos;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
+using DimPos.Store.Infrastructure.Utils;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,7 +56,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
 
     public override async Task<CheckStoresInBrandResponse> CheckStoresInBrand(CheckStoresInBrandRequest request, ServerCallContext context)
     {
-        _logger.Information($"BEGIN: {nameof(CheckStoresInBrand)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(CheckStoresInBrand)} - {TimeUtil.GetCurrentSEATime()}");
         var storeInBrandIds = await _unitOfWork.GetRepository<Domain.Entities.Store>().GetListAsync(
             selector: x => x.Id,
             predicate: x => x.BrandId == Guid.Parse(request.BrandId)
@@ -65,7 +66,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             .ToList();
         var variantSet = new HashSet<Guid>(storeInBrandIds);
         bool allExist = requestedIds.All(variantSet.Contains);
-        _logger.Information($"END: {nameof(CheckStoresInBrand)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(CheckStoresInBrand)} - {TimeUtil.GetCurrentSEATime()}");
         if (!allExist)
         {
             return new CheckStoresInBrandResponse()

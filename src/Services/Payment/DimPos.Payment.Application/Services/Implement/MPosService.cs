@@ -273,6 +273,10 @@ public class MPosService : IMPosService
         }
         var mPosModelRequest = DecodeCredentialsConfig(credentialsConfig.CredentialsConfig, credentialsConfig.StoreId);
         var callbackRequestData = DecodeData<MPosCallbackRequest>(request.ReqData, mPosModelRequest );
+        if (callbackRequestData == null)
+        {
+            throw new BadHttpRequestException("Không thể giải mã dữ liệu callback");
+        }
         
         
     }

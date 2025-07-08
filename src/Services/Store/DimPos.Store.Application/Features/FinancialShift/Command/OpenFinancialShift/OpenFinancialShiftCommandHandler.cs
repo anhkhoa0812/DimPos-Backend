@@ -4,6 +4,7 @@ using DimPos.Store.Domain.Enums;
 using DimPos.Store.Domain.Models.Common;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
+using DimPos.Store.Infrastructure.Utils;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,7 +47,7 @@ public class OpenFinancialShiftCommandHandler : IRequestHandler<OpenFinancialShi
         {
             throw new BadHttpRequestException("Không tìm thấy cấu hình ca tài chính cho cửa hàng này");
         }
-        var now = TimeOnly.FromDateTime(DateTime.UtcNow);
+        var now = TimeOnly.FromDateTime(TimeUtil.GetCurrentSEATime());
         var targetFinancialShiftConfig = financialShiftConfigList.FirstOrDefault(
             x => x.OpeningTime <= now && 
                  x.ClosingTime >= now && 
@@ -74,7 +75,7 @@ public class OpenFinancialShiftCommandHandler : IRequestHandler<OpenFinancialShi
         var financialShift = new FinancialShifts()
         {
             Id = Guid.CreateVersion7(),
-            OpeningTimestamp = DateTime.UtcNow,
+            OpeningTimestamp = TimeUtil.GetCurrentSEATime(),
             OpenedByAccountId = staffAccountId,
             OpeningCashExpected = targetFinancialShiftConfig.Store.StartingStoreCashLending,
             OpeningCashActual = request.OpeningCashActual,

@@ -19,8 +19,5 @@ public class UpdateProductsCommandValidator : AbstractValidator<UpdateProductsCo
         RuleFor(x => x.UpdateProducts.Description)
             .MinimumLength(1).WithMessage("Mô tả của sản phẩm phải có ít nhất 1 ký tự")
             .MaximumLength(1000).WithMessage("Mô tả của sản phẩm không được vượt quá 1000 ký tự");
-
-        RuleFor(x => x.UpdateProducts.AlternativeCode)
-            .MaximumLength(100).WithMessage("Mã thay thế của sản phẩm không được vượt quá 100 ký tự");
     }
 }

@@ -1,6 +1,7 @@
 using System.Reflection;
 using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Entities.Common.Interface;
+using DimPos.Catalog.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Catalog.Infrastructure.Persistence;
@@ -50,7 +51,7 @@ public partial class CatalogContext : DbContext
                 case EntityState.Added:
                     if (item.Entity is IDateTracking addedEntity)
                     {
-                        addedEntity.CreatedDate = DateTime.UtcNow;
+                        addedEntity.CreatedDate = TimeUtil.GetCurrentSEATime();
                         item.State = EntityState.Added;
                     }
 
@@ -59,7 +60,7 @@ public partial class CatalogContext : DbContext
                     if (item.Entity is IDateTracking modifiedEntity)
                     {
                         Entry(item.Entity).Property("Id").IsModified = false;
-                        modifiedEntity.LastModifiedDate = DateTime.UtcNow;
+                        modifiedEntity.LastModifiedDate = TimeUtil.GetCurrentSEATime();
                         item.State = EntityState.Modified;
                     }
 

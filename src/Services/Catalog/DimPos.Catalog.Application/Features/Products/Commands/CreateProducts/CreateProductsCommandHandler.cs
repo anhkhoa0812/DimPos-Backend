@@ -6,9 +6,9 @@ using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
+using DimPos.Catalog.Infrastructure.Utils;
 using DimPos.Media.Application.Common.Protos;
 using Google.Protobuf;
-using Grpc.Core;
 using Mediator;
 
 namespace DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
@@ -31,7 +31,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
     }
     public async ValueTask<ApiResponse> Handle(CreateProductsCommand request, CancellationToken cancellationToken)
     {
-        _logger.Information($"BEGIN: {nameof(CreateProductsCommandHandler)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(CreateProductsCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if (brandId == Guid.Empty)
@@ -40,13 +40,10 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         }
         var product = ProductMapper.ToProducts(request);
         product.Id = Guid.CreateVersion7();
-        product.IsMenuDisplay = false;
-        product.IsMostOrdered = false;
-        product.IsHasRecipe = false; //Need to check again
         product.ProductVariants = new List<Domain.Entities.ProductVariants>();
         product.BrandId = brandId;
         product.Status = EProductStatus.Active;
-
+        product.Type = EProductType.CustomerOrder;
         var category = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.CategoryId
         );
@@ -78,9 +75,8 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 productVariants.Id = Guid.CreateVersion7();
                 productVariants.ProductId = product.Id;
                 productVariants.IsActive = false;
-                productVariants.IsMenuDisplay = false;
                 productVariants.Price = productVariant.BrandPrice;
-                productVariants.Status = EProductVariantStatus.Active;
+                productVariants.Description = productVariant.Description;
                 product.ProductVariants.Add(productVariants);
 
                 var basePrice = new BasePrice()
@@ -96,7 +92,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                             Id = Guid.CreateVersion7(),
                             OldPrice = 0,
                             NewPrice = productVariant.BrandPrice,
-                            ChangedAt = DateTime.UtcNow,
+                            ChangedAt = TimeUtil.GetCurrentSEATime(),
                             ChangedBy = brandId,
                             ProductVariantId = productVariants.Id
                         }
@@ -118,18 +114,13 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             var productVariant = new Domain.Entities.ProductVariants()
             {
                 Id = Guid.CreateVersion7(),
-                IsMenuDisplay = false,
                 Code = request.Code,
                 Name = request.Name,
-                AlternativeCode = request.AlternativeCode,
                 ProductId = product.Id,
                 Price = request.Price ?? 0,
-                PriceCOGS = request.PriceCOGS,
                 IsActive = false,
-                DiscountPercent = request.DiscountPercent,
-                DiscountPrice = request.DiscountPrice,
                 DisplayOrder = request.DisplayOrder,
-                Status = EProductVariantStatus.Active,
+                Description = request.Description,
                 Size = null,
                 Sku = request.Sku
             };
@@ -147,7 +138,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                         Id = Guid.CreateVersion7(),
                         OldPrice = 0,
                         NewPrice = request.Price ?? 0,
-                        ChangedAt = DateTime.UtcNow,
+                        ChangedAt = TimeUtil.GetCurrentSEATime(),
                         ChangedBy = brandId,
                         CurrencyCode = "VND",
                         ProductVariantId = productVariant.Id
@@ -245,7 +236,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         }
         await _unitOfWork.GetRepository<Domain.Entities.Products>().InsertAsync(product);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        _logger.Information($"END: {nameof(CreateProductsCommandHandler)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(CreateProductsCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         if (isSuccess)
         {
             return new ApiResponse()

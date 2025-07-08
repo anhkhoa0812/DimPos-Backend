@@ -7,6 +7,7 @@ using DimPos.Identity.Domain.Entities;
 using DimPos.Identity.Domain.Enum;
 using DimPos.Identity.Domain.Models.Settings;
 using DimPos.Identity.Infrastructure.Configurations;
+using DimPos.Identity.Infrastructure.Utils;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -25,7 +26,7 @@ public class AuthenticationService : IAuthenticationService
     {
         var tokenhandler = new JwtSecurityTokenHandler();
         var tokenkey = Encoding.UTF8.GetBytes(_jwtSettings.SecurityKey!);
-        var timeExpire = DateTime.UtcNow.AddDays((double)_jwtSettings.TokenExpiry!);
+        var timeExpire = TimeUtil.GetCurrentSEATime().AddDays((double)_jwtSettings.TokenExpiry!);
         var tokenDescriptor = new SecurityTokenDescriptor()
         {
             Subject = new ClaimsIdentity(

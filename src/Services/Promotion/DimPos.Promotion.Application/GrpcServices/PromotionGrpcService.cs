@@ -5,6 +5,7 @@ using DimPos.Promotion.Domain.Enums;
 using DimPos.Promotion.Domain.Models.PromotionRules;
 using DimPos.Promotion.Infrastructure.Persistence;
 using DimPos.Promotion.Infrastructure.Repositories.Interface;
+using DimPos.Promotion.Infrastructure.Utils;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,7 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
     
     public override async Task<GetPromotionForOrderResponse> GetPromotionForOrder(GetPromotionForOrderRequest request, ServerCallContext context)
     {
-        _logger.Information($"BEGIN: {nameof(GetPromotionForOrder)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(GetPromotionForOrder)} - {TimeUtil.GetCurrentSEATime()}");
         
         var promotionRules = await _unitOfWork.GetRepository<PromotionRules>().GetListAsync(
             predicate: x => x.CampaignRuleLinks.Any(x => x.Campaign.Status == ECampaignsStatus.Active
@@ -309,7 +310,7 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
             response.Promotions.Add(appliedPromotionDetail);
         }
         
-        _logger.Information($"END: {nameof(GetPromotionForOrder)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(GetPromotionForOrder)} - {TimeUtil.GetCurrentSEATime()}");
         return response;
     }
 }

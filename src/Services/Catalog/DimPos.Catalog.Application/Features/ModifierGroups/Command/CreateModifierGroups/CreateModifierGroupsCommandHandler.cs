@@ -5,6 +5,7 @@ using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
+using DimPos.Catalog.Infrastructure.Utils;
 using Mediator;
 
 namespace DimPos.Catalog.Application.Features.ModifierGroups.Command.CreateModifierGroups;
@@ -23,7 +24,7 @@ public class CreateModifierGroupsCommandHandler : IRequestHandler<CreateModifier
     }
     public async ValueTask<ApiResponse> Handle(CreateModifierGroupsCommand request, CancellationToken cancellationToken)
     {
-        _logger.Information($"BEGIN: {nameof(CreateModifierGroupsCommandHandler)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(CreateModifierGroupsCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
@@ -49,7 +50,7 @@ public class CreateModifierGroupsCommandHandler : IRequestHandler<CreateModifier
 
         await _unitOfWork.GetRepository<Domain.Entities.ModifierGroups>().InsertAsync(modifierGroup);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        _logger.Information($"END: {nameof(CreateModifierGroupsCommandHandler)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(CreateModifierGroupsCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         if (isSuccess)
         {
             return new ApiResponse()

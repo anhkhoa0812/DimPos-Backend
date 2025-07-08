@@ -65,15 +65,10 @@ public class GetProductVariantsByMenuQueryHandler : IRequestHandler<GetProductVa
                 Name = productVariantGrpcResponse.Name,
                 Price = (decimal) productVariantGrpcResponse.Price,
                 Code = productVariantGrpcResponse.Code,
-                AlternativeCode = productVariantGrpcResponse.AlternativeCode,
-                DiscountPercent = (decimal) productVariantGrpcResponse.DiscountPercent,
-                DiscountPrice = (decimal) productVariantGrpcResponse.DiscountPrice,
-                PriceCOGS = (decimal) productVariantGrpcResponse.PriceCOGS,
+                Description = productVariantGrpcResponse.Description,
                 IsActive = productVariantGrpcResponse.IsActive,
                 Size = productVariantGrpcResponse.Size,
                 DisplayOrder =  productVariantGrpcResponse.DisplayOrder,
-                IsMenuDisplay = productVariantGrpcResponse.IsMenuDisplay,
-                Status = (EProductVariantStatus) productVariantGrpcResponse.Status,
                 Sku = productVariantGrpcResponse.Sku 
             });
         }

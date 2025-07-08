@@ -1,5 +1,6 @@
 using DimPos.Payment.Domain.Entities;
 using DimPos.Payment.Domain.Entities.Common.Interface;
+using DimPos.Payment.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Payment.Infrastructure.Persistence;
@@ -34,7 +35,7 @@ public class PaymentContext : DbContext
                     case EntityState.Added:
                         if (item.Entity is IDateTracking addedEntity)
                         {
-                            addedEntity.CreatedDate = DateTime.UtcNow;
+                            addedEntity.CreatedDate = TimeUtil.GetCurrentSEATime();
                             item.State = EntityState.Added;
                         }
 
@@ -43,7 +44,7 @@ public class PaymentContext : DbContext
                         if (item.Entity is IDateTracking modifiedEntity)
                         {
                             Entry(item.Entity).Property("Id").IsModified = false;
-                            modifiedEntity.LastModifiedDate = DateTime.UtcNow;
+                            modifiedEntity.LastModifiedDate = TimeUtil.GetCurrentSEATime();
                             item.State = EntityState.Modified;
                         }
 

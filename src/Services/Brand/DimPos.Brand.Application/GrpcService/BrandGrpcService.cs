@@ -2,6 +2,7 @@ using DimPos.Brand.Application.Common.Protos;
 using DimPos.Brand.Domain.Entities;
 using DimPos.Brand.Infrastructure.Persistence;
 using DimPos.Brand.Infrastructure.Repositories.Interface;
+using DimPos.Brand.Infrastructure.Utils;
 using Grpc.Core;
 
 namespace DimPos.Brand.Application.GrpcService;
@@ -21,7 +22,7 @@ public class BrandGrpcService : Common.Protos.BrandGrpcService.BrandGrpcServiceB
 
     public override async Task<GetBrandIdByAccountIdResponse> GetBrandIdByAccountId(GetBrandIdByAccountIdRequest request, ServerCallContext context)
     {
-        _logger.Information($"BEGIN: {nameof(GetBrandIdByAccountId)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(GetBrandIdByAccountId)} - {TimeUtil.GetCurrentSEATime()}");
         var accountId = Guid.Parse(request.AccountId);
 
         var brandAccount = await _unitOfWork.GetRepository<BrandAccounts>().SingleOrDefaultAsync(

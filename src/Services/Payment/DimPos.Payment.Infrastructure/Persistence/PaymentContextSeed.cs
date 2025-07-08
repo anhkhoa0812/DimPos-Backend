@@ -1,5 +1,6 @@
 using DimPos.Payment.Domain.Entities;
 using DimPos.Payment.Domain.Enums;
+using DimPos.Payment.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Payment.Infrastructure.Persistence;
@@ -57,7 +58,7 @@ public class PaymentContextSeed
                     ConfigurationSchema = "",
                     IsGloballyActive = true,
                     LogoUrl = "",
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = TimeUtil.GetCurrentSEATime()
                 },
                 new SystemPaymentMethods()
                 {
@@ -69,7 +70,7 @@ public class PaymentContextSeed
                     ConfigurationSchema = "",
                     IsGloballyActive = true,
                     LogoUrl = "",
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = TimeUtil.GetCurrentSEATime()
                 },
                 new SystemPaymentMethods()
                 {
@@ -81,7 +82,7 @@ public class PaymentContextSeed
                     ConfigurationSchema = "",
                     IsGloballyActive = true,
                     LogoUrl = "",
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = TimeUtil.GetCurrentSEATime()
                 },
                 new SystemPaymentMethods()
                 {
@@ -93,7 +94,7 @@ public class PaymentContextSeed
                     ConfigurationSchema = "",
                     IsGloballyActive = true,
                     LogoUrl = "",
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = TimeUtil.GetCurrentSEATime()
                 }
             );
         }

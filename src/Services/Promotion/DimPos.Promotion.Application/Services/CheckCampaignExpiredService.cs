@@ -10,7 +10,7 @@
 //     
 //     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 //     {
-//         logger.Information("CheckCampaignExpiredService running at: {Time}", DateTime.UtcNow);
+//         logger.Information("CheckCampaignExpiredService running at: {Time}", TimeUtil.GetCurrentSEATime());
 //         var now = DateTime.Now;
 //         var hours = 23 - now.Hour;
 //         var minutes = 59 - now.Minute;
@@ -24,7 +24,7 @@
 //             while (!stoppingToken.IsCancellationRequested)
 //             {
 //                 var expiredCampaigns = await unitOfWork.GetRepository<Campaigns>().GetListAsync(
-//                     predicate: x => DateTime.UtcNow > x.EndDate
+//                     predicate: x => TimeUtil.GetCurrentSEATime() > x.EndDate
 //                 );
 //                 foreach (var expiredCampaign in expiredCampaigns)
 //                 {
@@ -45,13 +45,13 @@
 //     
 //     public override Task StartAsync(CancellationToken cancellationToken)
 //     {
-//         logger.Warning("Worker STARTING: {Time}", DateTime.UtcNow);
+//         logger.Warning("Worker STARTING: {Time}", TimeUtil.GetCurrentSEATime());
 //         return base.StartAsync(cancellationToken);
 //     }
 //
 //     public override Task StopAsync(CancellationToken cancellationToken)
 //     {
-//         logger.Warning("Worker STOPPING: {Time}", DateTime.UtcNow);
+//         logger.Warning("Worker STOPPING: {Time}", TimeUtil.GetCurrentSEATime());
 //         return base.StopAsync(cancellationToken);
 //     }
 // }

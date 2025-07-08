@@ -39,15 +39,10 @@ public class GetProductVariantsQueryHandler : IRequestHandler<GetProductVariants
             {
                 Id = x.Id,
                 Code = x.Code,
-                AlternativeCode = x.AlternativeCode,
                 Name = x.Name,
-                DiscountPercent = x.DiscountPercent,
-                DiscountPrice = x.DiscountPrice,
+                Description = x.Description,
                 IsActive = x.IsActive,
                 Size = x.Size,
-                IsMenuDisplay = x.IsMenuDisplay, 
-                PriceCOGS = x.PriceCOGS,
-                Status = x.Status,
                 Sku = x.Sku
             },
             predicate: x => x.Product.BrandId == brandId &&

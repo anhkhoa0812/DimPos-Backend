@@ -80,17 +80,12 @@ public class GetBrandMenuByIdQueryHandler : IRequestHandler<GetBrandMenuByIdQuer
                     Id = Guid.Parse(x.Id),
                     Name = x.Name,
                     Price = (decimal)x.Price,
+                    Description = x.Description,
                     Code = x.Code,
-                    AlternativeCode = x.AlternativeCode,
-                    DiscountPercent = (decimal)x.DiscountPercent,
-                    DiscountPrice = (decimal)x.DiscountPrice,
-                    PriceCOGS = (decimal)x.PriceCOGS,
                     IsActive = x.IsActive,
                     Size = x.Size,
                     DisplayOrder = x.DisplayOrder,
-                    IsMenuDisplay = x.IsMenuDisplay,
-                    Status = (EProductVariantStatus)x.Status,
-                    Sku = x.Sku
+                    Sku = x.Sku,
                 }).ToList(),
             Stores = storesGrpcResponse.Stores.Select(store => new BrandMenuByIdResponseWithStore()
             {

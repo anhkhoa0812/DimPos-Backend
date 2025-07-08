@@ -1,3 +1,4 @@
+using DimPos.Order.Infrastructure.Utils;
 using FluentValidation;
 
 namespace DimPos.Order.Application.Features.Order.Command.CreateOrder;
@@ -12,7 +13,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
             .NotNull().WithMessage("Id của thương hiệu không được để trống.")
             .NotEmpty().WithMessage("Id của thương hiệu không được để trống.");
         RuleFor(x => x.PickupTime)
-            .GreaterThan(DateTime.UtcNow)
+            .GreaterThan(TimeUtil.GetCurrentSEATime())
             .WithMessage("Thời gian lấy hàng phải lớn hơn thời gian hiện tại.");
         
         RuleFor(x => x.Note)

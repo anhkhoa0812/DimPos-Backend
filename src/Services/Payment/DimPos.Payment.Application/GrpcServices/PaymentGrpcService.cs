@@ -5,6 +5,7 @@ using DimPos.Payment.Domain.Enums;
 using DimPos.Payment.Domain.Models.Payment;
 using DimPos.Payment.Infrastructure.Persistence;
 using DimPos.Payment.Infrastructure.Repositories.Interface;
+using DimPos.Payment.Infrastructure.Utils;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 
@@ -47,7 +48,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             Amount = Decimal.Parse(request.Amount),
             CurrencyCode = request.CurrencyCode,
             Description = request.Description != null ? request.Description : String.Empty,
-            TransactionTime = DateTime.UtcNow,
+            TransactionTime = TimeUtil.GetCurrentSEATime(),
             SystemPaymentMethodTypeId = systemPaymentMethod.Id
         };
         string? qrPaymentUrl = String.Empty;

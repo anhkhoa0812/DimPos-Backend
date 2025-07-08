@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
+using DimPos.Catalog.Infrastructure.Utils;
 using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
 
@@ -52,7 +53,7 @@ public class AddStorePriceRequestConsumer : IConsumer<AddStorePriceRequestModel>
                     CurrencyCode = "VND",
                     OverridePrice = brandPrice.Price,
                     IsActiveAtStore = true,
-                    EffectiveFrom = DateTime.UtcNow,
+                    EffectiveFrom = TimeUtil.GetCurrentSEATime(),
                     StorePriceHistories = new List<StorePriceHistory>()
                     {
                         new()
@@ -61,7 +62,7 @@ public class AddStorePriceRequestConsumer : IConsumer<AddStorePriceRequestModel>
                             CurrencyCode = "VND",
                             NewPrice = brandPrice.Price,
                             OldPrice = 0,
-                            ChangedAt = DateTime.UtcNow,
+                            ChangedAt = TimeUtil.GetCurrentSEATime(),
                             ChangedBy = context.Message.BrandId,
                             StoreId = storePriceRequest.StoreId,
                             ProductVariantId = storePriceRequest.ProductVariantId,
