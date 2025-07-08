@@ -1,5 +1,6 @@
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Entities;
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
@@ -29,7 +30,8 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
         if(brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy thông tin thương hiệu trong yêu cầu.");
         var productVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.ProductVariantId && x.Product.BrandId == brandId,
+            predicate: x => x.Id == request.ProductVariantId && x.Product.BrandId == brandId
+            && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(p => p.Product)
         );
         if(productVariant == null)

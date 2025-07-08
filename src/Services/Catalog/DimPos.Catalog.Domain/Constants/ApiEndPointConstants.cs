@@ -32,4 +32,8 @@ public static class ApiEndPointConstants
     {
         public const string IngredientsEndpoint = ApiEndpoint + "/ingredients";
     }
+    public static class InternalProducts
+    {
+        public const string InternalProductsEndpoint = ApiEndpoint + "/internal-products";
+    }
 }

@@ -1,6 +1,7 @@
 using System.Net;
 using DimPos.Catalog.Application.Common.Mapper;
 using DimPos.Catalog.Application.Services.Interface;
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Domain.Models.ProductVariants;
 using DimPos.Catalog.Infrastructure.Persistence;
@@ -32,7 +33,8 @@ public class GetProductProductVariantsByIdQueryHandler : IRequestHandler<GetProd
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
 
         var productVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.ProductVariantId && x.Product.BrandId == brandId,
+            predicate: x => x.Id == request.ProductVariantId && x.Product.BrandId == brandId
+            && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
         );
         if (productVariant == null)

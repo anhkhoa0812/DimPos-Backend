@@ -1,6 +1,7 @@
 using DimPos.Catalog.Application.Common.Exceptions;
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Entities;
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories;
@@ -33,7 +34,8 @@ public class UpdateProductsCommandHandler : IRequestHandler<UpdateProductsComman
         if(brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy thông tin thương hiệu trong yêu cầu.");
         var product = await _unitOfWork.GetRepository<Domain.Entities.Products>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.ProductId && x.BrandId == brandId,
+            predicate: x => x.Id == request.ProductId && x.BrandId == brandId
+            && x.Type == EProductType.CustomerOrder,
             include: x => x.Include(y => y.ProductImages)
         );
         if (product == null)
