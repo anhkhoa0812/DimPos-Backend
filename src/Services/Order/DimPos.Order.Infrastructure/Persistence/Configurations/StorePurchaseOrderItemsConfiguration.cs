@@ -21,8 +21,6 @@ public class StorePurchaseOrderItemsConfiguration : IEntityTypeConfiguration<Sto
             .IsRequired();
         builder.Property(spoi => spoi.Quantity)
             .IsRequired();
-        builder.Property(spoi => spoi.UnitOfMeasure)
-            .IsRequired();
         
         builder.HasOne(spoi => spoi.StorePurchaseOrder)
             .WithMany(spo => spo.StorePurchaseOrderItems)

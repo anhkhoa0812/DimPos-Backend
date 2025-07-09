@@ -10,4 +10,9 @@ public static class ApiEndpointConstants
     {
         public const string OrdersEndpoint = ApiEndpoint + "/orders";
     }
+
+    public static class StorePurchaseOrders
+    {
+        public const string StorePurchaseOrdersEndpoint = ApiEndpoint + "/store-purchase-orders";
+    }
 }

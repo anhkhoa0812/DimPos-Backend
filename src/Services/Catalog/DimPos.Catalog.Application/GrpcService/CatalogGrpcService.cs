@@ -361,6 +361,58 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         }
         return response;
     }
+
+    public override async Task<GetProductVariantForInternalOrderResponse> GetProductVariantForInternalOrder(GetProductVariantForInternalOrderRequest request, ServerCallContext context)
+    {
+        var brandId = Guid.Parse(request.BrandId);
+        var requestProductVariantIds = request.ProductVariantId
+            .Select(Guid.Parse)
+            .ToList();
+        var internalProductVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
+            predicate: x => requestProductVariantIds.Contains(x.Id)
+                            && x.Product.BrandId == brandId
+                            && x.Product.Type == EProductType.InternalOrder
+                            && x.IsActive == true && x.Product.Status == EProductStatus.Active 
+                            && x.RecipeItems != null && x.RecipeItems.Any(),
+            include: x => 
+                x.Include(x => x.Product)
+                    .Include(x => x.RecipeItems.Where(x => x.IsActive && x.Ingredient.IsActive))
+                    .ThenInclude(x => x.Ingredient)
+        );
+        if (internalProductVariants.Count != request.ProductVariantId.Count)
+        {
+            throw new RpcException( new Status(StatusCode.NotFound,
+                "Một hoặc nhiều Product Variant không tồn tại hoặc không hợp lệ."));
+        }
+        
+        var response = internalProductVariants.Select(x => new ProductVariantForInternalOrder()
+        {
+            ProductVariantId = x.Id.ToString(),
+            ProductVariantName = x.Name.ToString(),
+            ProductVariantPrice = (float)x.Price,
+            RecipeItems =
+            {
+                x.RecipeItems?.Select(x => new RecipeItemsForInternalOrder()
+                {
+                    Id = x.Id.ToString(),
+                    IngredientId = x.IngredientId.ToString(),
+                    Ingredient = new IngredientForInternalOrder()
+                    {
+                        Id = x.Ingredient.Id.ToString(),
+                        Name = x.Ingredient.Name,
+                        Sku = x.Ingredient.Sku ?? String.Empty,
+                        UnitOfMeasure = x.Ingredient.MeasureUnit,
+                        Description = x.Ingredient.Description ?? String.Empty
+                    }
+                }).ToList()
+            }
+        }).ToList();
+
+        return new GetProductVariantForInternalOrderResponse()
+        {
+            ProductVariants = { response }
+        };
+    }
     // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     // {
     //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();

@@ -218,4 +218,15 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
         };
 
     }
+
+    public override async Task<GetBrandIdByStoreIdResponse> GetBrandIdByStoreId(GetBrandIdByStoreIdRequest request, ServerCallContext context)
+    {
+        var store = await _unitOfWork.GetRepository<Domain.Entities.Store>().SingleOrDefaultAsync(
+            predicate: x => x.Id == Guid.Parse(request.StoreId)
+        );
+        return new GetBrandIdByStoreIdResponse()
+        {
+            BrandId = store.BrandId.ToString()
+        };
+    }
 }
