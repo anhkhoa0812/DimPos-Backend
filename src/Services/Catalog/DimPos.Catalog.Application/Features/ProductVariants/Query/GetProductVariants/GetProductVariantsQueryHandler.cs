@@ -1,6 +1,7 @@
 using System.Net;
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Entities;
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Domain.Models.ProductVariants;
 using DimPos.Catalog.Infrastructure.Persistence;
@@ -46,6 +47,7 @@ public class GetProductVariantsQueryHandler : IRequestHandler<GetProductVariants
                 Sku = x.Sku
             },
             predicate: x => x.Product.BrandId == brandId &&
+                            x.Product.Type == EProductType.CustomerOrder &&
                             (request.Name == null || x.Name.Contains(request.Name)) && 
                             (request.Sku == null || x.Sku.Contains(request.Sku)),
             page: request.Page,

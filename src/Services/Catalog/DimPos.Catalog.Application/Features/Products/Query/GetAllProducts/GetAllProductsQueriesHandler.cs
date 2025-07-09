@@ -1,6 +1,7 @@
 using System.Net;
 using DimPos.Catalog.Application.Common.Mapper;
 using DimPos.Catalog.Application.Services.Interface;
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Domain.Models.Product;
 using DimPos.Catalog.Infrastructure.Persistence;
@@ -57,6 +58,7 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
                 }).ToList()
             },
             predicate: x => x.BrandId == brandId && 
+                            x.Type == EProductType.CustomerOrder &&
                            (request.Status == null || x.Status == request.Status) &&
                            (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)) &&
                            (request.IsHasVariants == null || x.IsHasVariants == request.IsHasVariants),

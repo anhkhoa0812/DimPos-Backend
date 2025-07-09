@@ -38,6 +38,13 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         {
             throw new BadHttpRequestException("Không tìm thấy brandId");
         }
+        
+        var accountId = _claimService.GetCurrentUserId;
+        if (accountId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy accountId");
+        }
+        
         var product = ProductMapper.ToProducts(request);
         product.Id = Guid.CreateVersion7();
         product.ProductVariants = new List<Domain.Entities.ProductVariants>();
@@ -93,7 +100,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                             OldPrice = 0,
                             NewPrice = productVariant.BrandPrice,
                             ChangedAt = TimeUtil.GetCurrentSEATime(),
-                            ChangedBy = brandId,
+                            ChangedBy = accountId,
                             ProductVariantId = productVariants.Id
                         }
                     }

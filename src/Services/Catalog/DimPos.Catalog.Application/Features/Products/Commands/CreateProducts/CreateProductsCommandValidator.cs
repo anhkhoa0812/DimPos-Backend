@@ -18,7 +18,6 @@ public class CreateProductsCommandValidator : AbstractValidator<CreateProductsCo
             .MaximumLength(200).WithMessage("Tên của sản phẩm không được vượt quá 200 ký tự");
         
         RuleFor(p => p.Description)
-            .NotEmpty().WithMessage("Mô tả của sản phẩm không được bỏ trống")
             .MinimumLength(1).WithMessage("Mô tả của sản phẩm phải có ít nhất 1 ký tự")
             .MaximumLength(1000).WithMessage("Mô tả của sản phẩm không được vượt quá 1000 ký tự");
         RuleFor(p => p.Sku)
