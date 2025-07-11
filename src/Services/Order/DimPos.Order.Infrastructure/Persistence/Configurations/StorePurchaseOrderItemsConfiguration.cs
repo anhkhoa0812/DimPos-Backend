@@ -19,7 +19,7 @@ public class StorePurchaseOrderItemsConfiguration : IEntityTypeConfiguration<Sto
             .IsRequired();
         builder.Property(spoi => spoi.TotalPriceOfOrderItems)
             .IsRequired();
-        builder.Property(spoi => spoi.Quantity)
+        builder.Property(spoi => spoi.RequestedQuantity)
             .IsRequired();
         
         builder.HasOne(spoi => spoi.StorePurchaseOrder)

@@ -4,6 +4,7 @@ using DimPos.Order.Application.Common.Utils;
 using DimPos.Order.Application.Features.Order.Command.CreateOrder;
 using DimPos.Order.Application.Features.Order.Command.UpdatePaymentMethod;
 using DimPos.Order.Application.Features.StorePurchaseOrder.Command.CreateStorePurchaseOrder;
+using DimPos.Order.Application.Features.StorePurchaseOrder.Command.UpdateStorePurchaseOrder;
 using DimPos.Order.Application.Services.Implement;
 using DimPos.Order.Application.Services.Interface;
 using DimPos.Order.Domain.Models.Settings;
@@ -30,12 +31,14 @@ public static class ConfigureServices
         services.AddScoped<IValidator<CreateOrderCommand>, CreateOrderCommandValidator>();
         services.AddScoped<IValidator<UpdatePaymentMethodCommand>, UpdatePaymentMethodCommandValidator>();
         services.AddScoped<IValidator<CreateStorePurchaseOrderCommand>, CreateStorePurchaseOrderCommandValidator>();
+        services.AddScoped<IValidator<UpdateStorePurchaseOrderCommand>, UpdateStorePurchaseOrderCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;
         });
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();
+        services.AddCustomKafka(configuration);
         services.AddGrpcServices(configuration);
         services.AddHealthChecks();
         return services;

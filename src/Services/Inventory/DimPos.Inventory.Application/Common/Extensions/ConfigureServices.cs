@@ -24,6 +24,7 @@ public static class ConfigureServices
         });
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();
+        services.AddCustomKafka(configuration);
         services.AddHealthChecks();
         return services;
     }

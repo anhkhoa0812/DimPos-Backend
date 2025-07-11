@@ -1,7 +1,9 @@
 using Carter;
 using DimPos.Order.Application.Common.Utils;
 using DimPos.Order.Application.Features.StorePurchaseOrder.Command.CreateStorePurchaseOrder;
+using DimPos.Order.Application.Features.StorePurchaseOrder.Command.UpdateStorePurchaseOrder;
 using DimPos.Order.Application.Features.StorePurchaseOrder.Query.GetStorePurchaseOrder;
+using DimPos.Order.Application.Features.StorePurchaseOrder.Query.GetStorePurchaseOrderById;
 using DimPos.Order.Domain.Constants;
 using DimPos.Order.Domain.Models.Common;
 using DimPos.Order.Domain.Models.Response;
@@ -30,6 +32,22 @@ public class StorePurchaseOrderEndpoints : ICarterModule
             .WithName(nameof(GetStorePurchaseOrders))
             .RequireAuthorization("BrandAndStorePolicy")
             .Produces<ApiResponse<IPaginate<GetStorePurchaseOrderResponse>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("{id:guid}", GetStorePurchaseOrderById)
+            .WithName(nameof(GetStorePurchaseOrderById))
+            .RequireAuthorization("BrandAndStorePolicy")
+            .Produces<ApiResponse<GetStorePurchaseOrderResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{id:guid}", UpdateStorePurchaseOrder)
+            .WithName(nameof(UpdateStorePurchaseOrder))
+            .RequireAuthorization("BrandAndStorePolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -64,4 +82,33 @@ public class StorePurchaseOrderEndpoints : ICarterModule
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }
-}
+    public async Task<IResult> GetStorePurchaseOrderById(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetStorePurchaseOrderByIdQuery()
+        {
+            StorePurchaseOrderId = id
+        };
+        
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> UpdateStorePurchaseOrder(IMediator mediator, [FromRoute] Guid id, [FromBody] UpdateStorePurchaseOrderRequest request,
+        ValidationUtil<UpdateStorePurchaseOrderCommand> validationUtil)
+    {
+        var command = new UpdateStorePurchaseOrderCommand()
+        {
+            StorePurchaseOrderId = id,
+            Status = request.Status,
+            CancellationReasonByBrand = request.CancellationReasonByBrand,
+            CancellationRequestReasonByStore = request.CancellationRequestReasonByStore,
+            StorePurchaseOrderItemRequests = request.StorePurchaseOrderItemRequests
+        };
+        var validationResult = await validationUtil.ValidateAsync(command);
+        if (!validationResult.IsValid)
+        {
+            return Results.BadRequest(validationResult.Response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+ }

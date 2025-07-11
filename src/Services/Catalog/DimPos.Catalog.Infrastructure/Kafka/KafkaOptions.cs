@@ -16,4 +16,7 @@ public sealed record Topics
     public string RemoveStorePriceRequest { get; set; } = default!;
     public string RemoveStorePriceResponse { get; set; } = default!;
     public string RemoveStorePriceError { get; set; } = default!;
+    public string GetIngredientDetailsRequest { get; set; } = default!;
+    public string GetIngredientDetailsResponse { get; set; } = default!;
+    public string UpdateInventoryForInternalOrderErrorResponse { get; set; } = default!;
 }

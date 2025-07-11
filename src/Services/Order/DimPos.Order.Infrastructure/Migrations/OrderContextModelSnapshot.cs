@@ -247,10 +247,7 @@ namespace DimPos.Order.Infrastructure.Migrations
                     b.Property<decimal>("ProductVariantPriceSnapshot")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("ReceivedQuantityByStore")
+                    b.Property<decimal>("RequestedQuantity")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("StorePurchaseOrderId")

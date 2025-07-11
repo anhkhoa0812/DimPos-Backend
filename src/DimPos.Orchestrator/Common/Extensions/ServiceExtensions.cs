@@ -4,6 +4,7 @@ using DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga;
 using DimPos.Orchestrator.SagaState.Brands.CreateStoreSaga;
 using DimPos.Orchestrator.SagaState.StoreMenu.AssignNewStoreMenu;
 using DimPos.Orchestrator.SagaState.StoreMenu.RemoveStoreMenu;
+using DimPos.Orchestrator.SagaState.StorePurchaseOrder.UpdateInventoryForStorePurchaseOrder;
 using DimPos.Orchestrator.SagaState.Stores.CreateStaffSaga;
 using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
@@ -11,6 +12,7 @@ using SharedProject.Events.Brand;
 using SharedProject.Events.RemoveMenuForStore;
 using SharedProject.Events.Store.CreateStaff;
 using SharedProject.Events.Store.CreateStore;
+using SharedProject.Events.UpdateInventoryForInternalOrder;
 
 namespace DimPos.Orchestrator.Common.Extensions;
 
@@ -40,6 +42,9 @@ public static class ServiceExtensions
                     .AddSagaStateMachine<RemoveStoreMenuStateMachine, RemoveStoreMenuSagaState>().InMemoryRepository();
                 rider
                     .AddSagaStateMachine<CreateStaffSagaStateMachine, CreateStaffSagaState>().InMemoryRepository();
+                rider
+                    .AddSagaStateMachine<UpdateInventoryForStorePurchaseOrderStateMachine,
+                        UpdateInventoryForStorePurchaseOrderSagaState>().InMemoryRepository();
                 //Add Producers
                 rider.AddProducer<Null, CreateBrandAccountModel>(kafkaOptions!.Topics.CreateBrandAccountRequest);
                 rider.AddProducer<Null, RollbackBrandAccountModel>(kafkaOptions!.Topics.RollbackBrandAccountRequest);
@@ -51,6 +56,11 @@ public static class ServiceExtensions
                 rider.AddProducer<Null, RollbackRemoveStoreMenuModel>(kafkaOptions!.Topics.RollbackRemoveStoreMenuRequest);
                 rider.AddProducer<Null, CreateStaffAccountRequestModel>(kafkaOptions!.Topics.CreateStaffAccountRequest);
                 rider.AddProducer<Null, RollbackStaffStoreAccountRequestModel>(kafkaOptions!.Topics.RollbackStaffStoreAccountRequest);
+                rider.AddProducer<Null, GetIngredientDetailsRequestModel>(kafkaOptions!.Topics.GetIngredientDetailsRequest);
+                rider.AddProducer<Null, UpdateInventoryForInternalOrderRequestModel>(kafkaOptions.Topics
+                    .UpdateInventoryForInternalOrderRequest);
+                rider.AddProducer<Null, ChangeErrorStatusForStorePurchaseOrderRequestModel>(
+                    kafkaOptions.Topics.ChangeErrorStatusForStorePurchaseOrderRequest);
                 rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {
                     //Create Brand account
@@ -224,6 +234,51 @@ public static class ServiceExtensions
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();
                         });  
+                    //Update Inventory for Store Purchase Order
+                    kafkaConfig.TopicEndpoint<Null, InternalOrderDoneByStoreResponseModel>(
+                        topicName: kafkaOptions!.Topics.InternalOrderDoneByStoreResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateInventoryForStorePurchaseOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, GetIngredientDetailsResponseModel>(
+                        topicName: kafkaOptions!.Topics.GetIngredientDetailsResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateInventoryForStorePurchaseOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateInventoryForInternalOrderErrorModel>(
+                        topicName: kafkaOptions!.Topics.UpdateInventoryForInternalOrderError,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateInventoryForStorePurchaseOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateInventoryForInternalOrderResponseModel>(
+                        topicName: kafkaOptions!.Topics.UpdateInventoryForInternalOrderResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateInventoryForStorePurchaseOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
                 });
             });
         });

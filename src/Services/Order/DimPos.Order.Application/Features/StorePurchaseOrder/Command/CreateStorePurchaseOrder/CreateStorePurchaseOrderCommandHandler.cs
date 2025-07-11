@@ -79,9 +79,9 @@ public class CreateStorePurchaseOrderCommandHandler : IRequestHandler<CreateStor
                 StorePurchaseOrderId = storePurchaseOrder.Id,
                 ProductVariantIdSnapshot = Guid.Parse(productVariant.ProductVariantId),
                 ProductVariantNameSnapshot = productVariant.ProductVariantName,
-                Quantity = requestProductVariant.Quantity,
+                RequestedQuantity = requestProductVariant.RequestedQuantity,
                 ProductVariantPriceSnapshot = (decimal) productVariant.ProductVariantPrice,
-                TotalPriceOfOrderItems = requestProductVariant.Quantity * (decimal) productVariant.ProductVariantPrice,
+                TotalPriceOfOrderItems = requestProductVariant.RequestedQuantity * (decimal) productVariant.ProductVariantPrice,
             };
             
             storePurchaseOrder.StorePurchaseOrderItems.Add(storePurchaseOrderItem);

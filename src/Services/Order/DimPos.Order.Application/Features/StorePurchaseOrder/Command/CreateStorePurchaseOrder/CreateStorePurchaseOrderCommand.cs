@@ -12,5 +12,5 @@ public class CreateStorePurchaseOrderCommand : IRequest<ApiResponse>
 public class CreateStorePurchaseOrderItemRequest
 {
     public Guid ProductVariantId { get; set; }
-    public decimal Quantity { get; set; }
+    public decimal RequestedQuantity { get; set; }
 }

@@ -35,4 +35,11 @@ public sealed record Topics
     public string CreateStaffAccountResponse { get; set; } = default!;
     public string CreateStaffAccountError { get; set; } = default!;
     public string RollbackStaffStoreAccountRequest { get; set; } = default!;
+    public string InternalOrderDoneByStoreResponse { get; set; } = default!;
+    public string GetIngredientDetailsRequest { get; set; } = default!;
+    public string GetIngredientDetailsResponse { get; set; } = default!;
+    public string UpdateInventoryForInternalOrderError { get; set; } = default!;
+    public string UpdateInventoryForInternalOrderRequest { get; set; } = default!;
+    public string UpdateInventoryForInternalOrderResponse { get; set; } = default!;
+    public string ChangeErrorStatusForStorePurchaseOrderRequest { get; set; } = default!;
 }

@@ -9,11 +9,13 @@
     <ItemGroup>
       <ProjectReference Include="..\..\..\BuildingBlocks\DimPos.ServiceDefaults\DimPos.ServiceDefaults.csproj" />
       <ProjectReference Include="..\..\..\BuildingBlocks\Shared\Common.Logging\Common.Logging.csproj" />
+      <ProjectReference Include="..\..\..\BuildingBlocks\Shared\SharedProject\SharedProject.csproj" />
       <ProjectReference Include="..\DimPos.Order.Domain\DimPos.Order.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Carter" Version="8.2.0" />
+      <PackageReference Include="MassTransit.Kafka" Version="8.4.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
       <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
