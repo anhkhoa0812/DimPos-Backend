@@ -8,4 +8,5 @@ public enum EStorePurchaseOrderStatus
     DoneByStore = 3,
     CancelledByStore = 4,
     CancelledByBrand = 5,
+    ErrorWhenUpdatingInventory = 6,
 }

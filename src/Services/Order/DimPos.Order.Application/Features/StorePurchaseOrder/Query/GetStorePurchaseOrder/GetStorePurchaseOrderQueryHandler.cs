@@ -57,9 +57,8 @@ public class GetStorePurchaseOrderQueryHandler : IRequestHandler<GetStorePurchas
                         ProductVariantNameSnapshot = item.ProductVariantNameSnapshot,
                         ProductVariantPriceSnapshot = item.ProductVariantPriceSnapshot,
                         TotalPriceOfOrderItems = item.TotalPriceOfOrderItems,
-                        Quantity = item.Quantity,
+                        RequestedQuantity = item.RequestedQuantity,
                         ApprovedQuantityByBrand = item.ApprovedQuantityByBrand,
-                        ReceivedQuantityByStore = item.ReceivedQuantityByStore
                     }).ToList()
                 },
                 predicate: x => x.StoreId == storeId,
@@ -105,9 +104,8 @@ public class GetStorePurchaseOrderQueryHandler : IRequestHandler<GetStorePurchas
                         ProductVariantNameSnapshot = item.ProductVariantNameSnapshot,
                         ProductVariantPriceSnapshot = item.ProductVariantPriceSnapshot,
                         TotalPriceOfOrderItems = item.TotalPriceOfOrderItems,
-                        Quantity = item.Quantity,
+                        RequestedQuantity = item.RequestedQuantity,
                         ApprovedQuantityByBrand = item.ApprovedQuantityByBrand,
-                        ReceivedQuantityByStore = item.ReceivedQuantityByStore
                     }).ToList()
                 },
                 predicate: x => x.BrandId == brandId,

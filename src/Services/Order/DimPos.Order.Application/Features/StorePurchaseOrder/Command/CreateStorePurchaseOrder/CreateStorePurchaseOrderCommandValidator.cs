@@ -21,7 +21,7 @@ public class CreateStorePurchaseOrderItemRequestValidator : AbstractValidator<Cr
             .NotNull().WithMessage("Mã biến thể sản phẩm không được bỏ trống")
             .NotEqual(Guid.Empty).WithMessage("Mã biến thể sản phẩm không được là Guid.Empty");
         
-        RuleFor(x => x.Quantity)
+        RuleFor(x => x.RequestedQuantity)
             .GreaterThan(0).WithMessage("Số lượng phải lớn hơn 0")
             .NotNull().WithMessage("Số lượng không được bỏ trống")
             .NotEmpty().WithMessage("Số lượng không được bỏ trống");

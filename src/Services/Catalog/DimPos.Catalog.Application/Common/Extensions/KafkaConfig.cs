@@ -4,6 +4,7 @@ using DimPos.Catalog.Infrastructure.Kafka;
 using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
 using SharedProject.Events.RemoveMenuForStore;
+using SharedProject.Events.UpdateInventoryForInternalOrder;
 
 namespace DimPos.Catalog.Application.Common.Extensions;
 
@@ -29,9 +30,13 @@ public static class KafkaConfig
                 configureRider.AddProducer<Null, AddStorePriceErrorModel>(kafkaOptions!.Topics.AddStorePriceError);
                 configureRider.AddProducer<Null, RemoveStorePriceResponseModel>(kafkaOptions!.Topics.RemoveStorePriceResponse);
                 configureRider.AddProducer<Null, RemoveStorePriceErrorModel>(kafkaOptions!.Topics.RemoveStorePriceError);
+                configureRider.AddProducer<Null, GetIngredientDetailsResponseModel>(kafkaOptions!.Topics.GetIngredientDetailsResponse);
+                configureRider.AddProducer<Null, UpdateInventoryForInternalOrderErrorModel>(kafkaOptions!.Topics.UpdateInventoryForInternalOrderErrorResponse);
+                
                 
                 configureRider.AddConsumer<AddStorePriceRequestConsumer>();
                 configureRider.AddConsumer<RemoveStorePriceRequestConsumer>();
+                configureRider.AddConsumer<GetIngredientDetailsRequestConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, AddStorePriceRequestModel>(
@@ -52,6 +57,17 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<RemoveStorePriceRequestConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, GetIngredientDetailsRequestModel>(
+                        topicName: kafkaOptions!.Topics.GetIngredientDetailsRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<GetIngredientDetailsRequestConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();
