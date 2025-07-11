@@ -205,6 +205,10 @@ public class CreatePromotionRuleCommandHandler : IRequestHandler<CreatePromotion
                 {
                     throw new BadHttpRequestException("Đối với các hành động liên quan đến sản phẩm, cần cung cấp TargetCriteriaForItemAction.");
                 }
+                if (request.RuleActions.TargetCriteriaForItemAction.Count != 1)
+                {
+                    throw new BadHttpRequestException("Đối với hành động GiveFreeItemSku, TargetCriteriaForItemAction chỉ có thể chứa một sản phẩm.");
+                }
                 break;
             default:
                 throw new BadHttpRequestException("Loại hành động không hợp lệ");
