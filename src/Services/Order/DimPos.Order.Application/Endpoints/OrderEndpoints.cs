@@ -2,8 +2,8 @@ using Carter;
 using DimPos.Order.Application.Common.Utils;
 using DimPos.Order.Application.Features.Order.Command.CreateOrder;
 using DimPos.Order.Application.Features.Order.Command.UpdatePaymentMethod;
-using DimPos.Order.Application.Features.Order.Query.GetOrderByStore;
-using DimPos.Order.Application.Features.Order.Query.GetOrderWithIdByStore;
+using DimPos.Order.Application.Features.Order.Query.GetOrder;
+using DimPos.Order.Application.Features.Order.Query.GetOrderWithId;
 using DimPos.Order.Domain.Constants;
 using DimPos.Order.Domain.Enums;
 using DimPos.Order.Domain.Models.Common;
@@ -28,17 +28,17 @@ public class OrderEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapGet("", GetOrderByStore)
-            .WithName(nameof(GetOrderByStore))
-            .RequireAuthorization("StoreAndStaffPolicy")
+        group.MapGet("", GetOrder)
+            .WithName(nameof(GetOrder))
+            .RequireAuthorization("BrandAndStoreAndStaffPolicy")
             .Produces<ApiResponse<IPaginate<GetOrderByStoreResponse>>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapGet("{id:guid}", GetOrderWithIdByStore)
-            .WithName(nameof(GetOrderWithIdByStore))
-            .RequireAuthorization("StoreAndStaffPolicy")
+        group.MapGet("{id:guid}", GetOrderWithId)
+            .WithName(nameof(GetOrderWithId))
+            .RequireAuthorization("BrandAndStoreAndStaffPolicy")
             .Produces<ApiResponse<GetOrderWithIdByStoreResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
@@ -65,11 +65,11 @@ public class OrderEndpoints : ICarterModule
         var apiResponse = await mediator.Send(command);
         return Results.Created($"{ApiEndpointConstants.Orders.OrdersEndpoint}", apiResponse);
     }
-    public async Task<IResult> GetOrderByStore(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int pageSize = 30,
+    public async Task<IResult> GetOrder(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int pageSize = 30,
         [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,
         [FromQuery] EOrderStatus? status = null, [FromQuery] EOrderType? type = null)
     {
-        var query = new GetOrderByStoreQuery()
+        var query = new GetOrderQuery()
         {
             Page = page,
             Size = pageSize,
@@ -81,9 +81,9 @@ public class OrderEndpoints : ICarterModule
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }
-    public async Task<IResult> GetOrderWithIdByStore(IMediator mediator, [FromRoute] Guid id)
+    public async Task<IResult> GetOrderWithId(IMediator mediator, [FromRoute] Guid id)
     {
-        var query = new GetOrderWithIdByStoreQuery()
+        var query = new GetOrderWithIdQuery()
         {
             OrderId = id
         };

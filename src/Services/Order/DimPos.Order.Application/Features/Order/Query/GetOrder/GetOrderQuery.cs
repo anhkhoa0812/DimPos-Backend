@@ -2,9 +2,9 @@ using DimPos.Order.Domain.Enums;
 using DimPos.Order.Domain.Models.Common;
 using Mediator;
 
-namespace DimPos.Order.Application.Features.Order.Query.GetOrderByStore;
+namespace DimPos.Order.Application.Features.Order.Query.GetOrder;
 
-public class GetOrderByStoreQuery : IRequest<ApiResponse>
+public class GetOrderQuery : IRequest<ApiResponse>
 {
     public int Page { get; set; }
     public int Size { get; set; }
