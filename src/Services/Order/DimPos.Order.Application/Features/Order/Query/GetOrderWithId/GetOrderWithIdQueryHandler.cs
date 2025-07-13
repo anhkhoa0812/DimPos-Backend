@@ -7,31 +7,29 @@ using DimPos.Order.Infrastructure.Repositories.Interface;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
-namespace DimPos.Order.Application.Features.Order.Query.GetOrderWithIdByStore;
+namespace DimPos.Order.Application.Features.Order.Query.GetOrderWithId;
 
-public class GetOrderWithIdByStoreQueryHandler : IRequestHandler<GetOrderWithIdByStoreQuery, ApiResponse>
+public class GetOrderWithIdQueryHandler : IRequestHandler<GetOrderWithIdQuery, ApiResponse>
 {
     private readonly IUnitOfWork<OrderContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     
-    public GetOrderWithIdByStoreQueryHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService)
+    public GetOrderWithIdQueryHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
     }
     
-    public async ValueTask<ApiResponse> Handle(GetOrderWithIdByStoreQuery request, CancellationToken cancellationToken)
+    public async ValueTask<ApiResponse> Handle(GetOrderWithIdQuery request, CancellationToken cancellationToken)
     {
         var storeId  = _claimService.GetStoreId ?? Guid.Empty;
-        if (storeId == Guid.Empty)
-        {
-            throw new BadHttpRequestException("Không tìm thấy thông tin cửa hàng");
-        }
-
+        var brandId = _claimService.GetBrandId ?? Guid.Empty;
         var order = await _unitOfWork.GetRepository<Orders>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.OrderId && x.StoreId == storeId,
+            predicate: x => x.Id == request.OrderId 
+                            && (storeId == Guid.Empty || x.StoreId == storeId) 
+                            && (brandId == Guid.Empty || x.BrandId == brandId),
             include: x => x.Include(x => x.OrderItems)
                 .Include(x => x.AppliedOrderPromotions)
                 .Include(x => x.AppliedTax)
