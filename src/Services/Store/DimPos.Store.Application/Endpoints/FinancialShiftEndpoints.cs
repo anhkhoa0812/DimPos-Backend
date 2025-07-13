@@ -1,8 +1,12 @@
 using Carter;
 using DimPos.Store.Application.Common.Utils;
 using DimPos.Store.Application.Features.FinancialShift.Command.OpenFinancialShift;
+using DimPos.Store.Application.Features.FinancialShift.Query.GetFinancialShiftById;
+using DimPos.Store.Application.Features.FinancialShift.Query.GetFinancialShifts;
 using DimPos.Store.Domain.Constants;
 using DimPos.Store.Domain.Models.Common;
+using DimPos.Store.Domain.Models.Response;
+using DimPos.Store.Infrastructure.Paginate.Interface;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +26,22 @@ public class FinancialShiftEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("", GetFinancialShifts)
+            .WithName(nameof(GetFinancialShifts))
+            .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse<IPaginate<GetFinancialShiftsResponse>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/{id:guid}", GetFinancialShiftById)
+            .WithName(nameof(GetFinancialShiftById))
+            .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse<GetFinancialShiftByIdResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> OpenFinancialShift(IMediator mediator, [FromBody] OpenFinancialShiftCommand command,
@@ -34,5 +54,31 @@ public class FinancialShiftEndpoints : ICarterModule
         }
         var result = await mediator.Send(command);
         return Results.Created($"{ApiEndpointConstant.FinancialShift.FinancialShiftEndpoint}/open", result);
+    }
+
+    public async Task<IResult> GetFinancialShifts(IMediator mediator, [FromQuery] int page = 1,
+        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var query = new GetFinancialShiftsQuery()
+        {
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    
+    public async Task<IResult> GetFinancialShiftById(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetFinancialShiftByIdQuery
+        {
+
+            FinancialShiftId = id
+        };
+        var apiResponse = await mediator.Send(query);
+        
+        return Results.Ok(apiResponse);
     }
 }

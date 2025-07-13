@@ -2,10 +2,13 @@ using Carter;
 using DimPos.Store.Application.Common.Utils;
 using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
+using DimPos.Store.Application.Features.Stores.Query.GetStoresByBrand;
 using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
 using DimPos.Store.Application.Features.TaxRate.Command.UpdateTaxRate;
 using DimPos.Store.Domain.Constants;
 using DimPos.Store.Domain.Models.Common;
+using DimPos.Store.Domain.Models.Response;
+using DimPos.Store.Infrastructure.Paginate.Interface;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +47,14 @@ public class StoreEndpoints : ICarterModule
             .RequireAuthorization("BrandPolicy")
             .WithName(nameof(UpdateTaxRateForStore))
             .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("", GetStoresByBrand)
+            .WithName(nameof(GetStoresByBrand))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<IPaginate<GetStoresByBrandResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -107,5 +118,19 @@ public class StoreEndpoints : ICarterModule
         }
         var result = await mediator.Send(command);
         return Results.Ok(result);
+    }
+
+    public async Task<IResult> GetStoresByBrand(IMediator mediator, [FromQuery] int page = 1,
+        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var query = new GetStoresByBrandQuery()
+        {
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
     }
 }
