@@ -1,9 +1,13 @@
 using Carter;
 using DimPos.Promotion.Application.Common.Utils;
 using DimPos.Promotion.Application.Features.PromotionRule.Command.CreatePromotionRule;
+using DimPos.Promotion.Application.Features.PromotionRule.Command.UpdatePromotionRule;
 using DimPos.Promotion.Application.Features.PromotionRule.Query.GetPromotionRuleByCart;
 using DimPos.Promotion.Application.Features.PromotionRule.Query.GetPromotionRuleById;
 using DimPos.Promotion.Application.Features.PromotionRule.Query.GetPromotionRules;
+using DimPos.Promotion.Application.Features.RuleAction.Command.UpdateRuleAction;
+using DimPos.Promotion.Application.Features.RuleCondition.Command.RemoveRuleCondition;
+using DimPos.Promotion.Application.Features.RuleCondition.Command.UpdateRuleCondition;
 using DimPos.Promotion.Domain.Constants;
 using DimPos.Promotion.Domain.Models.Common;
 using DimPos.Promotion.Domain.Models.PromotionRules;
@@ -47,6 +51,42 @@ public class PromotionRuleEndpoints : ICarterModule
             .RequireAuthorization("BrandPolicy")
             .WithName(nameof(GetPromotionRuleById))
             .Produces<GetPromotionRuleByIdResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("{id:guid}", UpdatePromotionRule)
+            .DisableAntiforgery()
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(UpdatePromotionRule))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{promotionRuleId}:guid/rule-conditions/{ruleConditionId:guid}", UpdateRuleCondition)
+            .DisableAntiforgery()
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(UpdateRuleCondition))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapDelete("{promotionRuleId}:guid/rule-conditions/{ruleConditionId:guid}", RemoveRuleCondition)
+            .DisableAntiforgery()
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(RemoveRuleCondition))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{promotionRuleId:guid}/rule-actions/{ruleActionId:guid}", UpdateRuleAction)
+            .DisableAntiforgery()
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(UpdateRuleAction))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -95,6 +135,86 @@ public class PromotionRuleEndpoints : ICarterModule
             PromotionRuleId = id
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> UpdatePromotionRule(IMediator mediator, [FromRoute] Guid id, [FromBody] UpdatePromotionRuleRequest request,
+        ValidationUtil<UpdatePromotionRuleCommand> validationUtil)
+    {
+        var command = new UpdatePromotionRuleCommand()
+        { 
+            PromotionRuleId= id,
+            Name = request.Name,
+            Description = request.Description,
+            IsActive = request.IsActive,
+            Priority = request.Priority,
+            ShortDescription = request.ShortDescription
+        };
+        
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> UpdateRuleCondition(IMediator mediator, [FromRoute] Guid promotionRuleId,
+        [FromRoute] Guid ruleConditionId,
+        [FromBody] UpdateRuleConditionRequest request, ValidationUtil<UpdateRuleConditionCommand> validationUtil)
+    {
+        var command = new UpdateRuleConditionCommand()
+        {
+            PromotionRuleId = promotionRuleId,
+            RuleConditionId = ruleConditionId,
+            Operator = request.Operator,
+            Value = request.Value,
+        };
+        
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> RemoveRuleCondition(IMediator mediator, [FromRoute] Guid promotionRuleId, 
+        [FromRoute] Guid ruleConditionId)
+    {
+        var command = new RemoveRuleConditionCommand()
+        {
+            PromotionRuleId = promotionRuleId,
+            RuleConditionId = ruleConditionId
+        };
+        
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> UpdateRuleAction(IMediator mediator, [FromRoute] Guid promotionRuleId,
+        [FromRoute] Guid ruleActionId, [FromBody] UpdateRuleActionRequest request,
+        ValidationUtil<UpdateRuleActionCommand> validationUtil)
+    {
+        var command = new UpdateRuleActionCommand()
+        {
+            PromotionRuleId = promotionRuleId,
+            RuleActionId = ruleActionId,
+            Value = request.Value,
+            MaxDiscountAmountForPercentage = request.MaxDiscountAmountForPercentage,
+            TargetCriteriaForItemAction = request.TargetCriteriaForItemAction
+        };
+        
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }

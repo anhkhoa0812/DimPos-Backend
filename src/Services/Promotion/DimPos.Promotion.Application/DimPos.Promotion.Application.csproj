@@ -26,6 +26,8 @@
 
     <ItemGroup>
       <Folder Include="Features\CampaignStore\Query\" />
+      <Folder Include="Features\RuleAction\Query\" />
+      <Folder Include="Features\RuleCondition\Query\" />
     </ItemGroup>
     <ItemGroup>
         <None Remove="Common\Protos\promotion.proto" />
