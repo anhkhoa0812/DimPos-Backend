@@ -64,7 +64,7 @@ public class PromotionRuleEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapPut("{promotionRuleId}:guid/rule-conditions/{ruleConditionId:guid}", UpdateRuleCondition)
+        group.MapPut("{promotionRuleId:guid}/rule-conditions/{ruleConditionId:guid}", UpdateRuleCondition)
             .DisableAntiforgery()
             .RequireAuthorization("BrandPolicy")
             .WithName(nameof(UpdateRuleCondition))
@@ -73,7 +73,7 @@ public class PromotionRuleEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapDelete("{promotionRuleId}:guid/rule-conditions/{ruleConditionId:guid}", RemoveRuleCondition)
+        group.MapDelete("{promotionRuleId:guid}/rule-conditions/{ruleConditionId:guid}", RemoveRuleCondition)
             .DisableAntiforgery()
             .RequireAuthorization("BrandPolicy")
             .WithName(nameof(RemoveRuleCondition))

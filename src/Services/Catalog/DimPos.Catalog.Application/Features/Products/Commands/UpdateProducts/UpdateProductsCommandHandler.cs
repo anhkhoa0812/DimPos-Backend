@@ -126,7 +126,7 @@ public class UpdateProductsCommandHandler : IRequestHandler<UpdateProductsComman
                 if (productImage != null)
                 {
                     productImage.ImageUrl = imageResponse.ImageUrl;
-                    product.ProductImages?.Add(productImage);
+                    await _unitOfWork.GetRepository<ProductImages>().InsertAsync(productImage);
                 }
             }
         }
