@@ -2,6 +2,7 @@ using Carter;
 using DimPos.Store.Application.Common.Utils;
 using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
+using DimPos.Store.Application.Features.Stores.Query.GetStaffs;
 using DimPos.Store.Application.Features.Stores.Query.GetStoresByBrand;
 using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
 using DimPos.Store.Application.Features.TaxRate.Command.UpdateTaxRate;
@@ -55,6 +56,14 @@ public class StoreEndpoints : ICarterModule
             .WithName(nameof(GetStoresByBrand))
             .RequireAuthorization("BrandPolicy")
             .Produces<IPaginate<GetStoresByBrandResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/staffs", GetStaffs)
+            .WithName(nameof(GetStaffs))
+            .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse<List<GetStaffsResponse>>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -130,6 +139,13 @@ public class StoreEndpoints : ICarterModule
             SortBy = sortBy,
             IsAsc = isAsc
         };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> GetStaffs(IMediator mediator)
+    {
+        var query = new GetStaffsQuery();
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }

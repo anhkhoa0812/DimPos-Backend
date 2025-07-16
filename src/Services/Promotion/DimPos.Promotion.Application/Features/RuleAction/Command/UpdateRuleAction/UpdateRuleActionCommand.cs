@@ -16,7 +16,7 @@ public class UpdateRuleActionCommand : IRequest<ApiResponse>
 public class UpdateRuleActionRequest
 {
     public string Value { get; set; } = string.Empty;
-    public EActionType Type { get; set; }
+    public EActionType ActionType { get; set; }
 
     public List<Guid>? TargetCriteriaForItemAction { get; set; }
     public decimal? MaxDiscountAmountForPercentage { get; set; }

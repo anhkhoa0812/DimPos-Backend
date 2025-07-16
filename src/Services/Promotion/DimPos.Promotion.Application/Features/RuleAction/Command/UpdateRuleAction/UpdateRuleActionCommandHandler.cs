@@ -173,7 +173,7 @@ public class UpdateRuleActionCommandHandler : IRequestHandler<UpdateRuleActionCo
         {
             Status = StatusCodes.Status200OK,
             Message = "Cập nhật hành động quy tắc khuyến mãi thành công",
-            Data = null
+            Data = ruleAction.Id
         };
     }
 }

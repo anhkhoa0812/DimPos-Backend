@@ -1,0 +1,25 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Identity.Application.Common.Protos";
+
+service IdentityGrpcService {
+  rpc GetStaffDetail (GetStaffDetailRequest) returns (GetStaffDetailResponse);
+}
+message GetStaffDetailRequest {
+  repeated string accountId = 1;
+}
+message GetStaffDetailResponse {
+  repeated StaffDetail staffs = 1;
+}
+message StaffDetail {
+  string id = 1;
+  string code = 2;
+  string username = 3;
+  string email = 4;
+  AccountStatus status = 5;
+}
+enum AccountStatus {
+  Active = 0;
+  Inactive = 1;
+  Locked = 2;
+}

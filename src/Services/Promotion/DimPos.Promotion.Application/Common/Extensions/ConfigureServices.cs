@@ -6,6 +6,7 @@ using DimPos.Promotion.Application.Features.CampaignStore.Command;
 using DimPos.Promotion.Application.Features.PromotionRule.Command.CreatePromotionRule;
 using DimPos.Promotion.Application.Features.PromotionRule.Command.UpdatePromotionRule;
 using DimPos.Promotion.Application.Features.RuleAction.Command.UpdateRuleAction;
+using DimPos.Promotion.Application.Features.RuleCondition.Command.AddRuleCondition;
 using DimPos.Promotion.Application.Features.RuleCondition.Command.UpdateRuleCondition;
 using DimPos.Promotion.Application.Services.Implement;
 using DimPos.Promotion.Application.Services.Interface;
@@ -34,6 +35,7 @@ public static class ConfigureServices
         services.AddScoped<IValidator<UpdatePromotionRuleCommand>, UpdatePromotionRuleCommandValidator>();
         services.AddScoped<IValidator<UpdateRuleConditionCommand>, UpdateRuleConditionCommandValidator>();
         services.AddScoped<IValidator<UpdateRuleActionCommand>, UpdateRuleActionCommandValidator>();
+        services.AddScoped<IValidator<AddRuleConditionCommand>, AddRuleConditionCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

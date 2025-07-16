@@ -9,38 +9,42 @@ using DimPos.Promotion.Infrastructure.Repositories.Interface;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
-namespace DimPos.Promotion.Application.Features.RuleCondition.Command.UpdateRuleCondition;
+namespace DimPos.Promotion.Application.Features.RuleCondition.Command.AddRuleCondition;
 
-public class UpdateRuleConditionCommandHandler : IRequestHandler<UpdateRuleConditionCommand, ApiResponse>
+public class AddRuleConditionCommandHandler : IRequestHandler<AddRuleConditionCommand, ApiResponse>
 {
     private readonly IUnitOfWork<PromotionContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
-    
-    public UpdateRuleConditionCommandHandler(IUnitOfWork<PromotionContext> unitOfWork, ILogger logger, IClaimService claimService)
+
+    public AddRuleConditionCommandHandler(IUnitOfWork<PromotionContext> unitOfWork, ILogger logger,
+        IClaimService claimService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
     }
-     
-    public async ValueTask<ApiResponse> Handle(UpdateRuleConditionCommand request, CancellationToken cancellationToken)
+    
+    public async ValueTask<ApiResponse> Handle(AddRuleConditionCommand request, CancellationToken cancellationToken)
     {
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
-
-        var ruleCondition = await _unitOfWork.GetRepository<RuleConditions>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.RuleConditionId 
-            && x.PromotionRule.Id == request.PromotionRuleId 
-            && x.PromotionRule.BrandId == brandId,
-            include: x => x.Include(x => x.PromotionRule)
+        if(brandId == Guid.Empty)
+            throw new BadHttpRequestException("Không tìm thấy thông tin thương hiệu trong yêu cầu.");
+        
+        _logger.Information("BEGIN: AddRuleConditionCommandHandler.Handle - PromotionRuleId: {PromotionRuleId}, ConditionType: {ConditionType}, Operator: {Operator}, Value: {Value}", 
+            request.PromotionRuleId, request.ConditionType, request.Operator, request.Value);
+        
+        var existingRuleCondition = await _unitOfWork.GetRepository<RuleConditions>().GetListAsync(
+            predicate: x => x.PromotionRule.Id == request.PromotionRuleId &&
+                            x.PromotionRule.BrandId == brandId,
+            include: x => x.Include(y => y.PromotionRule)
         );
-
-        if (ruleCondition == null)
+        if (existingRuleCondition.Any(x => x.ConditionType == request.ConditionType))
         {
-            throw new BadHttpRequestException("Không tìm thấy điều kiện quy tắc khuyến mãi với ID đã cung cấp.");
+            throw new BadHttpRequestException("Điều kiện đã tồn tại trong quy tắc khuyến mãi.");
         }
 
-        switch (ruleCondition.ConditionType)
+        switch (request.ConditionType)
         {
             case EConditionType.MinCartValue:
                 if(request.Operator != EOperator.GreaterThan &&
@@ -48,6 +52,7 @@ public class UpdateRuleConditionCommandHandler : IRequestHandler<UpdateRuleCondi
                 {
                     throw new BadHttpRequestException("Đối với điều kiện MinCartValue, chỉ hỗ trợ GreaterThan hoặc GreaterThanOrEqual.");
                 }
+
                 if (!decimal.TryParse(request.Value, out var minCartValue))
                 {
                     throw new BadHttpRequestException("Giá trị của MinCartValue không hợp lệ");
@@ -66,7 +71,7 @@ public class UpdateRuleConditionCommandHandler : IRequestHandler<UpdateRuleCondi
                 }
                 List<Guid>? variantIds;
                 try
-                {
+                { 
                     variantIds = JsonSerializer.Deserialize<List<Guid>>(request.Value);
                 }
                 catch (JsonException ex)
@@ -101,20 +106,29 @@ public class UpdateRuleConditionCommandHandler : IRequestHandler<UpdateRuleCondi
                 if (model.Quantity < 0)
                     throw new BadHttpRequestException("Số lượng phải lớn hơn 0.");
                 break;
+            default:
+                throw new BadHttpRequestException("Loại điều kiện không hợp lệ");
         }
-        ruleCondition.Operator = request.Operator;
-        ruleCondition.Value = request.Value;
-        
-        _unitOfWork.GetRepository<RuleConditions>().UpdateAsync(ruleCondition);
-        var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        if (!isSuccess)
+        var ruleCondition = new RuleConditions
         {
-            throw new Exception("Cập nhật điều kiện quy tắc khuyến mãi không thành công.");
-        }
+            Id = Guid.CreateVersion7(),
+            ConditionType = request.ConditionType,
+            Operator = request.Operator,
+            Value = request.Value,
+            PromotionRuleId = request.PromotionRuleId, 
+        };
+        await _unitOfWork.GetRepository<RuleConditions>().InsertAsync(ruleCondition);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        _logger.Information("END: AddRuleConditionCommandHandler.Handle - PromotionRuleId: {PromotionRuleId}, Success: {Success}", 
+            request.PromotionRuleId, isSuccess);
+        
+        if (!isSuccess)
+            throw new Exception("Thêm điều kiện khuyến mãi không thành công");
+
         return new ApiResponse()
         {
-            Status = StatusCodes.Status200OK,
-            Message = "Cập nhật điều kiện quy tắc khuyến mãi thành công",
+            Status = StatusCodes.Status201Created,
+            Message = "Thêm điều kiện khuyến mãi thành công",
             Data = ruleCondition.Id
         };
     }

@@ -39,6 +39,7 @@ public static class ConfigureServices
         services.AddCustomKafka(configuration);
 
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddGrpc();
         services.AddGrpcServices(configuration);
         services.AddHealthChecks();
         
