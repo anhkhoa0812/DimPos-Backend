@@ -17,7 +17,7 @@ public class IngredientsEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ApiEndPointConstants.Ingredients.IngredientsEndpoint).WithName("Ingredients");
+        var group = app.MapGroup(ApiEndPointConstants.Ingredients.IngredientsEndpoint).WithTags("Ingredients");
         group.MapPost("", CreateIngredient)
             .DisableAntiforgery()
             .WithName(nameof(CreateIngredient))
