@@ -92,6 +92,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                     ProductVariantId = productVariants.Id,
                     Price = productVariant.BrandPrice,
                     BrandId = brandId,
+                    CurrencyCode = "VND",
                     BrandPriceHistories = new List<BrandPriceHistory>()
                     {
                         new BrandPriceHistory()
@@ -101,7 +102,8 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                             NewPrice = productVariant.BrandPrice,
                             ChangedAt = TimeUtil.GetCurrentSEATime(),
                             ChangedBy = accountId,
-                            ProductVariantId = productVariants.Id
+                            ProductVariantId = productVariants.Id,
+                            CurrencyCode = "VND"
                         }
                     }
                 };
