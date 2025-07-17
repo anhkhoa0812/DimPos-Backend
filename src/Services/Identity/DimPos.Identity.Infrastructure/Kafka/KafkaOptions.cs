@@ -1,4 +1,5 @@
 using Confluent.Kafka;
+using Microsoft.Data.SqlClient;
 
 namespace DimPos.Identity.Infrastructure.Kafka;
 
@@ -19,4 +20,6 @@ public sealed record Topics
     public string CreateStaffAccountRequest { get; set; } = default!;
     public string CreateStaffAccountResponse { get; set; } = default!;
     public string CreateStaffAccountError { get; set; } = default!;
+    public string UpdateStaffRequest { get; set; } = default!;
+    public string UpdateStoreRequest { get; set; } = default!;
 }

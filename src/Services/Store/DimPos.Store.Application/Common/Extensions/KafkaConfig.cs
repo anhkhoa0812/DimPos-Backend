@@ -2,10 +2,10 @@ using Confluent.Kafka;
 using DimPos.Store.Application.Consumers;
 using DimPos.Store.Infrastructure.Kafka;
 using MassTransit;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using SharedProject.Events.Store.CreateStaff;
 using SharedProject.Events.Store.CreateStore;
+using SharedProject.Events.Store.UpdateStaff;
+using SharedProject.Events.Store.UpdateStore;
 
 namespace DimPos.Store.Application.Common.Extensions;
 
@@ -29,7 +29,8 @@ public static class KafkaConfig
             {
                 configureRider.AddProducer<Null, CreateStoreResponseModel>(kafkaOptions!.Topics.CreateStoreResponse);
                 configureRider.AddProducer<Null, CreateStaffResponseModel>(kafkaOptions!.Topics.CreateStaffResponse);
-                
+                configureRider.AddProducer<Null, UpdateStaffRequestModel>(kafkaOptions!.Topics.UpdateStaffRequest);
+                configureRider.AddProducer<Null, UpdateStoreRequestModel>(kafkaOptions!.Topics.UpdateStoreRequest);
                 configureRider.AddConsumer<RollbackStoreConsumer>();
                 configureRider.AddConsumer<RollbackStaffStoreAccountRequestConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>

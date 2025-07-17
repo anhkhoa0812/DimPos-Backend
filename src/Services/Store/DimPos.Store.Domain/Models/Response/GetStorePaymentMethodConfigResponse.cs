@@ -10,4 +10,7 @@ public class GetStorePaymentMethodConfigResponse
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
     public EPaymentMethod PaymentMethod { get; set; }
+    public bool IsActiveByStore { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? LastModifiedDate { get; set; }
 }

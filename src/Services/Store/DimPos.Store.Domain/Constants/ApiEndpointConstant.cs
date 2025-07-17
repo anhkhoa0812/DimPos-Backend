@@ -23,4 +23,9 @@ public static class ApiEndpointConstant
     {
         public const string StorePaymentMethodConfigEndpoint = ApiEndpoint + "/store-payment-method-configs";
     }
+
+    public static class Staff
+    {
+        public const string StaffEndpoint = ApiEndpoint + "/staffs";
+    }
 }

@@ -5,4 +5,5 @@ namespace DimPos.Store.Application.Features.StorePaymentMethodConfig.Query.GetSt
 
 public class GetStorePaymentMethodConfigQuery : IRequest<ApiResponse>
 {
+    
 }

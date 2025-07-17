@@ -33,32 +33,47 @@ public class GetStorePaymentMethodConfigQueryHandler : IRequestHandler<GetStoreP
         {
             throw new BadHttpRequestException("Không tìm thấy cửa hàng");
         }
-        var availableStorePaymentMethodConfigs = await _unitOfWork.GetRepository<StorePaymentMethodConfigs>()
-            .GetListAsync(
-                predicate: x => x.StoreId == storeId && x.IsActiveByStore
-            );
+
+        var storePaymentMethodConfigs = await _unitOfWork.GetRepository<StorePaymentMethodConfigs>().GetListAsync(
+            predicate: x => x.StoreId == storeId,
+            orderBy: x => x.OrderBy(x => x.CreatedDate)
+        );
+        if (storePaymentMethodConfigs == null || !storePaymentMethodConfigs.Any())
+        {
+            return new ApiResponse
+            {
+                Status = StatusCodes.Status200OK,
+                Message = "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng này.",
+                Data = new List<GetStorePaymentMethodConfigResponse>()
+            };
+        }
+        
         var systemPaymentMethods = await _paymentGrpcService.GetSystemPaymentMethodListByIdAsync(
             new GetSystemPaymentMethodListByIdRequest()
             {
-                SystemPaymentMethodIds = { availableStorePaymentMethodConfigs.Select(x => x.SystemPaymentMethodTypeId.ToString()) }
+                SystemPaymentMethodIds = { storePaymentMethodConfigs.Select(x => x.SystemPaymentMethodTypeId.ToString()) }
             }
         );
+
         var response = new List<GetStorePaymentMethodConfigResponse>();
 
-        foreach (var availableStorePaymentMethodConfig in availableStorePaymentMethodConfigs)
+        foreach (var systemPaymentMethod in systemPaymentMethods.SystemPaymentMethods)
         {
-            var systemPaymentMethod = systemPaymentMethods.SystemPaymentMethods
-                .FirstOrDefault(x => x.Id == availableStorePaymentMethodConfig.SystemPaymentMethodTypeId.ToString());
-            if (systemPaymentMethod != null)
+            var storePaymentMethodConfig = storePaymentMethodConfigs
+                .FirstOrDefault(x => x.SystemPaymentMethodTypeId.ToString() == systemPaymentMethod.Id);
+            if (storePaymentMethodConfig != null)
             {
                 response.Add(new GetStorePaymentMethodConfigResponse()
                 {
-                    Id = availableStorePaymentMethodConfig.Id,
-                    SystemPaymentMethodId = availableStorePaymentMethodConfig.SystemPaymentMethodTypeId,
+                    Id = storePaymentMethodConfig.Id,
+                    SystemPaymentMethodId = storePaymentMethodConfig.SystemPaymentMethodTypeId,
                     Name = systemPaymentMethod.Name,
                     Code = systemPaymentMethod.Code,
                     Description = systemPaymentMethod.Description,
-                    PaymentMethod = (EPaymentMethod) systemPaymentMethod.PaymentMethod
+                    IsActiveByStore = storePaymentMethodConfig.IsActiveByStore,
+                    CreatedDate = storePaymentMethodConfig.CreatedDate,
+                    LastModifiedDate = storePaymentMethodConfig.LastModifiedDate,
+                    PaymentMethod = (EPaymentMethod) systemPaymentMethod.PaymentMethod,
                 });
             }
         }
@@ -68,5 +83,6 @@ public class GetStorePaymentMethodConfigQueryHandler : IRequestHandler<GetStoreP
             Message = "Lấy danh sách cấu hình phương thức thanh toán cửa hàng thành công",
             Data = response
         };
+
     }
 }
