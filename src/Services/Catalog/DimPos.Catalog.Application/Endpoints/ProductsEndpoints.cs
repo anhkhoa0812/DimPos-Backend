@@ -45,8 +45,22 @@ public class ProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
-    public async Task<IResult> CreateProduct(IMediator mediator,  [FromForm] CreateProductsCommand command, ValidationUtil<CreateProductsCommand> validationUtil)
+    public async Task<IResult> CreateProduct(IMediator mediator,  [FromForm] CreateProductRequest request, ValidationUtil<CreateProductsCommand> validationUtil)
     {
+        var command = new CreateProductsCommand()
+        {
+            Code = request.Code,
+            Name = request.Name,
+            Description = request.Description,
+            DisplayOrder = request.DisplayOrder,
+            Note = request.Note,
+            CategoryId = request.CategoryId,
+            Price = request.Price,
+            Sku = request.Sku,
+            ModifierGroupIds = request.ModifierGroupIds,
+            ProductImages = request.ProductImages,
+            ProductVariants = request.ProductVariants,
+        };
         var (isValid, response) = await validationUtil.ValidateAsync(command);
         if (!isValid)
         {

@@ -215,13 +215,10 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             var uploadImageGrpcResponse = await call.ResponseAsync;
             foreach (var imageResponse in uploadImageGrpcResponse.ListImageResponse.ImageResponse)
             {
-                var productImage = productImageList.FirstOrDefault(x => x.Id.ToString() == imageResponse.Id);
-                if (productImage != null)
-                {
-                    productImage.ImageUrl = imageResponse.ImageUrl;
-                    await _unitOfWork.GetRepository<ProductImages>().InsertAsync(productImage);
-                }
+                var productImage = productImageList.First(x => x.Id.ToString() == imageResponse.Id);
+                productImage.ImageUrl = imageResponse.ImageUrl;
             }
+            product.ProductImages = productImageList;
             // //Lưu ảnh xuống local VPS, publish 1 event đến uploadService, để upload ảnh lên S3 và cập nhập lại data
             // await Parallel.ForEachAsync(request.ProductImages, cancellationToken, async (productImage, ct) =>
             // {

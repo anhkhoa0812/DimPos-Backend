@@ -20,7 +20,7 @@ public class CreateProductsCommand : IRequest<ApiResponse>
     public List<CreateProductImages>? ProductImages { get; set; }
 }
 
-public record CreateProductVariant
+public class CreateProductVariant
 {
     public string Code { get; set; }
     public string Name { get; set; }
@@ -31,9 +31,25 @@ public record CreateProductVariant
     public string? Sku { get; set; }
 }
 
-public record CreateProductImages
+public class CreateProductImages
 {
     public IFormFile Image { get; set; }
     public bool IsMainImage { get; set; }
     public string? AltText { get; set; }
+}
+
+public class CreateProductRequest
+{
+    public string Code { get; set; } 
+    public string Name { get; set; }
+    public decimal? Price { get; set; }
+    public string? Description { get; set; }
+    public int? DisplayOrder { get; set; }
+    public string? Note { get; set; }
+    public string? Sku { get; set; }
+    public Guid CategoryId { get; set; }
+    public List<Guid>? ModifierGroupIds { get; set; }
+    public List<CreateProductVariant>? ProductVariants { get; set; }
+    
+    public List<CreateProductImages>? ProductImages { get; set; }
 }

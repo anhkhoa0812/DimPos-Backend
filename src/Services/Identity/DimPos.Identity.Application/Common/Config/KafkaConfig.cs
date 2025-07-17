@@ -5,6 +5,8 @@ using MassTransit;
 using SharedProject.Events.Brand;
 using SharedProject.Events.Store.CreateStaff;
 using SharedProject.Events.Store.CreateStore;
+using SharedProject.Events.Store.UpdateStaff;
+using SharedProject.Events.Store.UpdateStore;
 
 namespace DimPos.Identity.Application.Common.Config;
 
@@ -36,7 +38,8 @@ public static class KafkaConfig
                 configureRider.AddConsumer<CreateBrandAccountRequestConsumer>();
                 configureRider.AddConsumer<CreateStoreAccountRequestConsumer>();
                 configureRider.AddConsumer<CreateStaffAccountRequestConsumer>();
-                
+                configureRider.AddConsumer<UpdateStaffConsumer>();
+                configureRider.AddConsumer<UpdateStoreRequestConsumer>();
                 configureRider.UsingKafka(kafkaOptions.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, CreateBrandAccountModel>(
@@ -66,6 +69,26 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<CreateStaffAccountRequestConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateStaffRequestModel>(
+                        topicName: kafkaOptions.Topics.UpdateStaffRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<UpdateStaffConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateStoreRequestModel>(
+                        topicName: kafkaOptions.Topics.UpdateStoreRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<UpdateStoreRequestConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.CreateIfMissing();
                         });

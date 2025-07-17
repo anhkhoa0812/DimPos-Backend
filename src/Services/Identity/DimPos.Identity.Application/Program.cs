@@ -2,6 +2,7 @@ using Carter;
 using Common.Logging;
 using DimPos.Identity.Application.Common.Extensions;
 using DimPos.Identity.Application.Common.Middlewares;
+using DimPos.Identity.Application.GrpcService;
 using DimPos.Identity.Infrastructure;
 using DimPos.Identity.Infrastructure.Configurations;
 using DimPos.Identity.Infrastructure.Persistence;
@@ -53,6 +54,7 @@ try
         builder.AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
+    app.MapGrpcService<IdentityGrpcService>();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapCarter();

@@ -106,6 +106,7 @@ public class CartService : ICartService
                         switch (existingPromotion.ActionType)
                         {
                             case EActionType.CartPercentageDiscount:
+                                var existingDiscountValueCalculated = existingPromotion.DiscountValueCalculated;
                                 var percentageDiscount = Decimal.Parse(existingPromotion.ActionValue);
                                 if (percentageDiscount < 0 || percentageDiscount > 100)
                                 {
@@ -119,7 +120,7 @@ public class CartService : ICartService
                                 {
                                     existingPromotion.DiscountValueCalculated = existingPromotion.MaxDiscountAmountForPercentage.Value;
                                 }
-                                cart.OrderLevelDiscountAmount += existingPromotion.DiscountValueCalculated;
+                                cart.OrderLevelDiscountAmount += existingPromotion.DiscountValueCalculated - existingDiscountValueCalculated;
                                 break;
                             case EActionType.ItemFixedAmountDiscount:
                                 var amountDiscount = Decimal.Parse(existingPromotion.ActionValue);
@@ -140,6 +141,7 @@ public class CartService : ICartService
                                 }
                                 break;
                             case EActionType.ItemPercentageDiscount:
+                                var existingItemDiscountValueCalculated = existingPromotion.DiscountValueCalculated;
                                 var percentageItemDiscount = Decimal.Parse(existingPromotion.ActionValue);
                                 if (percentageItemDiscount < 0 || percentageItemDiscount > 100)
                                 {
@@ -150,7 +152,7 @@ public class CartService : ICartService
                                 {
                                     var itemDiscountAmount = cartItem.ItemSubtotalAmount * (percentageItemDiscount / 100);
                                     existingPromotion.DiscountValueCalculated += itemDiscountAmount * cartItem.Quantity;
-                                    cart.TotalItemDiscountAmount += existingPromotion.DiscountValueCalculated;
+                                    cart.TotalItemDiscountAmount += existingPromotion.DiscountValueCalculated - existingItemDiscountValueCalculated;
                                 }
                                 break;
                             case EActionType.OneItemPercentageDiscount:
@@ -940,7 +942,7 @@ public class CartService : ICartService
                 case EActionType.ItemPercentageDiscount:
                 case EActionType.OneItemFixedAmountDiscount:
                 case EActionType.OneItemPercentageDiscount:
-                    cart .TotalItemDiscountAmount -= promotionDetail.DiscountValueCalculated;
+                    cart.TotalItemDiscountAmount -= promotionDetail.DiscountValueCalculated;
                     break;
                 default:
                     throw new BadHttpRequestException("Kiểu hành động không hợp lệ");

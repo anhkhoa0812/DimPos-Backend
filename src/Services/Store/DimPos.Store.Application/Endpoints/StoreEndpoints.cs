@@ -2,6 +2,11 @@ using Carter;
 using DimPos.Store.Application.Common.Utils;
 using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
+using DimPos.Store.Application.Features.Stores.Command.UpdateStaff;
+using DimPos.Store.Application.Features.Stores.Command.UpdateStore;
+using DimPos.Store.Application.Features.Stores.Query.GetStaffById;
+using DimPos.Store.Application.Features.Stores.Query.GetStaffs;
+using DimPos.Store.Application.Features.Stores.Query.GetStore;
 using DimPos.Store.Application.Features.Stores.Query.GetStoresByBrand;
 using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
 using DimPos.Store.Application.Features.TaxRate.Command.UpdateTaxRate;
@@ -22,13 +27,6 @@ public class StoreEndpoints : ICarterModule
         group.MapPost("", CreateStore).RequireAuthorization("BrandPolicy").WithName(nameof(CreateStore))
             .DisableAntiforgery()
             .WithName(nameof(CreateStore))
-            .Produces<ApiResponse>(StatusCodes.Status201Created)
-            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
-            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
-            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapPost("/staff", CreateStaff).RequireAuthorization("StorePolicy").WithName(nameof(CreateStaff))
-            .DisableAntiforgery()
-            .WithName(nameof(CreateStaff))
             .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
@@ -59,6 +57,23 @@ public class StoreEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/detail", GetStoreDetail)
+            .WithName(nameof(GetStoreDetail))
+            .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse<GetStoreResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("", UpdateStore)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateStore))
+            .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     public async Task<IResult> CreateStore(IMediator mediator, [FromBody] CreateStoreCommand command, ValidationUtil<CreateStoreCommand> validationUtil)
     {
@@ -70,18 +85,7 @@ public class StoreEndpoints : ICarterModule
         var result = await mediator.Send(command);
         return Results.Created($"{ApiEndpointConstant.Store.StoreEndpoint}/staff", result);
     }
-
-    public async Task<IResult> CreateStaff(IMediator mediator, [FromBody] CreateStaffCommand command,
-        ValidationUtil<CreateStaffCommand> validationUtil)
-    {
-        var (isValid, response) = await validationUtil.ValidateAsync(command);
-        if (!isValid)
-        {
-            return Results.BadRequest(response);
-        }
-        var result = await mediator.Send(command);
-        return Results.Created($"{ApiEndpointConstant.Store.StoreEndpoint}", result);
-    }
+    
 
     public async Task<IResult> CreateTaxRateForStore(IMediator mediator, [FromRoute] Guid id,
         [FromBody] CreateTaxRateRequest request, ValidationUtil<CreateTaxRateCommand> validationUtil)
@@ -131,6 +135,27 @@ public class StoreEndpoints : ICarterModule
             IsAsc = isAsc
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+
+    
+
+    public async Task<IResult> GetStoreDetail(IMediator mediator)
+    {
+        var query = new GetStoreQuery();
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> UpdateStore(IMediator mediator, [FromBody] UpdateStoreCommand command,
+        ValidationUtil<UpdateStoreCommand> validationUtil)
+    {
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }

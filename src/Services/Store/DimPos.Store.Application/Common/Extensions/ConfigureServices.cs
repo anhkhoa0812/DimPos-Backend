@@ -1,3 +1,4 @@
+using DimPos.Identity.Application.Common.Protos;
 using DimPos.Payment.Application.Common.Protos;
 using DimPos.Store.Application.Common.Behaviours;
 using DimPos.Store.Application.Common.Utils;
@@ -5,8 +6,11 @@ using DimPos.Store.Application.Features.FinancialShift.Command.OpenFinancialShif
 using DimPos.Store.Application.Features.FinancialShiftConfig.Command.CreateFinancialShiftConfig;
 using DimPos.Store.Application.Features.FinancialShiftConfig.Command.UpdateFinancialShiftConfig;
 using DimPos.Store.Application.Features.StorePaymentMethodConfig.Command.CreateStorePaymentMethodConfig;
+using DimPos.Store.Application.Features.StorePaymentMethodConfig.Command.UpdateStorePaymentConfig;
 using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
+using DimPos.Store.Application.Features.Stores.Command.UpdateStaff;
+using DimPos.Store.Application.Features.Stores.Command.UpdateStore;
 using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
 using DimPos.Store.Application.Features.TaxRate.Command.UpdateTaxRate;
 using DimPos.Store.Application.Services.Implement;
@@ -37,6 +41,9 @@ public static class ConfigureServices
         services.AddScoped<IValidator<CreateFinancialShiftConfigCommand>, CreateFinancialShiftConfigCommandValidator>();
         services.AddScoped<IValidator<UpdateFinancialShiftConfigCommand>, UpdateFinancialShiftConfigCommandValidator>();
         services.AddScoped<IValidator<OpenFinancialShiftCommand>, OpenFinancialShiftCommandValidator>();
+        services.AddScoped<IValidator<UpdateStorePaymentConfigCommand>, UpdateStorePaymentConfigCommandValidator>();
+        services.AddScoped<IValidator<UpdateStaffCommand>, UpdateStaffCommandValidator>();
+        services.AddScoped<IValidator<UpdateStoreCommand>, UpdateStoreCommandValidator>();
         services
             .AddScoped<IValidator<CreateStorePaymentMethodConfigCommand>,
                 CreateStorePaymentMethodConfigCommandValidator>();
@@ -65,6 +72,10 @@ public static class ConfigureServices
                 x.Address = new Uri(settings.PaymentUrl);
             }
         );
+        services.AddGrpcClient<IdentityGrpcService.IdentityGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.IdentityUrl);
+        });
         return services;
     }
 }

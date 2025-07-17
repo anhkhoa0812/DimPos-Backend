@@ -28,7 +28,7 @@ public class FinancialShiftConfigEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapPut("{id}:guid", UpdateFinancialShiftConfig)
+        group.MapPut("{id:guid}", UpdateFinancialShiftConfig)
             .WithName(nameof(UpdateFinancialShiftConfig))
             .RequireAuthorization("StorePolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
