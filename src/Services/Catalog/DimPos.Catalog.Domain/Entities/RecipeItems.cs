@@ -5,7 +5,6 @@ namespace DimPos.Catalog.Domain.Entities;
 public class RecipeItems : EntityAuditBase<Guid>
 {
     public Guid ProductVariantId { get; set; }
-    public bool IsActive { get; set; }
     public Guid IngredientId { get; set; }
     public decimal Quantity { get; set; }
     public string UnitOfMeasureSnapshot { get; set; } = string.Empty;

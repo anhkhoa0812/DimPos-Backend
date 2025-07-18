@@ -39,7 +39,6 @@ public class GetRecipeItemByProductVariantQueryHandler : IRequestHandler<GetReci
             {
                 Id = x.Id,
                 Quantity = x.Quantity,
-                IsActive = x.IsActive,
                 CreatedDate = x.CreatedDate,
                 LastModifiedDate = x.LastModifiedDate,
                 CreatedByAccountId = x.CreatedByAccountId,

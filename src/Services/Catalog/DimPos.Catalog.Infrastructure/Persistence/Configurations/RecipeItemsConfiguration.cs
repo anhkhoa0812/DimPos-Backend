@@ -25,8 +25,6 @@ public class RecipeItemsConfiguration : IEntityTypeConfiguration<RecipeItems>
             .IsUnique();
         builder.Property(ri => ri.ProductVariantId)
             .IsRequired();
-        builder.Property(ri => ri.IsActive)
-            .IsRequired();
         builder.Property(ri => ri.IngredientId)
             .IsRequired();
         builder.Property(ri => ri.Quantity)

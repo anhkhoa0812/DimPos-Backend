@@ -61,7 +61,7 @@ public class UpdateIngredientCommandHandler : IRequestHandler<UpdateIngredientCo
         {
             Status = StatusCodes.Status200OK,
             Message = "Cập nhật thành phần thành công",
-            Data = null
+            Data = ingredient.Id
         };
     }
 }

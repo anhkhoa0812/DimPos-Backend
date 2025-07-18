@@ -58,7 +58,7 @@ public class CreateIngredientCommandHandler : IRequestHandler<CreateIngredientCo
         {
             Status = StatusCodes.Status200OK,
             Message = "Tạo thành phần thành công",
-            Data = null
+            Data = ingredient.Id
         };
     }
 }

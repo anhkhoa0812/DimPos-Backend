@@ -45,7 +45,7 @@ public class ProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapPatch("/{id}/modifier-groups", UpdateModifierGroupForProduct)
+        group.MapPut("/{id}/modifier-groups", UpdateModifierGroupForProduct)
             .DisableAntiforgery()
             .WithName(nameof(UpdateModifierGroupForProduct))
             .RequireAuthorization("BrandPolicy")

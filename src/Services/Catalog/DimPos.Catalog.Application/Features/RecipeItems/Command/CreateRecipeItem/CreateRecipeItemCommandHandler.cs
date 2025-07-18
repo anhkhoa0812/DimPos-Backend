@@ -58,7 +58,6 @@ public class CreateRecipeItemCommandHandler : IRequestHandler<CreateRecipeItemCo
             Id = Guid.CreateVersion7(),
             ProductVariantId = request.ProductVariantId,
             IngredientId = request.IngredientId,
-            IsActive = true,
             Quantity = request.Quantity,
             UnitOfMeasureSnapshot = ingredient.MeasureUnit,
             CreatedByAccountId = accountId

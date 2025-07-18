@@ -376,7 +376,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             && x.RecipeItems != null && x.RecipeItems.Any(),
             include: x => 
                 x.Include(x => x.Product)
-                    .Include(x => x.RecipeItems.Where(x => x.IsActive && x.Ingredient.IsActive))
+                    .Include(x => x.RecipeItems.Where(x => x.Ingredient.IsActive))
                     .ThenInclude(x => x.Ingredient)
         );
         if (internalProductVariants.Count != request.ProductVariantId.Count)
