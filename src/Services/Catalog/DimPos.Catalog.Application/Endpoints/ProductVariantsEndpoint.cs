@@ -4,6 +4,8 @@ using DimPos.Catalog.Application.Features.ProductVariants.Command.UpdateProductV
 using DimPos.Catalog.Application.Features.ProductVariants.Query.GetProductProductVariantsById;
 using DimPos.Catalog.Application.Features.ProductVariants.Query.GetProductVariants;
 using DimPos.Catalog.Application.Features.RecipeItems.Command.CreateRecipeItem;
+using DimPos.Catalog.Application.Features.RecipeItems.Command.RemoveRecipeItem;
+using DimPos.Catalog.Application.Features.RecipeItems.Command.UpdateRecipeItem;
 using DimPos.Catalog.Application.Features.RecipeItems.Query.GetRecipeItemByProductVariant;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Models.Common;
@@ -53,6 +55,24 @@ public class ProductVariantsEndpoint : ICarterModule
             .WithName(nameof(GetRecipeItemsByProductVariant))
             .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse<IPaginate<GetRecipeItemByProductVariantResponse>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("/{productVariantId:guid}/recipe-items/{recipeItemId:guid}", UpdateRecipeItem)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateRecipeItem))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapDelete("/{productVariantId:guid}/recipe-items/{recipeItemId:guid}", RemoveRecipeItem)
+            .DisableAntiforgery()
+            .WithName(nameof(RemoveRecipeItem))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -128,6 +148,35 @@ public class ProductVariantsEndpoint : ICarterModule
             IsAsc = isAsc
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> UpdateRecipeItem(IMediator mediator, [FromRoute] Guid productVariantId, [FromRoute] Guid recipeItemId, [FromBody] UpdateRecipeItemRequest request,
+        ValidationUtil<UpdateRecipeItemCommand> validationUtil)
+    {
+        var command = new UpdateRecipeItemCommand()
+        {
+            ProductVariantId = productVariantId,
+            RecipeItemId = recipeItemId,
+            Quantity = request.Quantity,
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> RemoveRecipeItem(IMediator mediator, [FromRoute] Guid productVariantId,
+        [FromRoute] Guid recipeItemId)
+    {
+        var command = new RemoveRecipeItemCommand()
+        {
+            ProductVariantId = productVariantId,
+            RecipeItemId = recipeItemId
+        };
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }

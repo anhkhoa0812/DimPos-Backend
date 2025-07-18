@@ -3,7 +3,6 @@ namespace DimPos.Catalog.Domain.Models.RecipeItems;
 public class GetRecipeItemByProductVariantResponse
 {
     public Guid Id { get; set; }
-    public bool IsActive { get; set; }
     public decimal Quantity { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
