@@ -32,8 +32,18 @@ public class UpdateIngredientCommandHandler : IRequestHandler<UpdateIngredientCo
         
         if (ingredient == null)
             throw new BadHttpRequestException("Thành phần không tồn tại hoặc không thuộc thương hiệu của bạn");
-        
-        ingredient.Code = request.Code ?? ingredient.Code;
+
+        if (request.Code != null)
+        {
+            var existingIngredient = await _unitOfWork.GetRepository<Domain.Entities.Ingredients>().SingleOrDefaultAsync(
+                predicate: i => i.Code == request.Code
+            );
+            if (existingIngredient != null)
+            {
+                throw new BadHttpRequestException("Mã thành phần đã tồn tại");
+            }
+            ingredient.Code = request.Code;
+        }
         ingredient.Sku = request.Sku ?? ingredient.Sku;
         ingredient.Name = request.Name ?? ingredient.Name;
         ingredient.MeasureUnit = request.MeasureUnit ?? ingredient.MeasureUnit;

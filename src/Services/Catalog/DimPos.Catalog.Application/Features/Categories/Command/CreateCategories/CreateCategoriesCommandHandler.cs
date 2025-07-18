@@ -34,6 +34,16 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
         _logger.Information($"BEGIN: {nameof(CreateCategoriesCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
+        if (request.Code != null)
+        {
+            var existingCategory = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
+                predicate: c => c.Code == request.Code && c.BrandId == brandId
+            );
+            if (existingCategory != null)
+            {
+                throw new BadHttpRequestException("Mã danh mục đã tồn tại");
+            }
+        }
         var category = CategoriesMapper.ToCategories(request);
         category.Id = Guid.CreateVersion7();
         category.HasChildCategory = false;

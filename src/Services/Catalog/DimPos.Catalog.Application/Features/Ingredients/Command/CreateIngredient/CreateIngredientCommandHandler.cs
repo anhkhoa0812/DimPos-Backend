@@ -25,7 +25,16 @@ public class CreateIngredientCommandHandler : IRequestHandler<CreateIngredientCo
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if(brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy thông tin thương hiệu");
-
+        if (request.Code != null)
+        {
+            var existingIngredient = await _unitOfWork.GetRepository<Domain.Entities.Ingredients>().SingleOrDefaultAsync(
+                predicate: i => i.Code == request.Code
+            );
+            if (existingIngredient != null)
+            {
+                throw new BadHttpRequestException("Mã thành phần đã tồn tại");
+            }
+        }
         var ingredient = new Domain.Entities.Ingredients()
         {
             Id = Guid.CreateVersion7(),

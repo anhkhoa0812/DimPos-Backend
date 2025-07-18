@@ -44,7 +44,13 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         {
             throw new BadHttpRequestException("Không tìm thấy accountId");
         }
-        
+        var existingProduct = await _unitOfWork.GetRepository<Domain.Entities.Products>().SingleOrDefaultAsync(
+            predicate: x => x.Code == request.Code
+        );
+        if (existingProduct != null)
+        {
+            throw new BadHttpRequestException($"Mã {request.Code} đã tồn tại");
+        }
         var product = ProductMapper.ToProducts(request);
         product.Id = Guid.CreateVersion7();
         product.ProductVariants = new List<Domain.Entities.ProductVariants>();
@@ -78,6 +84,13 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         {
             foreach (var productVariant in request.ProductVariants)
             {
+                var existingProductVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
+                    predicate: x => x.Code == productVariant.Code
+                );
+                if (existingProductVariant != null)
+                {
+                    throw new BadHttpRequestException($"Mã {productVariant.Code} đã tồn tại");
+                }
                 var productVariants = ProductVariantMapper.ToPoProductVariants(productVariant);
                 productVariants.Id = Guid.CreateVersion7();
                 productVariants.ProductId = product.Id;
