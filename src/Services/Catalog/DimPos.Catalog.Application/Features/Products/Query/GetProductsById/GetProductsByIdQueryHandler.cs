@@ -44,13 +44,15 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
                 Note = p.Note,
                 CreatedDate = p.CreatedDate,
                 LastModifiedDate = p.LastModifiedDate,
-                ProductImages = p.ProductImages.Select(pi => new ProductImagesResponse()
-                {
-                    Id = pi.Id,
-                    ImageUrl = pi.ImageUrl,
-                    IsMainImage = pi.IsMainImage,
-                    AltText = pi.AltText
-                }).ToList(),
+                ProductImages = p.ProductImages != null 
+                    ? p.ProductImages.Select(pi => new ProductImagesResponse
+                    {
+                        Id = pi.Id,
+                        ImageUrl = pi.ImageUrl,
+                        IsMainImage = pi.IsMainImage,
+                        AltText = pi.AltText
+                    }).ToList()
+                    : new List<ProductImagesResponse>(),
                 ProductVariants = p.ProductVariants.Select(v => new ProductVariantsResponse
                 {
                     Id = v.Id,
@@ -74,6 +76,16 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
                     Status = p.Category.Status,
                     Type = p.Category.Type
                 },
+                ModifierGroup = p.ProductModifierGroups != null ?
+                    p.ProductModifierGroups.Select(x => x.ModifierGroup).Select(x => new ModifierGroupResponse()
+                    {
+                        Id = x.Id,
+                        Name = x.Name,
+                        Description = x.Description,
+                        DisplayOrder = x.DisplayOrder,
+                        IsActive = x.IsActive,
+                        SelectedType = x.SelectedType
+                    }).ToList() : new List<ModifierGroupResponse>()
             }
         );
         if (product == null)

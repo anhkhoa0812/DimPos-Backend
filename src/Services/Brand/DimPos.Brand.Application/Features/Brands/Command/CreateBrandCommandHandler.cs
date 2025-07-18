@@ -26,6 +26,13 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Api
     }
     public async ValueTask<ApiResponse> Handle(CreateBrandCommand request, CancellationToken cancellationToken)
     {
+        var existingBrand = await _unitOfWork.GetRepository<Domain.Entities.Brands>().SingleOrDefaultAsync(
+            predicate: x => x.Code == request.Code
+        );
+        if (existingBrand != null)
+        {
+            throw new BadHttpRequestException("Mã thương hiệu đã tồn tại");
+        }
         var brand = BrandMapper.ToBrands(request);
         brand.Id = Guid.CreateVersion7();
         brand.Status = EBrandStatus.Active;
@@ -55,7 +62,6 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Api
                 HashPassword = hashPassword,
                 SaltPassword = saltPassword,
             };
-            var correlationId = Guid.CreateVersion7();
             await _producer.Produce(
                 key: null,
                 createBrandAccountModel,
