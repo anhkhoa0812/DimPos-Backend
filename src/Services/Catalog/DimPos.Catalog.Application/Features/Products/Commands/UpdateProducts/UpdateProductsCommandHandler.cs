@@ -46,6 +46,32 @@ public class UpdateProductsCommandHandler : IRequestHandler<UpdateProductsComman
         product.DisplayOrder = request.UpdateProducts.DisplayOrder ?? product.DisplayOrder;
         product.Note = request.UpdateProducts.Note ?? product.Note;
 
+        if (request.UpdateProducts.CategoryId != null)
+        {
+            var category = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
+                predicate: x => x.Id == request.UpdateProducts.CategoryId
+            );
+            if (category == null)
+            {
+                throw new BadHttpRequestException("Không tìm thấy danh mục");
+            }
+
+            switch (category.Type)
+            {
+                case ECategoryType.Parent:
+                    if(category.HasChildCategory) 
+                        throw new BadHttpRequestException("Không thể thêm sản phẩm vào danh mục này");
+                    product.CategoryId = category.Id;
+                    break;
+                case ECategoryType.Child:
+                    product.CategoryId = category.Id;
+                    break;
+                default:
+                    throw new BadHttpRequestException("Không thể thêm sản phẩm vào danh mục này");
+                
+            }
+        }
+        
         var existingMainImageCount = request.UpdateProducts.ExistProductImages?.Count(x => x.IsMainImage) ?? 0;
         var newMainImageCount = request.UpdateProducts.NewProductImages?.Count(x => x.IsMainImage) ?? 0;
         if (product.ProductImages != null && product.ProductImages.Any())

@@ -1,5 +1,6 @@
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
+using DimPos.Catalog.Application.Features.ModifierGroups.Command.UpdateModifierGroupForProduct;
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 using DimPos.Catalog.Application.Features.Products.Commands.UpdateProducts;
 using DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;
@@ -42,6 +43,15 @@ public class ProductsEndpoints : ICarterModule
             .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("/{id}/modifier-groups", UpdateModifierGroupForProduct)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateModifierGroupForProduct))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
@@ -108,5 +118,17 @@ public class ProductsEndpoints : ICarterModule
         var query = new GetProductsByIdQuery() { ProductId = id };
         var result = await mediator.Send(query);
         return Results.Json(result);
+    }
+
+    public async Task<IResult> UpdateModifierGroupForProduct(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] UpdateModifierGroupForProductRequest request)
+    {
+        var command = new UpdateModifierGroupForProductCommand()
+        {
+            ProductId = id,
+            ModifierGroupIds = request.ModifierGroupIds
+        };
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
     }
 }

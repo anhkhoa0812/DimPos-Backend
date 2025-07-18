@@ -5,6 +5,7 @@ namespace DimPos.Catalog.Domain.Models.Product;
 public class ProductByIdResponse : ProductResponse
 {
     public CategoryResponse Category { get; set; } = new CategoryResponse();
+    public List<ModifierGroupResponse>? ModifierGroup { get; set; }
 }
 
 public record CategoryResponse
@@ -18,4 +19,14 @@ public record CategoryResponse
     public string? PictureUrl { get; set; }
     public bool HasChildCategory { get; set; }
     public ECategoryStatus Status { get; set; }
+}
+
+public record ModifierGroupResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = String.Empty;
+    public string? Description { get; set; }
+    public ESelectedTypeModifier SelectedType { get; set; }
+    public int? DisplayOrder { get; set; }
+    public bool IsActive { get; set; }
 }

@@ -36,7 +36,21 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
         var accountId = _claimService.GetCurrentUserId;
         if (accountId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của tài khoản");
+        var exisingProduct = await _unitOfWork.GetRepository<Domain.Entities.Products>().SingleOrDefaultAsync(
+            predicate: x => x.Code == request.Code
+        );
+        if (exisingProduct != null)
+        {
+            throw new BadHttpRequestException("Mã sản phẩm đã tồn tại");
+        }
         
+        var exisingProductVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
+            predicate: x => x.Code == request.Code
+        );
+        if (exisingProductVariant != null)
+        {
+            throw new BadHttpRequestException("Mã sản phẩm đã tồn tại");
+        }
         _logger.Information($"BEGIN: {nameof(CreateInternalProductCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         var product = new Domain.Entities.Products()
         {

@@ -17,6 +17,7 @@ public class UpdateProductsRequest
     public EProductStatus? Status { get; set; }
     public int? DisplayOrder { get; set; }
     public string? Note { get; set; }
+    public Guid? CategoryId { get; set; }
     public List<UpdateProductImages>? ExistProductImages { get; set; } = new List<UpdateProductImages>();
     public List<UpdateNewProductImages>? NewProductImages { get; set; } = new List<UpdateNewProductImages>();
 }
