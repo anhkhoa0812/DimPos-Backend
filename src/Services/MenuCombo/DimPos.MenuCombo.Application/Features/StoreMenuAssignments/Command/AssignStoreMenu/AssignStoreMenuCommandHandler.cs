@@ -92,8 +92,6 @@ public class AssignStoreMenuCommandHandler : IRequestHandler<AssignStoreMenuComm
                 Id = Guid.CreateVersion7(),
                 BrandMenuId = brandMenu.Id,
                 StoreId = x,
-                EffectiveAt = request.AssignStoreMenuRequests.FirstOrDefault(asmr => asmr.StoreId == x )?.EffectiveAt,
-                EffectiveEnd = request.AssignStoreMenuRequests.FirstOrDefault(y => y.StoreId == x)?.EffectiveEnd,
                 StoreMenuItemAvailability = brandMenu.MenuItems.Select(x => new StoreMenuItemAvailability()
                 {
                     Id = Guid.CreateVersion7(),
@@ -135,15 +133,11 @@ public class AssignStoreMenuCommandHandler : IRequestHandler<AssignStoreMenuComm
                     IsActiveAtStore = x.IsActiveAtStore,
                     StoreId = x.StoreId,
                     BrandMenuId = x.BrandMenuId,
-                    EffectiveAt = x.EffectiveAt,
-                    EffectiveEnd = x.EffectiveEnd,
                     CreatedDate = x.CreatedDate,
                     LastModifiedDate = x.LastModifiedDate,
                     StoreMenuItemAvailability = x.StoreMenuItemAvailability.Select(y => new StoreMenuItemAvailabilityModel()
                     {
                         Id = y.Id,
-                        EffectiveAt = y.EffectiveAt,
-                        EffectiveEnd = y.EffectiveEnd,
                         BrandMenuItemId = y.BrandMenuItemId,
                         IsActiveAtStore = y.IsActiveAtStore,
                         CreatedDate = y.CreatedDate,

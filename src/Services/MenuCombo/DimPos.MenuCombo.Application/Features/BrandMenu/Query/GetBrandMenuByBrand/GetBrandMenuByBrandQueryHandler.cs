@@ -36,8 +36,6 @@ public class GetBrandMenuByBrandQueryHandler : IRequestHandler<GetBrandMenuByBra
                     Description = x.Description,
                     IsActiveByBrand =  x.IsActiveByBrand,
                     Type = x.Type,
-                    ValidFrom = x.ValidFrom,
-                    ValidTo = x.ValidTo
                 },
                 predicate: x => x.BrandId == brandId, 
                 page: request.Page,

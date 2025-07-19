@@ -5,8 +5,6 @@ namespace DimPos.MenuCombo.Domain.Entities;
 public class StoreMenuItemAvailability : EntityAuditBase<Guid>
 {
     public bool IsActiveAtStore { get; set; }
-    public DateTime? EffectiveAt { get; set; }
-    public DateTime? EffectiveEnd { get; set; }
     public Guid BrandMenuItemId { get; set; }
     public Guid StoreMenuAssignmentId { get; set; }
 

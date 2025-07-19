@@ -26,8 +26,6 @@ public class RollbackRemoveStoreMenuConsumer : IConsumer<RollbackRemoveStoreMenu
             Id = x.Id,
             StoreId = x.StoreId,
             BrandMenuId = x.BrandMenuId,
-            EffectiveAt = x.EffectiveAt,
-            EffectiveEnd = x.EffectiveEnd,
             IsActiveAtStore = x.IsActiveAtStore,
             CreatedDate = x.CreatedDate,
             LastModifiedDate = x.LastModifiedDate,
@@ -37,8 +35,6 @@ public class RollbackRemoveStoreMenuConsumer : IConsumer<RollbackRemoveStoreMenu
                 IsActiveAtStore = x.IsActiveAtStore,
                 CreatedDate = x.CreatedDate,
                 LastModifiedDate = x.LastModifiedDate,
-                EffectiveAt = x.EffectiveAt,
-                EffectiveEnd = x.EffectiveEnd,
                 BrandMenuItemId = x.BrandMenuItemId,
             }).ToList()
         }).ToList();

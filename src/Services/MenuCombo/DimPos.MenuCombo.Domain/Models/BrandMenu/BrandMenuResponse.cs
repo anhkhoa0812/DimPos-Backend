@@ -9,6 +9,4 @@ public class BrandMenuResponse
     public string? Description { get; set; }
     public EBrandMenuType? Type { get; set; }
     public bool IsActiveByBrand { get; set; }
-    public DateTime? ValidFrom { get; set; }
-    public DateTime? ValidTo { get; set; }
 }

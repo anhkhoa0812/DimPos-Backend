@@ -2,6 +2,7 @@ using DimPos.Catalog.Application.Common.Protos;
 using DimPos.MenuCombo.Application.Common.Behaviours;
 using DimPos.MenuCombo.Application.Common.Utils;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Command.CreateBrandMenu;
+using DimPos.MenuCombo.Application.Features.BrandMenu.Command.UpdateBrandMenu;
 using DimPos.MenuCombo.Application.Services.Implement;
 using DimPos.MenuCombo.Application.Services.Interface;
 using DimPos.MenuCombo.Domain.Models.Settings;
@@ -24,6 +25,7 @@ public static class ConfigureServices
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddScoped(typeof(ValidationUtil<>));
         services.AddScoped<IValidator<CreateBrandMenuCommand>, CreateBrandMenuCommandValidator>();
+        services.AddScoped<IValidator<UpdateBrandMenuCommand>, UpdateBrandMenuCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

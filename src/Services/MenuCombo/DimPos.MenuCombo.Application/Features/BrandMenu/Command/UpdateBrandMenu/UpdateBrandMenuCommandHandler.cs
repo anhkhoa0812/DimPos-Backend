@@ -21,6 +21,35 @@ public class UpdateBrandMenuCommandHandler : IRequestHandler<UpdateBrandMenuComm
     
     public async ValueTask<ApiResponse> Handle(UpdateBrandMenuCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var brandId = _claimService.GetBrandId ?? Guid.Empty;
+        if (brandId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Id thương hiệu không hợp lệ");
+        }
+
+        var brandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().SingleOrDefaultAsync(
+            predicate: x => x.BrandId == brandId && x.Id == request.BrandMenuId
+        );
+        if (brandMenu == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy Brand Menu");
+        }
+        
+        brandMenu.Name = request.Name ?? brandMenu.Name;
+        brandMenu.Description = request.Description ?? brandMenu.Description;
+        brandMenu.Type = request.Type ?? brandMenu.Type;
+        
+        _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().UpdateAsync(brandMenu);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (!isSuccess)
+        {
+            throw new Exception("Cập nhật Brand Menu không thành công");
+        }
+        return new ApiResponse
+        {
+            Status = 200,
+            Message = "Cập nhật Brand Menu thành công",
+            Data = brandMenu.Id
+        };
     }
 }

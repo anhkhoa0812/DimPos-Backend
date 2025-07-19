@@ -72,8 +72,6 @@ public class GetBrandMenuByIdQueryHandler : IRequestHandler<GetBrandMenuByIdQuer
             Description = brandMenu.Description,
             IsActiveByBrand = brandMenu.IsActiveByBrand,
             Type = brandMenu.Type,
-            ValidFrom = brandMenu.ValidFrom,
-            ValidTo = brandMenu.ValidTo,
             ProductVariants = productVariantsGrpcResponse.ProductVariants.Select(x =>
                 new BrandMenuByIdResponseWithProductVariants()
                 {

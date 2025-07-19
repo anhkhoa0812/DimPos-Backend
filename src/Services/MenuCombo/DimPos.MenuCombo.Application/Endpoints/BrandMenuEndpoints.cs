@@ -1,6 +1,7 @@
 using Carter;
 using DimPos.MenuCombo.Application.Common.Utils;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Command.CreateBrandMenu;
+using DimPos.MenuCombo.Application.Features.BrandMenu.Command.UpdateBrandMenu;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetBrandMenuByBrand;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetBrandMenuById;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetStoresByMenu;
@@ -37,6 +38,13 @@ public class BrandMenuEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             // .Produces<ApiResponse>(StatusCodes.Status404NotFound)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("{id:guid}", UpdateBrandMenu).RequireAuthorization("BrandPolicy")
+            .WithName(nameof(UpdateBrandMenu))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("/{brandMenuId}", GetBrandMenuById).RequireAuthorization("BrandPolicy")
             .WithName(nameof(GetBrandMenuById))
@@ -151,5 +159,26 @@ public class BrandMenuEndpoints : ICarterModule
         };
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);
+    }
+
+    public async Task<IResult> UpdateBrandMenu(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] UpdateBrandMenuRequest request,
+        ValidationUtil<UpdateBrandMenuCommand> validationUtil)
+    {
+        var command = new UpdateBrandMenuCommand()
+        {
+            BrandMenuId = id,
+            Name = request.Name,
+            Description = request.Description,
+            Type = request.Type
+        };
+        
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
     }
 }
