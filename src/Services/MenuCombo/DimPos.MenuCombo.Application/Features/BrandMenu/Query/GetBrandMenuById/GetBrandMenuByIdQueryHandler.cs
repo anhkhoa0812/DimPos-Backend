@@ -40,15 +40,18 @@ public class GetBrandMenuByIdQueryHandler : IRequestHandler<GetBrandMenuByIdQuer
         var brandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().SingleOrDefaultAsync(
             predicate: x => x.BrandId == brandId && x.Id == request.BrandMenuId,
             include: x => x.Include(x => x.MenuItems)
+                .Include(x => x.StoreMenuAssignments)
         );
         if (brandMenu == null)
         {
             throw new BadHttpRequestException("Không tìm thấy menu của thương hiệu");
         }
-        var existingStoreId = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().GetListAsync(
-            selector: x => x.StoreId,
-            predicate: x => x.BrandMenuId == brandMenu.Id
-        );
+        // var existingStoreId = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().GetListAsync(
+        //     selector: x => x.StoreId,
+        //     predicate: x => x.BrandMenuId == brandMenu.Id
+        // );
+        var existingStoreId = brandMenu.StoreMenuAssignments != null ?
+            brandMenu.StoreMenuAssignments.Select(x => x.StoreId).ToList() : new List<Guid>();
         var productVariantsIdInBrandMenu = 
             (brandMenu.MenuItems.Select(x => x.ProductVariantId.ToString())).ToList();
         var productVariantsGrpcResponse = await _catalogGrpcService.GetProductVariantListByIdsAsync(

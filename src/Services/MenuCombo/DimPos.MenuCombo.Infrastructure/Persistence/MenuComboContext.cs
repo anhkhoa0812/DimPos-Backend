@@ -16,8 +16,6 @@ public class MenuComboContext : DbContext
     
     public virtual DbSet<BrandMenu> Menu { get; set; } = null!;
     public virtual DbSet<BrandMenuItems> MenuItems { get; set; } = null!;
-    public virtual DbSet<Collections> Collections { get; set; } = null!;
-    public virtual DbSet<CollectionItems> CollectionItems { get; set; } = null!;
     public virtual DbSet<StoreMenuAssignments> StoreMenuAssignments { get; set; } = null!;
     public virtual DbSet<StoreMenuItemAvailability> StoreMenuItemAvailability { get; set; } = null!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)

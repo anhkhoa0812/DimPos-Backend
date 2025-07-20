@@ -12,4 +12,5 @@ public class BrandMenu : EntityAuditBase<Guid>
     public Guid BrandId { get; set; }
     
     public virtual ICollection<BrandMenuItems> MenuItems { get; set; } = new List<BrandMenuItems>();
+    public virtual ICollection<StoreMenuAssignments>? StoreMenuAssignments { get; set; } = new List<StoreMenuAssignments>();
 }

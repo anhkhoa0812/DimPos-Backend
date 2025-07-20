@@ -53,9 +53,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
             .Select(x => x.BrandMenuItemId )
             .ToList();
         var listBrandMenuItems = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
-            predicate: x => brandMenuItemIds.Contains(x.Id) && x.ProductVariantId != null
-                                                            && x.Menu != null
-                                                            && x.Menu.IsActiveByBrand == true,
+            predicate: x => brandMenuItemIds.Contains(x.Id) && x.Menu.IsActiveByBrand == true,
             include: x => x.Include(x => x.Menu)
         );
         var brandId = listBrandMenuItems.Select(x => x.Menu.BrandId).FirstOrDefault();

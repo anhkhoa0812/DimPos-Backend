@@ -10,4 +10,6 @@ public class BrandMenuItems : EntityAuditBase<Guid>
     public Guid MenuId { get; set; }
     
     public virtual BrandMenu Menu { get; set; }
+    public virtual ICollection<StoreMenuItemAvailability>? StoreMenuItemAvailability { get; set; } =
+        new List<StoreMenuItemAvailability>();
 }

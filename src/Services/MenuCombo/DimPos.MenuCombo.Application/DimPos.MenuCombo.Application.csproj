@@ -40,7 +40,6 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Features\BrandMenuItems\Query\" />
-      <Folder Include="Features\StoreMenuAssignments\Query\" />
     </ItemGroup>
     
 

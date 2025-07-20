@@ -10,5 +10,5 @@ public class StoreMenuAssignments : EntityAuditBase<Guid>
 
     public virtual ICollection<StoreMenuItemAvailability>? StoreMenuItemAvailability { get; set; } =
         new List<StoreMenuItemAvailability>();
-
+    public virtual BrandMenu BrandMenu { get; set; } = null!;
 }

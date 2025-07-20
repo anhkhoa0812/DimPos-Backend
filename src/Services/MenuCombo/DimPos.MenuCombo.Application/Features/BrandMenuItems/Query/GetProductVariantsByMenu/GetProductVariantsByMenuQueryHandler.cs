@@ -44,10 +44,10 @@ public class GetProductVariantsByMenuQueryHandler : IRequestHandler<GetProductVa
             throw new BadHttpRequestException("Không tìm thấy BrandMenu");
         }
 
-        var productVariantsIdInBrandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
-            selector: x => x.ProductVariantId,
-            predicate: x => x.MenuId == request.BrandMenuId
-        );
+        // var productVariantsIdInBrandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
+        //     selector: x => x.ProductVariantId,
+        //     predicate: x => x.MenuId == request.BrandMenuId
+        // );
         var productVariantsGrpcResponse = await _catalogGrpcService.GetProductVariantsByBrandAsync(
             new GetProductVariantsByBrandRequest()
             {

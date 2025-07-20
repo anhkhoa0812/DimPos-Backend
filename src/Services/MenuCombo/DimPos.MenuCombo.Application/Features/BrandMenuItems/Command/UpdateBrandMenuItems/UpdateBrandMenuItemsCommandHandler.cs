@@ -115,7 +115,7 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
         if (removeProductVariantIds.Any())
         {
             var removeBrandMenuItem = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
-                predicate: x => x.MenuId == request.BrandMenuId && x.ProductVariantId != null && removeProductVariantIds.Contains(x.ProductVariantId)
+                predicate: x => x.MenuId == request.BrandMenuId && removeProductVariantIds.Contains(x.ProductVariantId)
             );
             var storeMenuItemAvailability = await _unitOfWork.GetRepository<StoreMenuItemAvailability>().GetListAsync(
                 predicate: x => removeBrandMenuItem.Select(x => x.Id).Contains(x.BrandMenuItemId)
