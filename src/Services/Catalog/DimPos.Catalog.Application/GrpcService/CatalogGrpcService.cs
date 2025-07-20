@@ -413,6 +413,47 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             ProductVariants = { response }
         };
     }
+
+    public override async Task<GetProductVariantListByIdsForStoreMenuResponse> GetProductVariantListByIdsForStoreMenu(GetProductVariantListByIdsForStoreMenuRequest request,
+        ServerCallContext context)
+    {
+        var brandId = Guid.Parse(request.BrandId);
+        var variantIds = request.ProductVariantIds
+            .Select(Guid.Parse)
+            .ToList();
+
+        var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
+            predicate: x => variantIds.Contains(x.Id) 
+                            && x.Product.BrandId == brandId 
+                            && x.Product.Type == EProductType.CustomerOrder,
+            include: x => x.Include(x => x.Product)
+        );
+        var response = new GetProductVariantListByIdsForStoreMenuResponse();
+        foreach (var productVariant in productVariants)
+        {
+            var storePrice = await _unitOfWork.GetRepository<StorePrice>().SingleOrDefaultAsync(
+                predicate: x => x.ProductVariantId == productVariant.Id
+            );
+            if (storePrice == null)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound,
+                    $"Không tìm thấy giá của Product Variant: {productVariant.Id}"));
+            }
+            response.ProductVariants.Add(new ProductVariant()
+            {
+                Id = productVariant.Id.ToString(),
+                Code = productVariant.Code,
+                Name = productVariant.Name,
+                Description = productVariant.Description ?? String.Empty,
+                DisplayOrder = productVariant.DisplayOrder ?? 0,
+                Price = (float)storePrice.OverridePrice,
+                IsActive = productVariant.IsActive,
+                Size = productVariant.Size ?? String.Empty,
+                Sku = productVariant.Sku ?? String.Empty
+            });
+        }
+        return response;
+    }
     // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     // {
     //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();

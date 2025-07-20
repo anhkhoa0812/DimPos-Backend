@@ -9,6 +9,7 @@ using DimPos.MenuCombo.Infrastructure.Paginate.Interface;
 using DimPos.MenuCombo.Infrastructure.Persistence;
 using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 using ProductVariantResponse = DimPos.MenuCombo.Domain.Models.ProductVariant.ProductVariantResponse;
 
 namespace DimPos.MenuCombo.Application.Features.BrandMenuItems.Query.GetProductVariantsByMenu;
@@ -36,53 +37,63 @@ public class GetProductVariantsByMenuQueryHandler : IRequestHandler<GetProductVa
             throw new BadHttpRequestException("Không tìm thấy BrandId");
         }
 
-        var brandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().SingleOrDefaultAsync(
-            predicate: x => x.BrandId == brandId && x.Id == request.BrandMenuId
+        var brandMenuItems = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetPagingListAsync(
+            predicate: x => x.Menu.BrandId == brandId && 
+                            x.Menu.Id == request.BrandMenuId,
+            page: request.Page,
+            size: request.Size,
+            sortBy: request.SortBy ?? "DisplayOrder",
+            isAsc: request.IsAsc
         );
-        if (brandMenu == null)
+        if (!brandMenuItems.Items.Any())
         {
-            throw new BadHttpRequestException("Không tìm thấy BrandMenu");
+            return new ApiResponse()
+            {
+                Status = 200,
+                Message = "Không có sản phẩm nào trong menu này",
+                Data = new Paginate<ProductVariantResponse>()
+                {
+                    Page = request.Page,
+                    Size = request.Size,
+                    Items = new List<ProductVariantResponse>(),
+                    Total = 0,
+                    TotalPages = 0
+                }
+            };
         }
-
-        // var productVariantsIdInBrandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().GetListAsync(
-        //     selector: x => x.ProductVariantId,
-        //     predicate: x => x.MenuId == request.BrandMenuId
-        // );
-        var productVariantsGrpcResponse = await _catalogGrpcService.GetProductVariantsByBrandAsync(
-            new GetProductVariantsByBrandRequest()
+        var productVariantIds = brandMenuItems.Items
+            .Select(x => x.ProductVariantId.ToString())
+            .ToList();
+        
+        var productVariantsGrpcResponse = await _catalogGrpcService.GetProductVariantListByIdsAsync(
+            new GetProductVariantListByIdsRequest()
             {
                 BrandId = brandId.ToString(),
-                Page = request.Page,
-                PageSize = request.Size,
-                IsAsc = request.IsAsc,
+                ProductVariantIds = { productVariantIds }
             });
-        var response = new List<ProductVariantResponse>();
-        foreach (var productVariantGrpcResponse in productVariantsGrpcResponse.ProductVariants)
-        {
-            response.Add(new ProductVariantResponse()
-            { 
-                Id = Guid.Parse(productVariantGrpcResponse.Id),
-                Name = productVariantGrpcResponse.Name,
-                Price = (decimal) productVariantGrpcResponse.Price,
-                Code = productVariantGrpcResponse.Code,
-                Description = productVariantGrpcResponse.Description,
-                IsActive = productVariantGrpcResponse.IsActive,
-                Size = productVariantGrpcResponse.Size,
-                DisplayOrder =  productVariantGrpcResponse.DisplayOrder,
-                Sku = productVariantGrpcResponse.Sku 
-            });
-        }
+        var response = productVariantsGrpcResponse.ProductVariants
+            .Select(x => new ProductVariantResponse()
+            {
+                Id = Guid.Parse(x.Id),
+                Code = x.Code,
+                Name = x.Name,
+                Description = x.Description,
+                IsActive = x.IsActive,
+                Size = x.Size,
+                Sku = x.Sku,
+                Price = (decimal) x.Price
+            }).ToList();
         return new ApiResponse()
         {
             Status = 200,
-            Message = "Lấy dữ liệu thành công",
+            Message = "Lấy danh sách sản phẩm trong menu thành công",
             Data = new Paginate<ProductVariantResponse>()
             {
-                Page = request.Page,
-                Size = request.Size,
+                Page = brandMenuItems.Page,
+                Size = brandMenuItems.Size,
                 Items = response,
-                Total = productVariantsGrpcResponse.Total,
-                TotalPages = productVariantsGrpcResponse.TotalPages
+                Total = brandMenuItems.Total,
+                TotalPages = brandMenuItems.TotalPages
             }
         };
     }
