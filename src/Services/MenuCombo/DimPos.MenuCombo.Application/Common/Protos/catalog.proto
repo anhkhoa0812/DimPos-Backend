@@ -8,7 +8,9 @@ service CatalogGrpcService {
   rpc CheckProductVariantInBrand (CheckProductVariantInBrandRequest) returns (CheckProductVariantInBrandResponse);
   rpc GetMenuProductByStore (GetMenuProductByStoreRequest) returns (GetMenuProductByStoreResponse);
   rpc GetProductVariantListByIds (GetProductVariantListByIdsRequest) returns (GetProductVariantListByIdsResponse);
+  rpc GetProductVariantListByIdsForStoreMenu (GetProductVariantListByIdsForStoreMenuRequest) returns (GetProductVariantListByIdsForStoreMenuResponse);
   rpc GetProductForOrder (GetProductForOrderRequest) returns (GetProductForOrderResponse);
+  rpc GetProductVariantForInternalOrder (GetProductVariantForInternalOrderRequest) returns (GetProductVariantForInternalOrderResponse);
 }
 message GetProductVariantsByBrandRequest {
   int32 page = 1;
@@ -170,4 +172,39 @@ message ModifierOptionForOrderResponse {
   string modifierGroupId = 2;
   string modifierGroupName = 3;
   string modifierOptionName = 4;
+}
+message GetProductVariantForInternalOrderRequest {
+  string brandId = 1;
+  string storeId = 2;
+  repeated string productVariantId = 3;
+}
+message GetProductVariantForInternalOrderResponse {
+  repeated ProductVariantForInternalOrder productVariants = 1;
+}
+message ProductVariantForInternalOrder {
+  string productVariantId = 1;
+  string productVariantName = 2;
+  float productVariantPrice = 3;
+  repeated RecipeItemsForInternalOrder recipeItems = 4;
+}
+message RecipeItemsForInternalOrder {
+  string id = 1;
+  string ingredientId = 2;
+  int32 quantity = 4;
+  string note = 5;
+  IngredientForInternalOrder ingredient = 6;
+}
+message IngredientForInternalOrder {
+  string id = 1;
+  string sku = 2;
+  string name = 3;
+  string unitOfMeasure = 4;
+  string description = 5;
+}
+message GetProductVariantListByIdsForStoreMenuRequest {
+  string brandId = 1;
+  repeated string productVariantIds = 2;
+}
+message GetProductVariantListByIdsForStoreMenuResponse {
+  repeated ProductVariant productVariants = 1;
 }

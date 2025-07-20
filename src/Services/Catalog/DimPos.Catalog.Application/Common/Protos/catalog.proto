@@ -8,6 +8,7 @@ service CatalogGrpcService {
   rpc CheckProductVariantInBrand (CheckProductVariantInBrandRequest) returns (CheckProductVariantInBrandResponse);
   rpc GetMenuProductByStore (GetMenuProductByStoreRequest) returns (GetMenuProductByStoreResponse);
   rpc GetProductVariantListByIds (GetProductVariantListByIdsRequest) returns (GetProductVariantListByIdsResponse);
+  rpc GetProductVariantListByIdsForStoreMenu (GetProductVariantListByIdsForStoreMenuRequest) returns (GetProductVariantListByIdsForStoreMenuResponse);
   rpc GetProductForOrder (GetProductForOrderRequest) returns (GetProductForOrderResponse);
   rpc GetProductVariantForInternalOrder (GetProductVariantForInternalOrderRequest) returns (GetProductVariantForInternalOrderResponse);
 }
@@ -199,4 +200,11 @@ message IngredientForInternalOrder {
   string name = 3;
   string unitOfMeasure = 4;
   string description = 5;
+}
+message GetProductVariantListByIdsForStoreMenuRequest {
+  string brandId = 1;
+  repeated string productVariantIds = 2;
+}
+message GetProductVariantListByIdsForStoreMenuResponse {
+  repeated ProductVariant productVariants = 1;
 }
