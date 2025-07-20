@@ -63,9 +63,16 @@ public class StaffEndpoints : ICarterModule
         var result = await mediator.Send(command);
         return Results.Created($"{ApiEndpointConstant.Staff.StaffEndpoint}", result);
     }
-    public async Task<IResult> GetStaffs(IMediator mediator)
+    public async Task<IResult> GetStaffs(IMediator mediator, [FromQuery] int page = 1,
+        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
     {
-        var query = new GetStaffsQuery();
+        var query = new GetStaffsQuery()
+        {
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc
+        };
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }

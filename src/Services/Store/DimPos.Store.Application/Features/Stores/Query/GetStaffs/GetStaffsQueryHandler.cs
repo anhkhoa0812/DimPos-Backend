@@ -4,6 +4,7 @@ using DimPos.Store.Domain.Entities;
 using DimPos.Store.Domain.Enums;
 using DimPos.Store.Domain.Models.Common;
 using DimPos.Store.Domain.Models.Response;
+using DimPos.Store.Infrastructure.Paginate;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
 using Mediator;
@@ -32,24 +33,28 @@ public class GetStaffsQueryHandler : IRequestHandler<GetStaffsQuery, ApiResponse
         if (storeId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy thông tin cửa hàng trong yêu cầu.");
 
-        var staffAccounts = await _unitOfWork.GetRepository<StoreAccounts>().GetListAsync(
-            predicate: x => x.StoreId == storeId && x.Role == EStoreRole.Staff
+        var staffAccounts = await _unitOfWork.GetRepository<StoreAccounts>().GetPagingListAsync(
+            predicate: x => x.StoreId == storeId && x.Role == EStoreRole.Staff,
+            page: request.Page,
+            size: request.Size,
+            sortBy: request.SortBy ?? "AssignAt",
+            isAsc: request.IsAsc
         );
-        if (staffAccounts == null || !staffAccounts.Any())
-        {
-            return new ApiResponse
-            {
-                Status = StatusCodes.Status200OK,
-                Message = "Lấy danh sách nhân viên thành công, nhưng không có nhân viên nào được tìm thấy.",
-                Data = new List<GetStaffsResponse>()
-            };
-        }
+        // if (staffAccounts == null || !staffAccounts.Any())
+        // {
+        //     return new ApiResponse
+        //     {
+        //         Status = StatusCodes.Status200OK,
+        //         Message = "Lấy danh sách nhân viên thành công, nhưng không có nhân viên nào được tìm thấy.",
+        //         Data = new List<GetStaffsResponse>()
+        //     };
+        // }
 
         var staffDetailResponse = await _identityGrpcService.GetStaffDetailAsync(new GetStaffDetailRequest()
         {
             AccountId =
             {
-                staffAccounts.Select(x => x.AccountId.ToString()).ToList()
+                staffAccounts.Items.Select(x => x.AccountId.ToString()).ToList()
             }
         });
         var response = staffDetailResponse.Staffs.Select(x => new GetStaffsResponse()
@@ -59,14 +64,21 @@ public class GetStaffsQueryHandler : IRequestHandler<GetStaffsQuery, ApiResponse
             Email = x.Email,
             Status = (EAccountStatus)x.Status,
             Username = x.Username,
-            AssignAt = staffAccounts.First(y => y.AccountId == Guid.Parse(x.Id)).AssignAt
+            AssignAt = staffAccounts.Items.First(y => y.AccountId == Guid.Parse(x.Id)).AssignAt
         }).ToList();
 
         return new ApiResponse()
         {
             Status = StatusCodes.Status200OK,
             Message = "Lấy thông tin nhân viên thành công",
-            Data = response
+            Data = new Paginate<GetStaffsResponse>()
+            {
+                Page = staffAccounts.Page,
+                Size = staffAccounts.Size,
+                Total = staffAccounts.Total,
+                Items = response,
+                TotalPages = staffAccounts.TotalPages
+            }
         };
     }
 }

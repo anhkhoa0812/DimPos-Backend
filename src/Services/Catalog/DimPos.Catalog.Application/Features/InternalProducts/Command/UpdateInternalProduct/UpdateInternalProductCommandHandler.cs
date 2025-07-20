@@ -168,7 +168,7 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
                                 && x.BrandId == brandId
             );
             basePrice.Price = request.Price.Value;
-            basePrice.BrandPriceHistories?.Add(new BrandPriceHistory()
+            await _unitOfWork.GetRepository<BrandPriceHistory>().InsertAsync(new BrandPriceHistory()
             {
                 Id = Guid.CreateVersion7(),
                 ProductVariantId = productVariant.Id,
@@ -176,7 +176,8 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
                 ChangedBy = accountId,
                 OldPrice = productVariant.Price,
                 NewPrice = request.Price.Value,
-                CurrencyCode = "VND"
+                CurrencyCode = "VND",
+                BrandPriceId = basePrice.Id
             });
             productVariant.Price = request.Price.Value;
             _unitOfWork.GetRepository<BasePrice>().UpdateAsync(basePrice);
