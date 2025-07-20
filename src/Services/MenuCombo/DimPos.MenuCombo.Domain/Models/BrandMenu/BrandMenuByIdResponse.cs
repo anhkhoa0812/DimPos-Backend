@@ -9,8 +9,6 @@ public class BrandMenuByIdResponse
     public string? Description { get; set; }
     public EBrandMenuType? Type { get; set; }
     public bool IsActiveByBrand { get; set; }
-    public DateTime? ValidFrom { get; set; }
-    public DateTime? ValidTo { get; set; }
     public List<BrandMenuByIdResponseWithProductVariants> ProductVariants { get; set; } = new List<BrandMenuByIdResponseWithProductVariants>();
     public List<BrandMenuByIdResponseWithStore> Stores { get; set; } = new List<BrandMenuByIdResponseWithStore>();
 }

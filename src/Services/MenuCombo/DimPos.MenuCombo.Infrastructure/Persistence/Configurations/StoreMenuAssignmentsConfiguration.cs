@@ -15,6 +15,9 @@ public class StoreMenuAssignmentsConfiguration : IEntityTypeConfiguration<StoreM
             .IsRequired();
         builder.Property(sma => sma.IsActiveAtStore)
             .IsRequired();
-
+        builder.HasOne(sma => sma.BrandMenu)
+            .WithMany(bm => bm.StoreMenuAssignments)
+            .HasForeignKey(sma => sma.BrandMenuId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

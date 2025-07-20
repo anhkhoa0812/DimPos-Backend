@@ -19,5 +19,9 @@ public class StoreMenuItemAvailabilityConfiguration : IEntityTypeConfiguration<S
             .WithMany(x => x.StoreMenuItemAvailability)
             .HasForeignKey(x => x.StoreMenuAssignmentId)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.BrandMenuItem)
+            .WithMany(x => x.StoreMenuItemAvailability)
+            .HasForeignKey(x => x.BrandMenuItemId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

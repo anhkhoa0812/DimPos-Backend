@@ -4,6 +4,7 @@ using DimPos.MenuCombo.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DimPos.MenuCombo.Infrastructure.Migrations
 {
     [DbContext(typeof(MenuComboContext))]
-    partial class MenuComboContextModelSnapshot : ModelSnapshot
+    [Migration("20250719031031_Remove_ValidRange_And_Effective_Range_Of_BrandMenu_And_StoreMenu")]
+    partial class Remove_ValidRange_And_Effective_Range_Of_BrandMenu_And_StoreMenu
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -89,6 +92,70 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                     b.ToTable("MenuItems");
                 });
 
+            modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.CollectionItems", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CollectionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("IsMandatory")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ProductVariantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollectionId");
+
+                    b.ToTable("CollectionItems");
+                });
+
+            modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.Collections", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BrandId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsActiveByBrand")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SKU")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Collections");
+                });
+
             modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.StoreMenuAssignments", b =>
                 {
                     b.Property<Guid>("Id")
@@ -111,8 +178,6 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BrandMenuId");
 
                     b.ToTable("StoreMenuAssignments");
                 });
@@ -140,8 +205,6 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BrandMenuItemId");
-
                     b.HasIndex("StoreMenuAssignmentId");
 
                     b.ToTable("StoreMenuItemAvailability");
@@ -158,32 +221,24 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
                     b.Navigation("Menu");
                 });
 
-            modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.StoreMenuAssignments", b =>
+            modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.CollectionItems", b =>
                 {
-                    b.HasOne("DimPos.MenuCombo.Domain.Entities.BrandMenu", "BrandMenu")
-                        .WithMany("StoreMenuAssignments")
-                        .HasForeignKey("BrandMenuId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("DimPos.MenuCombo.Domain.Entities.Collections", "Collection")
+                        .WithMany("CollectionItems")
+                        .HasForeignKey("CollectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("BrandMenu");
+                    b.Navigation("Collection");
                 });
 
             modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.StoreMenuItemAvailability", b =>
                 {
-                    b.HasOne("DimPos.MenuCombo.Domain.Entities.BrandMenuItems", "BrandMenuItem")
-                        .WithMany("StoreMenuItemAvailability")
-                        .HasForeignKey("BrandMenuItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("DimPos.MenuCombo.Domain.Entities.StoreMenuAssignments", "StoreMenuAssignment")
                         .WithMany("StoreMenuItemAvailability")
                         .HasForeignKey("StoreMenuAssignmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("BrandMenuItem");
 
                     b.Navigation("StoreMenuAssignment");
                 });
@@ -191,13 +246,11 @@ namespace DimPos.MenuCombo.Infrastructure.Migrations
             modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.BrandMenu", b =>
                 {
                     b.Navigation("MenuItems");
-
-                    b.Navigation("StoreMenuAssignments");
                 });
 
-            modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.BrandMenuItems", b =>
+            modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.Collections", b =>
                 {
-                    b.Navigation("StoreMenuItemAvailability");
+                    b.Navigation("CollectionItems");
                 });
 
             modelBuilder.Entity("DimPos.MenuCombo.Domain.Entities.StoreMenuAssignments", b =>

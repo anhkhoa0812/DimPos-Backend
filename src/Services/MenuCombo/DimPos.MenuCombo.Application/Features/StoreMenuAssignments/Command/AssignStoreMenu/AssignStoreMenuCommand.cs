@@ -12,6 +12,4 @@ public class AssignStoreMenuCommand: IRequest<ApiResponse>
 public class AssignStoreMenuRequest
 {
     public Guid StoreId { get; set; }
-    public DateTime? EffectiveAt { get; set; }
-    public DateTime? EffectiveEnd { get; set; }
 }
