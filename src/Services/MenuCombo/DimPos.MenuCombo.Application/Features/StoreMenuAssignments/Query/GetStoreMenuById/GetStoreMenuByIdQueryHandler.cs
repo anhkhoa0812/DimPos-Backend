@@ -75,7 +75,7 @@ public class GetStoreMenuByIdQueryHandler : IRequestHandler<GetStoreMenuByIdQuer
                     .FirstOrDefault(x => x.Id == storeMenuItem.BrandMenuItem.ProductVariantId.ToString());
                 if (productVariant != null)
                 {
-                    response.StoreMenuItems.Add(new StoreMenuItemForGetStoreMenuById()
+                    response.StoreMenuItems?.Add(new StoreMenuItemForGetStoreMenuById()
                     {
                         Id = storeMenuItem.Id,
                         IsActiveAtStore = storeMenuItem.IsActiveAtStore,

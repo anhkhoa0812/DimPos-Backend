@@ -7,6 +7,7 @@ using DimPos.Store.Application.Features.Stores.Command.UpdateStore;
 using DimPos.Store.Application.Features.Stores.Query.GetStaffById;
 using DimPos.Store.Application.Features.Stores.Query.GetStaffs;
 using DimPos.Store.Application.Features.Stores.Query.GetStore;
+using DimPos.Store.Application.Features.Stores.Query.GetStoreById;
 using DimPos.Store.Application.Features.Stores.Query.GetStoresByBrand;
 using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
 using DimPos.Store.Application.Features.TaxRate.Command.UpdateTaxRate;
@@ -61,6 +62,14 @@ public class StoreEndpoints : ICarterModule
             .WithName(nameof(GetStoreDetail))
             .RequireAuthorization("StorePolicy")
             .Produces<ApiResponse<GetStoreResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/{id:guid}", GetStoreById)
+            .WithName(nameof(GetStoreById))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse<GetStoreByIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -158,4 +167,14 @@ public class StoreEndpoints : ICarterModule
         var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
+
+    public async Task<IResult> GetStoreById(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetStoreByIdQuery()
+        {
+            StoreId = id
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }    
 }
