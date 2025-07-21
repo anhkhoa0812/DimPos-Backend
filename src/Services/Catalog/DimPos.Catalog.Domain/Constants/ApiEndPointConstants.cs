@@ -36,4 +36,8 @@ public static class ApiEndPointConstants
     {
         public const string InternalProductsEndpoint = ApiEndpoint + "/internal-products";
     }
+    public class StorePrices
+    {
+        public const string StorePricesEndpoint = ApiEndpoint + "/store-prices";
+    }
 }

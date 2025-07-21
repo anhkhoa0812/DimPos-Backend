@@ -11,5 +11,5 @@ public class StorePrice : EntityAuditBase<Guid>
     public Guid StoreId { get; set; }
     public Guid ProductVariantId { get; set; }
     
-    public virtual IEnumerable<StorePriceHistory>? StorePriceHistories { get; set; } = new List<StorePriceHistory>();
+    public virtual ICollection<StorePriceHistory>? StorePriceHistories { get; set; } = new List<StorePriceHistory>();
 }
