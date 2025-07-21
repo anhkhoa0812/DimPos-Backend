@@ -44,14 +44,9 @@ public class CreateBrandMenuCommandHandler: IRequestHandler<CreateBrandMenuComma
             {
                 Status = 200,
                 Message = "Thêm mới menu thành công",
-                Data = null
+                Data = brandMenu.Id
             };
         }
-        return new ApiResponse
-        {
-            Status = 500,
-            Message = "Thêm mới menu không thành công",
-            Data = null
-        };
+        throw new Exception("Thêm mới menu không thành công, vui lòng thử lại sau");
     }
 }

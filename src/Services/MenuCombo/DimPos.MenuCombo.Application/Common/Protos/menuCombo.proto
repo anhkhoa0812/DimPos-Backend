@@ -1,0 +1,15 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.MenuCombo.Application.Common.Protos";
+
+
+service MenuComboGrpcService {
+  rpc GetProductVariantsInStoreMenu (GetProductVariantsInStoreMenuRequest) returns (GetProductVariantsInStoreMenuResponse);
+}
+message GetProductVariantsInStoreMenuRequest {
+  string storeId = 1;
+  string brandId = 2;
+}
+message GetProductVariantsInStoreMenuResponse {
+  repeated string productVariantIds = 1;
+}
