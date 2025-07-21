@@ -88,7 +88,6 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
             Price = request.Price,
             BrandId = brandId,
             CurrencyCode = "VND",
-            EffectiveFrom = TimeUtil.GetCurrentSEATime(),
             BrandPriceHistories = new List<BrandPriceHistory>()
             {
                 new BrandPriceHistory()

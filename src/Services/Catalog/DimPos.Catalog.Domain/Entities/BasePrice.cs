@@ -6,7 +6,6 @@ public class BasePrice : EntityAuditBase<Guid>
 {
     public string CurrencyCode { get; set; }
     public decimal Price { get; set; }
-    public DateTime EffectiveFrom { get; set; }
     public Guid ProductVariantId { get; set; }
     public Guid BrandId { get; set; }
     

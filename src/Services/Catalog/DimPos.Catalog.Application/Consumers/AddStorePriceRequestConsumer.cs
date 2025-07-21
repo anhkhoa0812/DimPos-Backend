@@ -52,7 +52,6 @@ public class AddStorePriceRequestConsumer : IConsumer<AddStorePriceRequestModel>
                     ProductVariantId = storePriceRequest.ProductVariantId,
                     CurrencyCode = "VND",
                     OverridePrice = brandPrice.Price,
-                    IsActiveAtStore = true,
                     EffectiveFrom = TimeUtil.GetCurrentSEATime(),
                     StorePriceHistories = new List<StorePriceHistory>()
                     {

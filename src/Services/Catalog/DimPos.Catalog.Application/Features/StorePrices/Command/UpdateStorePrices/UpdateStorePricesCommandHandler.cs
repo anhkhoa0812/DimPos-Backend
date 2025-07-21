@@ -5,6 +5,7 @@ using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
 using DimPos.Catalog.Infrastructure.Utils;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Catalog.Application.Features.StorePrices.Command.UpdateStorePrices;
 
@@ -54,7 +55,7 @@ public class UpdateStorePricesCommandHandler : IRequestHandler<UpdateStorePrices
         storePrices.CurrencyCode = request.CurrencyCode ?? storePrices.CurrencyCode;
         if (request.OverridePrice != null)
         {
-            storePrices.StorePriceHistories?.Add(new StorePriceHistory()
+            var newStorePriceHistory = new StorePriceHistory()
             {
                 Id = Guid.CreateVersion7(),
                 OldPrice = storePrices.OverridePrice,
@@ -65,7 +66,9 @@ public class UpdateStorePricesCommandHandler : IRequestHandler<UpdateStorePrices
                 StorePriceId = storePrices.Id,
                 ChangedBy = accountId,
                 ProductVariantId = storePrices.ProductVariantId
-            });
+            };
+            await _unitOfWork.GetRepository<StorePriceHistory>().InsertAsync(newStorePriceHistory);
+            storePrices.OverridePrice = request.OverridePrice.Value;
         }
         _unitOfWork.GetRepository<StorePrice>().UpdateAsync(storePrices);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

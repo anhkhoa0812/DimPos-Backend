@@ -39,9 +39,6 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<DateTime>("EffectiveFrom")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
@@ -527,9 +524,6 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.Property<DateTime>("EffectiveFrom")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActiveAtStore")
-                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
