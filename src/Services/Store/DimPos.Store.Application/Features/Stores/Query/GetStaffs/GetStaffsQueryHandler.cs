@@ -40,15 +40,15 @@ public class GetStaffsQueryHandler : IRequestHandler<GetStaffsQuery, ApiResponse
             sortBy: request.SortBy ?? "AssignAt",
             isAsc: request.IsAsc
         );
-        // if (staffAccounts == null || !staffAccounts.Any())
-        // {
-        //     return new ApiResponse
-        //     {
-        //         Status = StatusCodes.Status200OK,
-        //         Message = "Lấy danh sách nhân viên thành công, nhưng không có nhân viên nào được tìm thấy.",
-        //         Data = new List<GetStaffsResponse>()
-        //     };
-        // }
+        if (!staffAccounts.Items.Any())
+        {
+            return new ApiResponse
+            {
+                Status = StatusCodes.Status200OK,
+                Message = "Lấy danh sách nhân viên thành công, nhưng không có nhân viên nào được tìm thấy.",
+                Data = new List<GetStaffsResponse>()
+            };
+        }
 
         var staffDetailResponse = await _identityGrpcService.GetStaffDetailAsync(new GetStaffDetailRequest()
         {
