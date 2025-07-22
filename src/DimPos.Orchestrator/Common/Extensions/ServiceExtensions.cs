@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using DimPos.Orchestrator.Common.Models.Settings;
+using DimPos.Orchestrator.SagaState.BrandMenuItems.UpdateBrandMenuItem;
 using DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga;
 using DimPos.Orchestrator.SagaState.Brands.CreateStoreSaga;
 using DimPos.Orchestrator.SagaState.StoreMenu.AssignNewStoreMenu;
@@ -12,6 +13,7 @@ using SharedProject.Events.Brand;
 using SharedProject.Events.RemoveMenuForStore;
 using SharedProject.Events.Store.CreateStaff;
 using SharedProject.Events.Store.CreateStore;
+using SharedProject.Events.UpdateBrandMenuItem;
 using SharedProject.Events.UpdateInventoryForInternalOrder;
 
 namespace DimPos.Orchestrator.Common.Extensions;
@@ -45,6 +47,8 @@ public static class ServiceExtensions
                 rider
                     .AddSagaStateMachine<UpdateInventoryForStorePurchaseOrderStateMachine,
                         UpdateInventoryForStorePurchaseOrderSagaState>().InMemoryRepository();
+                rider
+                    .AddSagaStateMachine<UpdateBrandMenuItemSageStateMachine, UpdateBrandMenuItemSageState>().InMemoryRepository();
                 //Add Producers
                 rider.AddProducer<Null, CreateBrandAccountModel>(kafkaOptions!.Topics.CreateBrandAccountRequest);
                 rider.AddProducer<Null, RollbackBrandAccountModel>(kafkaOptions!.Topics.RollbackBrandAccountRequest);
@@ -61,6 +65,9 @@ public static class ServiceExtensions
                     .UpdateInventoryForInternalOrderRequest);
                 rider.AddProducer<Null, ChangeErrorStatusForStorePurchaseOrderRequestModel>(
                     kafkaOptions.Topics.ChangeErrorStatusForStorePurchaseOrderRequest);
+                rider.AddProducer<Null, CreateStorePriceForBrandMenuItemRequestModel>(kafkaOptions.Topics
+                    .CreateStorePriceForBrandMenuItemRequest);
+                
                 rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {
                     //Create Brand account
@@ -275,6 +282,18 @@ public static class ServiceExtensions
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureSaga<UpdateInventoryForStorePurchaseOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    //Update Brand Menu Item
+                    kafkaConfig.TopicEndpoint<Null, UpdateBrandMenuItemResponseModel>(
+                        topicName: kafkaOptions!.Topics.UpdateBrandMenuItemResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateBrandMenuItemSageState>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

@@ -9,17 +9,17 @@ using DimPos.Media.Application.Common.Protos;
 using Google.Protobuf;
 using Mediator;
 
-namespace DimPos.Catalog.Application.Features.InternalProducts.Command.CreateInternalProduct;
+namespace DimPos.Catalog.Application.Features.ComboProducts.Command.CreateComboProduct;
 
-public class CreateInternalProductCommandHandler : IRequestHandler<CreateInternalProductCommand, ApiResponse>
+public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProductCommand, ApiResponse>
 {
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     private readonly MediaGrpcService.MediaGrpcServiceClient _mediaGrpcService;
     
-    public CreateInternalProductCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, 
-        IClaimService claimService, MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
+    public CreateComboProductCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService,
+        MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -27,15 +27,16 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
         _mediaGrpcService = mediaGrpcService ?? throw new ArgumentNullException(nameof(mediaGrpcService));
     }
     
-    public async ValueTask<ApiResponse> Handle(CreateInternalProductCommand request, CancellationToken cancellationToken)
+    public async ValueTask<ApiResponse> Handle(CreateComboProductCommand request, CancellationToken cancellationToken)
     {
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
-        if (brandId == Guid.Empty)
-            throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
+        if(brandId == Guid.Empty)
+            throw new BadHttpRequestException("Không tìm thấy id của thương hiệu");
         
         var accountId = _claimService.GetCurrentUserId;
-        if (accountId == Guid.Empty)
-            throw new BadHttpRequestException("Không tìm thấy Id của tài khoản");
+        if(accountId == Guid.Empty) 
+            throw new BadHttpRequestException("Không tìm thấy id của tài khoản");
+        
         var exisingProduct = await _unitOfWork.GetRepository<Domain.Entities.Products>().SingleOrDefaultAsync(
             predicate: x => x.Code == request.Code
         );
@@ -44,41 +45,32 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
             throw new BadHttpRequestException("Mã sản phẩm đã tồn tại");
         }
         
-        var exisingProductVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
-            predicate: x => x.Code == request.Code
-        );
-        if (exisingProductVariant != null)
-        {
-            throw new BadHttpRequestException("Mã sản phẩm đã tồn tại");
-        }
-        _logger.Information($"BEGIN: {nameof(CreateInternalProductCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         var product = new Domain.Entities.Products()
         {
             Id = Guid.CreateVersion7(),
-            BrandId = brandId,
             Code = request.Code,
             Name = request.Name,
             Description = request.Description,
             DisplayOrder = request.DisplayOrder,
             Note = request.Note,
-            IsHasVariants = false,
-            Type = EProductType.InternalOrder,
             Status = EProductStatus.Active,
-            IsCombo = false
+            IsCombo = true,
+            Type = EProductType.CustomerOrder,
+            IsHasVariants = false,
+            BrandId = brandId,
         };
-        
         var productVariant = new Domain.Entities.ProductVariants()
         {
             Id = Guid.CreateVersion7(),
-            Code = request.Code,
-            Name = request.Name,
-            Description = request.Description,
-            DisplayOrder = request.DisplayOrder,
-            IsActive = true,
-            Price = request.Price,
             Size = null,
+            IsActive = true,
+            Description = request.Description,
+            Name = request.Name,
+            Code = request.Code,
+            Price = request.Price,
+            DisplayOrder = request.DisplayOrder,
             Sku = request.Sku,
-            ProductId = product.Id,
+            ProductId = product.Id
         };
         product.ProductVariants.Add(productVariant);
         
@@ -104,8 +96,8 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
             }
         };
         await _unitOfWork.GetRepository<BasePrice>().InsertAsync(basePrice);
-
-        if (request.ProductImages != null)
+        
+        if (request.ProductImages != null && request.ProductImages.Any())
         {
             if (request.ProductImages.Count(x => x.IsMainImage) != 1)
             {
@@ -154,20 +146,43 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
             }
         }
         await _unitOfWork.GetRepository<Domain.Entities.Products>().InsertAsync(product);
+        
+        var itemProductVariantIds = request.ItemProductVariants.Select(x => x.ProductVariantId).ToList();
+        var itemProductVariants = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().GetListAsync(
+            predicate: x => itemProductVariantIds.Contains(x.Id)
+            && x.Product.Type == EProductType.CustomerOrder
+        );
+        if(request.ItemProductVariants.Count != itemProductVariants.Count)
+        {
+            throw new BadHttpRequestException("Một hoặc nhiều sản phẩm không tồn tại");
+        }
+        foreach (var itemProductVariant in itemProductVariants)
+        {
+           var requestItemProductVariant = request.ItemProductVariants
+               .First(x => x.ProductVariantId == itemProductVariant.Id);
+           
+           var productComboItem = new ProductComboItems()
+           {
+               Id = Guid.CreateVersion7(),
+               DisplayOrder = requestItemProductVariant.DisplayOrder,
+               Quantity = requestItemProductVariant.Quantity,
+               ProductId = product.Id,
+               ItemProductVariantId = itemProductVariant.Id,
+           };
+           await _unitOfWork.GetRepository<ProductComboItems>().InsertAsync(productComboItem);
+        }
+        
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        _logger.Information($"END: {nameof(CreateInternalProductCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         if (!isSuccess)
         {
-            return new ApiResponse()
-            {
-                Status = StatusCodes.Status500InternalServerError,
-                Message = "Tạo sản phẩm nội bộ thất bại",
-            };
+            throw new Exception("Tạo sản phẩm combo thất bại");
         }
+
         return new ApiResponse()
         {
             Status = StatusCodes.Status201Created,
-            Message = "Tạo sản phẩm nội bộ thành công",
+            Message = "Tạo sản phẩm combo thành công",
+            Data = product.Id
         };
     }
 }

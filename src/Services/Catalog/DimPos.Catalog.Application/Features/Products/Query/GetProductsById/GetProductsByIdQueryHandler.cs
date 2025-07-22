@@ -31,7 +31,8 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
         _logger.Information("BEGIN: GetProductsByIdQueryHandler.Handle - ProductId: {ProductId}", request.ProductId);
         var product = await _unitOfWork.GetRepository<Domain.Entities.Products>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.ProductId && x.BrandId == brandId
-            && x.Type == EProductType.CustomerOrder,
+            && x.Type == EProductType.CustomerOrder
+            && !x.IsCombo,
             selector: p => new ProductByIdResponse()
             {
                 Id = p.Id,

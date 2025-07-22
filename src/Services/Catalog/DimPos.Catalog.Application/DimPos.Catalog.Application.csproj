@@ -41,5 +41,8 @@
       <ProjectReference Include="..\..\..\BuildingBlocks\DimPos.ServiceDefaults\DimPos.ServiceDefaults.csproj" />
       <ProjectReference Include="..\DimPos.Catalog.Infrastructure\DimPos.Catalog.Infrastructure.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Features\ComboProducts\Query\" />
+    </ItemGroup>
 
 </Project>

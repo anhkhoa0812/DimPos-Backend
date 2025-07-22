@@ -34,7 +34,8 @@ public class GetProductProductVariantsByIdQueryHandler : IRequestHandler<GetProd
 
         var productVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.ProductVariantId && x.Product.BrandId == brandId
-            && x.Product.Type == EProductType.CustomerOrder,
+            && x.Product.Type == EProductType.CustomerOrder
+            && !x.Product.IsCombo,
             include: x => x.Include(x => x.Product)
         );
         if (productVariant == null)

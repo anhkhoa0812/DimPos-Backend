@@ -431,14 +431,15 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var response = new GetProductVariantListByIdsForStoreMenuResponse();
         foreach (var productVariant in productVariants)
         {
+            float overridePrice = 0;
             var storePrice = await _unitOfWork.GetRepository<StorePrice>().SingleOrDefaultAsync(
                 predicate: x => x.ProductVariantId == productVariant.Id
             );
-            if (storePrice == null)
+            if (storePrice != null)
             {
-                throw new RpcException(new Status(StatusCode.NotFound,
-                    $"Không tìm thấy giá của Product Variant: {productVariant.Id}"));
+                overridePrice = (float)storePrice.OverridePrice;
             }
+            
             response.ProductVariants.Add(new ProductVariant()
             {
                 Id = productVariant.Id.ToString(),
@@ -446,7 +447,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 Name = productVariant.Name,
                 Description = productVariant.Description ?? String.Empty,
                 DisplayOrder = productVariant.DisplayOrder ?? 0,
-                Price = (float)storePrice.OverridePrice,
+                Price = overridePrice,
                 IsActive = productVariant.IsActive,
                 Size = productVariant.Size ?? String.Empty,
                 Sku = productVariant.Sku ?? String.Empty

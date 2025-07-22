@@ -1,3 +1,4 @@
+using Confluent.Kafka;
 using DimPos.Catalog.Application.Common.Protos;
 using DimPos.MenuCombo.Application.Services.Interface;
 using DimPos.MenuCombo.Domain.Entities;
@@ -5,8 +6,10 @@ using DimPos.MenuCombo.Domain.Models.Common;
 using DimPos.MenuCombo.Infrastructure.Persistence;
 using DimPos.MenuCombo.Infrastructure.Repositories.Interface;
 using Google.Protobuf.Collections;
+using MassTransit;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using SharedProject.Events.UpdateBrandMenuItem;
 
 namespace DimPos.MenuCombo.Application.Features.BrandMenuItems.Command.UpdateBrandMenuItems;
 
@@ -16,14 +19,17 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     private readonly CatalogGrpcService.CatalogGrpcServiceClient _catalogGrpcService;
+    private readonly ITopicProducer<Null, UpdateBrandMenuItemResponseModel> _topicProducer;
     public UpdateBrandMenuItemsCommandHandler(IUnitOfWork<MenuComboContext> unitOfWork,
         ILogger logger, IClaimService claimService,
-        CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService)
+        CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService,
+        ITopicProducer<Null, UpdateBrandMenuItemResponseModel> topicProducer)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
         _catalogGrpcService = catalogGrpcService ?? throw new ArgumentNullException(nameof(catalogGrpcService));
+        _topicProducer = topicProducer ?? throw new ArgumentNullException(nameof(topicProducer));
     }
     
     public async ValueTask<ApiResponse> Handle(UpdateBrandMenuItemsCommand request, CancellationToken cancellationToken)
@@ -34,12 +40,15 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
             throw new BadHttpRequestException("Không tìm thấy brandId");
         }
         var brandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().SingleOrDefaultAsync(
-            predicate: x => x.BrandId == brandId && x.Id == request.BrandMenuId
+            predicate: x => x.BrandId == brandId && x.Id == request.BrandMenuId,
+            include: x => x.Include(x => x.StoreMenuAssignments)
         );
         if (brandMenu == null)
         {
             throw new BadHttpRequestException("Không tìm thấy BrandMenu");
         }
+
+        var updateBrandMenuItemResponse = new UpdateBrandMenuItemResponseModel();
         
         var requestedIdStrings = request.UpdateBrandMenuItemsRequest.ProductVariantIds
             .Select(x => x.ToString())
@@ -75,10 +84,6 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
         // var removeProductVariantIds = existingProductVariantsSet.Except(request.ProductVariantIds).ToList();
         if (newProductVariantIds.Any())
         {
-            var storeMenuAssignmentsList = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().GetListAsync(
-                predicate: x => x.BrandMenuId == request.BrandMenuId
-            );
-            var newStoreMenuItemAvailability = new List<Domain.Entities.StoreMenuItemAvailability>();
             var newBrandMenuItems = new List<Domain.Entities.BrandMenuItems>();
             foreach (var productVariantId in newProductVariantIds)
             {
@@ -91,25 +96,10 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
                     Description = null,
                 };
                 newBrandMenuItems.Add(brandMenuItem);
-                
-                foreach (var storeMenuAssignment in storeMenuAssignmentsList)
-                {
-                    var storeMenuItemAvailability = new StoreMenuItemAvailability()
-                    {
-                        Id = Guid.CreateVersion7(),
-                        BrandMenuItemId = brandMenuItem.Id,
-                        IsActiveAtStore = false,
-                        StoreMenuAssignmentId = storeMenuAssignment.Id,
-                    };
-                    newStoreMenuItemAvailability.Add(storeMenuItemAvailability);
-                }
+                updateBrandMenuItemResponse.NewProductVariantIds?.Add(productVariantId);
             }
-            //
-            // storeMenuAssignmentsList.Select(x => x.StoreMenuItemAvailability)
-            //     .ToList()
-            //     .AddRange(newStoreMenuItemAvailability);
             await _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().InsertRangeAsync(newBrandMenuItems);
-            await _unitOfWork.GetRepository<StoreMenuItemAvailability>().InsertRangeAsync(newStoreMenuItemAvailability);
+            
         }
 
         if (removeProductVariantIds.Any())
@@ -122,22 +112,33 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
             );
             _unitOfWork.GetRepository<StoreMenuItemAvailability>().DeleteRangeAsync(storeMenuItemAvailability);
             _unitOfWork.GetRepository<Domain.Entities.BrandMenuItems>().DeleteRangeAsync(removeBrandMenuItem);
+            updateBrandMenuItemResponse.RemovedProductVariantIds?.AddRange(removeProductVariantIds);
         }
 
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        if (isSuccess)
+        if (!isSuccess)
         {
-            return new ApiResponse()
+            throw new Exception("Câp nhật thất bại");
+        }
+        var storeIds = brandMenu.StoreMenuAssignments?.Select(x => x.StoreId).ToList();
+        if (storeIds != null && storeIds.Any())
+        {
+            if(updateBrandMenuItemResponse.NewProductVariantIds != null || updateBrandMenuItemResponse.RemovedProductVariantIds != null)
             {
-                Status = 200,
-                Message = "Cập nhật thành công",
-                Data = null
-            };
+                updateBrandMenuItemResponse.BrandId = brandId;
+                updateBrandMenuItemResponse.StoreIds = storeIds;
+                updateBrandMenuItemResponse.CorrelationId = Guid.CreateVersion7();
+                await _topicProducer.Produce(
+                    key: null,
+                    updateBrandMenuItemResponse,
+                    cancellationToken
+                ).ConfigureAwait(false);
+            }
         }
         return new ApiResponse()
         {
-            Status = 500,
-            Message = "Cập nhật sản phẩm thất bại",
+            Status = StatusCodes.Status200OK,
+            Message = "Cập nhật thành công",
             Data = null
         };
     }

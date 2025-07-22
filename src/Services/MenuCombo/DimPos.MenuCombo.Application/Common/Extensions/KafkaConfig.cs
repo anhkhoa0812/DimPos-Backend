@@ -4,6 +4,7 @@ using DimPos.MenuCombo.Infrastructure.Kafka;
 using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
 using SharedProject.Events.RemoveMenuForStore;
+using SharedProject.Events.UpdateBrandMenuItem;
 
 namespace DimPos.MenuCombo.Application.Common.Extensions;
 
@@ -27,6 +28,7 @@ public static class KafkaConfig
             {
                 configureRider.AddProducer<Null, AssignNewStoreMenuModel>(kafkaOptions!.Topics.AssignNewStoreMenuResponse);
                 configureRider.AddProducer<Null, RemoveStoreMenuModel>(kafkaOptions!.Topics.RemoveStoreMenuResponse);
+                configureRider.AddProducer<Null, UpdateBrandMenuItemResponseModel>(kafkaOptions!.Topics.UpdateBrandMenuItemResponse);
                 
                 configureRider.AddConsumer<RollbackStoreMenuConsumer>();
                 configureRider.AddConsumer<RollbackRemoveStoreMenuConsumer>();
