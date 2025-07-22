@@ -23,7 +23,5 @@ public class BasePriceConfiguration : IEntityTypeConfiguration<BasePrice>
         builder.Property(bp => bp.Price)
             .IsRequired()
             .HasPrecision(18, 4);
-        builder.Property(bp => bp.EffectiveFrom)
-            .IsRequired();
     }
 }

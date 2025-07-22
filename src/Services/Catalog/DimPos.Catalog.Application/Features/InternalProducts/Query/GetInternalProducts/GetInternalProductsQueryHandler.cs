@@ -40,7 +40,16 @@ public class GetInternalProductsQueryHandler : IRequestHandler<GetInternalProduc
                 IsActive = x.IsActive,
                 DisplayOrder = x.DisplayOrder,
                 Price = x.Price,
-                Sku = x.Sku
+                Sku = x.Sku,
+                ProductImages = x.Product.ProductImages != null ?
+                    x.Product.ProductImages.Select(pi => new ProductImageForGetInternalProductResponse()
+                    {
+                        Id = pi.Id,
+                        IsMainImage = pi.IsMainImage,
+                        ImageUrl = pi.ImageUrl,
+                        AltText = pi.AltText
+                    }).ToList() 
+                    : new List<ProductImageForGetInternalProductResponse>()
             },
             predicate: x => x.Product.BrandId == brandId && x.Product.Type == EProductType.InternalOrder
                 && (request.Name == null || x.Name.Contains(request.Name)) 

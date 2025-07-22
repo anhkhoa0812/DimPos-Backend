@@ -12,5 +12,5 @@ public class StorePriceHistory : EntityBase<Guid>
     public Guid ProductVariantId {get; set;}
     public Guid StoreId { get; set; }
     public Guid StorePriceId { get; set; }
-    public virtual StorePrice StorePrice { get; set; } = new StorePrice();
+    public virtual StorePrice StorePrice { get; set; }
 }

@@ -109,6 +109,7 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
         {
             Status = (int) HttpStatusCode.InternalServerError,
             Message = "Tạo danh mục thất bại",
+            Data = category.Id
         };
     }
 }

@@ -36,6 +36,7 @@ public class GetInternalProductByIdQueryHandler : IRequestHandler<GetInternalPro
                             && x.Product.BrandId == brandId 
                             && x.Product.Type == EProductType.InternalOrder,
             include: x => x.Include(x => x.Product)
+                .ThenInclude(x => x.ProductImages)
         );
         if( productVariant == null)
             throw new BadHttpRequestException("Không tìm thấy biến thể sản phẩm với ID đã cung cấp.");
@@ -49,7 +50,16 @@ public class GetInternalProductByIdQueryHandler : IRequestHandler<GetInternalPro
             IsActive = productVariant.IsActive,
             DisplayOrder = productVariant.DisplayOrder,
             Price = productVariant.Price,
-            Sku = productVariant.Sku
+            Sku = productVariant.Sku,
+            ProductImages = productVariant.Product.ProductImages != null ?
+                productVariant.Product.ProductImages.Select(pi => new ProductImageForGetInternalProductResponse()
+                {
+                    Id = pi.Id,
+                    IsMainImage = pi.IsMainImage,
+                    ImageUrl = pi.ImageUrl,
+                    AltText = pi.AltText
+                }).ToList() 
+                : new List<ProductImageForGetInternalProductResponse>()
         };
 
         return new ApiResponse()

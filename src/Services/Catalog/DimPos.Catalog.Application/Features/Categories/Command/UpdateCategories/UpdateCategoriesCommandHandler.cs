@@ -99,7 +99,7 @@ public class UpdateCategoriesCommandHandler : IRequestHandler<UpdateCategoriesCo
         {
             Status = (int)HttpStatusCode.OK,
             Message = "Cập nhập dữ liệu thành công",
-            Data = null
+            Data = category.Id
         };
     }
 }

@@ -27,7 +27,5 @@ public class StorePriceConfiguration : IEntityTypeConfiguration<StorePrice>
             .IsRequired();
         builder.Property(sp => sp.EffectiveFrom)
             .IsRequired();
-        builder.Property(sp => sp.IsActiveAtStore)
-            .IsRequired();
     }
 }

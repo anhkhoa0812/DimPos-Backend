@@ -2,6 +2,7 @@ using Carter;
 using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Application.Features.StorePrices.Command.UpdateStorePrices;
 using DimPos.Catalog.Application.Features.StorePrices.Query.GetAllStorePricesByStoreId;
+using DimPos.Catalog.Application.Features.StorePrices.Query.GetStorePriceById;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Domain.Models.StorePrices;
@@ -29,6 +30,14 @@ public class StorePricesEndpoints : ICarterModule
             .WithName(nameof(UpdateStorePrices))
             .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("{id:guid}", GetStorePriceById)
+            .WithName(nameof(GetStorePriceById))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse<GetStorePriceByIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -66,5 +75,14 @@ public class StorePricesEndpoints : ICarterModule
         }
         var result = await mediator.Send(command);
         return Results.Ok(result);
+    }
+    public async Task<IResult> GetStorePriceById(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetStorePriceByIdQuery()
+        {
+            StorePriceId = id
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
     }
 }

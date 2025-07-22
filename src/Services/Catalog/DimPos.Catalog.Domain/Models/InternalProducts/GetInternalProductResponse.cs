@@ -10,5 +10,12 @@ public class GetInternalProductResponse
     public string? Description { get; set; }
     public int? DisplayOrder { get; set; }
     public bool IsActive { get; set; }
-    
+    public List<ProductImageForGetInternalProductResponse>? ProductImages { get; set; }
+}
+public class ProductImageForGetInternalProductResponse
+{
+    public Guid Id { get; set; }
+    public string ImageUrl { get; set; } = String.Empty;
+    public bool IsMainImage { get; set; }
+    public string? AltText { get; set; }
 }
