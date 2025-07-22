@@ -5,6 +5,7 @@ using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 using DimPos.Catalog.Application.Features.Products.Commands.UpdateProducts;
 using DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;
 using DimPos.Catalog.Application.Features.Products.Query.GetProductsById;
+using DimPos.Catalog.Application.Features.ProductVariants.Command.CreateProductVariant;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Enums;
@@ -50,6 +51,15 @@ public class ProductsEndpoints : ICarterModule
             .WithName(nameof(UpdateModifierGroupForProduct))
             .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPost("/{id:guid}/product-variants", CreateProductVariant)
+            .DisableAntiforgery()
+            .WithName(nameof(CreateProductVariant))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
@@ -130,5 +140,29 @@ public class ProductsEndpoints : ICarterModule
         };
         var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> CreateProductVariant(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] CreateProductVariantRequest request,
+        ValidationUtil<CreateProductVariantCommand> validationUtil)
+    {
+        var command = new CreateProductVariantCommand()
+        {
+            ProductId = id,
+            Code = request.Code,
+            Name = request.Name,
+            Description = request.Description,
+            DisplayOrder = request.DisplayOrder,
+            Price = request.Price,
+            Sku = request.Sku,
+            Size = request.Size
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Created($"{ApiEndPointConstants.Products.ProductsEndpoint}/{id}/product-variants", apiResponse);
     }
 }
