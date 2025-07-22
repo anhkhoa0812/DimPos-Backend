@@ -4,6 +4,7 @@ using DimPos.Catalog.Infrastructure.Kafka;
 using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
 using SharedProject.Events.RemoveMenuForStore;
+using SharedProject.Events.UpdateBrandMenuItem;
 using SharedProject.Events.UpdateInventoryForInternalOrder;
 
 namespace DimPos.Catalog.Application.Common.Extensions;
@@ -37,6 +38,7 @@ public static class KafkaConfig
                 configureRider.AddConsumer<AddStorePriceRequestConsumer>();
                 configureRider.AddConsumer<RemoveStorePriceRequestConsumer>();
                 configureRider.AddConsumer<GetIngredientDetailsRequestConsumer>();
+                configureRider.AddConsumer<CreateStorePriceForBrandMenuItemRequestConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, AddStorePriceRequestModel>(
@@ -68,6 +70,17 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<GetIngredientDetailsRequestConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, CreateStorePriceForBrandMenuItemRequestModel>(
+                        topicName: kafkaOptions!.Topics.CreateStorePriceForBrandMenuItemRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<CreateStorePriceForBrandMenuItemRequestConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

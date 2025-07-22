@@ -42,4 +42,6 @@ public sealed record Topics
     public string UpdateInventoryForInternalOrderRequest { get; set; } = default!;
     public string UpdateInventoryForInternalOrderResponse { get; set; } = default!;
     public string ChangeErrorStatusForStorePurchaseOrderRequest { get; set; } = default!;
+    public string UpdateBrandMenuItemResponse { get; set; } = default!;
+    public string CreateStorePriceForBrandMenuItemRequest { get; set; } = default!;
 }

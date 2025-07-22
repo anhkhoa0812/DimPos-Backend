@@ -14,4 +14,5 @@ public sealed record Topics
     public string RollbackStoreMenuRequest { get; set; } = default!;
     public string RemoveStoreMenuResponse { get; set; } = default!;
     public string RollbackRemoveStoreMenuRequest { get; set; } = default!;
+    public string UpdateBrandMenuItemResponse { get; set; } = default!;
 }

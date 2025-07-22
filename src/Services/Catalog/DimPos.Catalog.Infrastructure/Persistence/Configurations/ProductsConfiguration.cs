@@ -32,6 +32,8 @@ public class ProductsConfiguration : IEntityTypeConfiguration<Products>
                 v => v.ToString(),
                 v => (EProductType)Enum.Parse(typeof(EProductType), v)
             );
+        builder.Property(x => x.IsCombo)
+            .IsRequired();
         builder.Property(p => p.BrandId)
             .IsRequired();
         builder.HasOne(p => p.Category)

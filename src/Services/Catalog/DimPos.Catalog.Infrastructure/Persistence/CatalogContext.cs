@@ -32,6 +32,7 @@ public partial class CatalogContext : DbContext
     public virtual DbSet<ModifierGroups> ModifierGroups { get; set; } = null!;
     public virtual DbSet<ModifierOptions> ModifierOptions { get; set; } = null!;
     public virtual DbSet<UnitConversions> UnitConversions { get; set; } = null!;
+    public virtual DbSet<ProductComboItems> ProductComboItems { get; set; } = null!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
