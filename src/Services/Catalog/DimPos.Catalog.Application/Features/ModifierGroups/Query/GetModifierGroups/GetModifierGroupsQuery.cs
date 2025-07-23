@@ -9,4 +9,5 @@ public class GetModifierGroupsQuery : IRequest<ApiResponse>
     public int Size { get; set; } = 30;
     public string? SortBy { get; set; }
     public bool IsAsc { get; set; } = true;
+    public string? Name { get; set; }
 }

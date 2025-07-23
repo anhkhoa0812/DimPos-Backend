@@ -22,8 +22,6 @@ public class UpdateStoreCommandValidator : AbstractValidator<UpdateStoreCommand>
             .MaximumLength(1000).WithMessage("Địa chỉ cửa hàng không được vượt quá 1000 ký tự");
         RuleFor(x => x.StartingStoreCashLending)
             .GreaterThanOrEqualTo(0).WithMessage("Số tiền cho vay ban đầu của cửa hàng phải lớn hơn hoặc bằng 0");
-        RuleFor(x => x.Username)
-            .MaximumLength(50).WithMessage("Tên đăng nhập không được vượt quá 50 ký tự");
         RuleFor(x => x.Password)
             .MaximumLength(50).WithMessage("Mật khẩu không được vượt quá 50 ký tự");
     }

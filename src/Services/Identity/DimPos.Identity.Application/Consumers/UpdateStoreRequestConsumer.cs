@@ -26,12 +26,8 @@ public class UpdateStoreRequestConsumer : IConsumer<UpdateStoreRequestModel>
 
         if (account != null)
         {
-            account.Username = context.Message.Username ?? account.Username;
-            if (context.Message.HashPassword != null && context.Message.SaltPassword != null)
-            {
-                account.PasswordHash = context.Message.HashPassword;
-                account.PasswordSalt = context.Message.SaltPassword;
-            }
+            account.PasswordHash = context.Message.HashPassword;
+            account.PasswordSalt = context.Message.SaltPassword;
             
             _unitOfWork.GetRepository<Accounts>().UpdateAsync(account);
             var isSuccess = await _unitOfWork.CommitAsync() > 0;
@@ -44,11 +40,9 @@ public class UpdateStoreRequestConsumer : IConsumer<UpdateStoreRequestModel>
                 _logger.Error("Cập nhật thông tin tài khoản thất bại: {AccountId}", context.Message.AccountId);
             }
         }
-        
         else
         {
             _logger.Error("Không tìm thấy tài khoản với ID: {AccountId}", context.Message.AccountId);
-            return;
         }
     }
 }

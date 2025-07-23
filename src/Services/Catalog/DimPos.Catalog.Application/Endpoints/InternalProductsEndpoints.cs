@@ -29,7 +29,7 @@ public class InternalProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("", GetInternalProducts)
             .WithName(nameof(GetInternalProducts))
-            .RequireAuthorization("BrandPolicy")
+            .RequireAuthorization("BrandAndStorePolicy")
             .Produces<ApiResponse<IPaginate<GetInternalProductResponse>>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
@@ -37,6 +37,7 @@ public class InternalProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("/{id:guid}", GetInternalProductById)
             .WithName(nameof(GetInternalProductById))
+            .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse<GetInternalProductResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)

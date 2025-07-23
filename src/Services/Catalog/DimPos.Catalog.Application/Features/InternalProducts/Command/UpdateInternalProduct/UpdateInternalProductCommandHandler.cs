@@ -42,6 +42,7 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
                             x.Product.BrandId == brandId &&
                             x.Product.Type == Domain.Enums.EProductType.InternalOrder,
             include: x => x.Include(p => p.Product)
+                .ThenInclude(x => x.ProductImages)
         );
         var existingMainImageCount = request.ExistInternalProductImages?.Count(x => x.IsMainImage) ?? 0;
         var newMainImageCount = request.NewInternalProductImages?.Count(x => x.IsMainImage) ?? 0;

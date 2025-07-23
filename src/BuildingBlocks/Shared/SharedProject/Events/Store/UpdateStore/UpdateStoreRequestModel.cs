@@ -6,7 +6,6 @@ public class UpdateStoreRequestModel : CorrelatedBy<Guid>
 {
     public Guid CorrelationId { get; set; }
     public Guid AccountId { get; set; }
-    public string? Username { get; set; }
-    public string? HashPassword { get; set; }
-    public string? SaltPassword { get; set; }
+    public string HashPassword { get; set; } = String.Empty;
+    public string SaltPassword { get; set; } = String.Empty;
 }

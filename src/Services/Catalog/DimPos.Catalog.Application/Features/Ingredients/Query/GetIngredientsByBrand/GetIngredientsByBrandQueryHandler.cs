@@ -39,7 +39,8 @@ public class GetIngredientsByBrandQueryHandler : IRequestHandler<GetIngredientsB
                 Description = x.Description,
                 IsActive = x.IsActive
             },
-            predicate: x => x.BrandId == brandId,
+            predicate: x => x.BrandId == brandId 
+            && (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy,

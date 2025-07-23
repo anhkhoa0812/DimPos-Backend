@@ -22,6 +22,5 @@ public class UpdateStoreCommand : IRequest<ApiResponse>
     public string? ManagerName { get; set; }
     public EStoreType? Type { get; set; }
     public decimal? StartingStoreCashLending { get; set; }
-    public string? Username { get; set; }
     public string? Password { get; set; }
 }

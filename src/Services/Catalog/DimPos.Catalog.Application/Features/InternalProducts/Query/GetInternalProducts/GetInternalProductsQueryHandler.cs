@@ -5,6 +5,7 @@ using DimPos.Catalog.Domain.Models.InternalProducts;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
 using DimPos.Catalog.Infrastructure.Utils;
+using DimPos.Store.Application.Common.Protos;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,19 +16,33 @@ public class GetInternalProductsQueryHandler : IRequestHandler<GetInternalProduc
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
-    
-    public GetInternalProductsQueryHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService)
+    private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
+    public GetInternalProductsQueryHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService,
+        StoreGrpcService.StoreGrpcServiceClient storeGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
+        _storeGrpcService = storeGrpcService ?? throw new ArgumentNullException(nameof(storeGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(GetInternalProductsQuery request, CancellationToken cancellationToken)
     {
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
-        if (brandId == Guid.Empty)
-            throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
+        var storeId = _claimService.GetStoreId ?? Guid.Empty;
+        if(brandId == Guid.Empty && storeId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy ID của thương hiệu hoặc cửa hàng");
+        }
+
+        if (storeId != Guid.Empty)
+        {
+            var brandIdString = await _storeGrpcService.GetBrandIdByStoreIdAsync(new GetBrandIdByStoreIdRequest()
+            {
+                StoreId = storeId.ToString()
+            });
+            brandId = Guid.Parse(brandIdString.BrandId);
+        }
 
         _logger.Information($"BEGIN: {nameof(GetInternalProductsQueryHandler)}: {TimeUtil.GetCurrentSEATime()}");
         var internalProducts = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().GetPagingListAsync(
@@ -51,10 +66,11 @@ public class GetInternalProductsQueryHandler : IRequestHandler<GetInternalProduc
                     }).ToList() 
                     : new List<ProductImageForGetInternalProductResponse>()
             },
-            predicate: x => x.Product.BrandId == brandId && x.Product.Type == EProductType.InternalOrder
-                && (request.Name == null || x.Name.Contains(request.Name)) 
-                && (request.Sku == null || x.Sku.Contains(request.Sku)) 
-                && (request.Code == null || x.Code.Contains(request.Code)),
+            predicate: x => x.Product.BrandId == brandId && x.Product.Type == EProductType.InternalOrder 
+                                                         && (storeId == Guid.Empty || x.IsActive) 
+                                                         && (request.Name == null || x.Name.Contains(request.Name)) 
+                                                         && (request.Sku == null || x.Sku.Contains(request.Sku)) 
+                                                         && (request.Code == null || x.Code.Contains(request.Code)),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy ?? "DisplayOrder",

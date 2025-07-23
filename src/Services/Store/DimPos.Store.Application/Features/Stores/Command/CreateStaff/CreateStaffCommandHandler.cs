@@ -58,6 +58,7 @@ public class CreateStaffCommandHandler : IRequestHandler<CreateStaffCommand, Api
         var (passwordHash, passwordSalt) = PasswordUtil.HashPassword(request.Password);
         var createStaffResponseModel = new CreateStaffResponseModel()
         {
+            CorrelationId = Guid.CreateVersion7(),
             StoreId = store.Id,
             AccountId = accountId,
             Code = request.Code,

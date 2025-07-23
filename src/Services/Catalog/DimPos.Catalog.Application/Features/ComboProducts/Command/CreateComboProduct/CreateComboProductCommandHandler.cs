@@ -44,7 +44,11 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
         {
             throw new BadHttpRequestException("Mã sản phẩm đã tồn tại");
         }
-        
+
+        if (request.ItemProductVariants.Count < 2)
+        {
+            throw new BadHttpRequestException("Sản phẩm combo phải có ít nhất 2 sản phẩm");
+        }
         var product = new Domain.Entities.Products()
         {
             Id = Guid.CreateVersion7(),
@@ -182,7 +186,7 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
         {
             Status = StatusCodes.Status201Created,
             Message = "Tạo sản phẩm combo thành công",
-            Data = product.Id
+            Data = productVariant.Id
         };
     }
 }

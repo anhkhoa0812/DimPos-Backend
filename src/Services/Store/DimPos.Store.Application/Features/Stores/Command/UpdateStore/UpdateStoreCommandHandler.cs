@@ -70,18 +70,17 @@ public class UpdateStoreCommandHandler : IRequestHandler<UpdateStoreCommand, Api
             throw new Exception("Cập nhật cửa hàng thất bại");
         }
 
-        if (request.Username != null || request.Password != null)
+        if (request.Password != null)
         {
-            var model = new UpdateStoreRequestModel();
-            model.CorrelationId = Guid.CreateVersion7();
-            model.AccountId = store.StoreAccounts.First(x => x.Role == EStoreRole.StoreAdmin).AccountId;
-            model.Username = request.Username;
-            if (request.Password != null)
+            var (passwordHash, passwordSalt) = PasswordUtil.HashPassword(request.Password);
+            
+            var model = new UpdateStoreRequestModel()
             {
-                var (passwordHash, passwordSalt) = PasswordUtil.HashPassword(request.Password);
-                model.HashPassword = passwordHash;
-                model.SaltPassword = passwordSalt;
-            }
+                CorrelationId = Guid.CreateVersion7(),
+                AccountId = store.StoreAccounts.First(x => x.Role == EStoreRole.StoreAdmin).AccountId,
+                HashPassword = passwordHash,
+                SaltPassword = passwordSalt
+            };
             await _topicProducer.Produce(
                 key: null,
                 model,

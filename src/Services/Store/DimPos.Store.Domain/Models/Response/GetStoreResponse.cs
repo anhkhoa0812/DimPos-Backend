@@ -24,4 +24,11 @@ public class GetStoreResponse
     public EStoreType Type { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
+    public TaxRateForGetStoreResponse TaxRate { get; set; } = new TaxRateForGetStoreResponse();
+}
+public class TaxRateForGetStoreResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public decimal Rate { get; set; }
 }

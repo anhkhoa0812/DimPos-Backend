@@ -57,14 +57,17 @@ public class ComboProductsEndpoints : ICarterModule
         return Results.Created( $"{ApiEndPointConstants.ComboProducts.ComboProductsEndpoint}" ,apiResponse);
     }
     public async Task<IResult> GetAllComboProducts(IMediator mediator, [FromQuery] int page = 1,
-        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,
+        [FromQuery] string? name = null, [FromQuery] string? sku = null)
     {
         var query = new GetAllComboProductsQuery()
         {
             Page = page,
             Size = size,
             SortBy = sortBy,
-            IsAsc = isAsc
+            IsAsc = isAsc,
+            Name = name,
+            Sku = sku
         };
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
