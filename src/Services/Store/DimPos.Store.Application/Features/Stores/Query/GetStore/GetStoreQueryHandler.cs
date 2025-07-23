@@ -4,6 +4,7 @@ using DimPos.Store.Domain.Models.Response;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Store.Application.Features.Stores.Query.GetStore;
 
@@ -29,11 +30,17 @@ public class GetStoreQueryHandler : IRequestHandler<GetStoreQuery, ApiResponse>
         }
 
         var store = await _unitOfWork.GetRepository<Domain.Entities.Store>().SingleOrDefaultAsync(
-            predicate: x => x.Id == storeId
+            predicate: x => x.Id == storeId,
+            include: x => x.Include(x => x.TaxRates)
         );
         if (store == null)
         {
             throw new BadHttpRequestException("Cửa hàng không tồn tại");
+        }
+        var taxRate = store.TaxRates.FirstOrDefault(x => x.IsActive);
+        if (taxRate == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy thuế áp dụng cho cửa hàng này");
         }
         var response = new GetStoreResponse()
         {
@@ -56,7 +63,13 @@ public class GetStoreQueryHandler : IRequestHandler<GetStoreQuery, ApiResponse>
             StartingStoreCashLending = store.StartingStoreCashLending,
             Type = store.Type,
             CreatedDate = store.CreatedDate,
-            LastModifiedDate = store.LastModifiedDate
+            LastModifiedDate = store.LastModifiedDate,
+            TaxRate = new TaxRateForGetStoreResponse()
+            {
+                Id = taxRate.Id,
+                Name = taxRate.Name,
+                Rate = taxRate.Rate
+            }
         };
         return new ApiResponse()
         {

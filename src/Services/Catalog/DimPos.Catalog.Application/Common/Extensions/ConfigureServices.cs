@@ -22,6 +22,7 @@ using DimPos.Catalog.Application.Services.Implement;
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Models.Settings;
 using DimPos.Media.Application.Common.Protos;
+using DimPos.Store.Application.Common.Protos;
 using FluentValidation;
 using Mediator;
 
@@ -80,6 +81,10 @@ public static class ConfigureServices
         services.AddGrpcClient<MediaGrpcService.MediaGrpcServiceClient>(x =>
         {
             x.Address = new Uri(settings.MediaUrl);
+        });
+        services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.StoreUrl);
         });
         return services;
     }

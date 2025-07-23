@@ -3,6 +3,7 @@ using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
+using DimPos.Catalog.Infrastructure.Utils;
 using Mediator;
 
 namespace DimPos.Catalog.Application.Features.ProductVariants.Command.CreateProductVariant;
@@ -26,6 +27,10 @@ public class CreateProductVariantCommandHandler : IRequestHandler<CreateProductV
         if(brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
 
+        var accountId = _claimService.GetCurrentUserId;
+        if(accountId == Guid.Empty)
+            throw new BadHttpRequestException("Không tìm thấy Id của người dùng hiện tại");
+        
         var product = await _unitOfWork.GetRepository<Domain.Entities.Products>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.ProductId && x.BrandId == brandId 
                                                       && x.IsHasVariants
@@ -56,7 +61,20 @@ public class CreateProductVariantCommandHandler : IRequestHandler<CreateProductV
             ProductVariantId = productVariant.Id,
             CurrencyCode = "VND",
             Price = request.Price,
-            BrandId = brandId
+            BrandId = brandId,
+            BrandPriceHistories = new List<BrandPriceHistory>()
+            {
+                new BrandPriceHistory()
+                {
+                    Id = Guid.CreateVersion7(),
+                    OldPrice = 0,
+                    NewPrice = productVariant.Price,
+                    ChangedAt = TimeUtil.GetCurrentSEATime(),
+                    ChangedBy = accountId,
+                    ProductVariantId = productVariant.Id,
+                    CurrencyCode = "VND"
+                }
+            }
         };
         await _unitOfWork.GetRepository<BasePrice>().InsertAsync(newBasePrice);
 

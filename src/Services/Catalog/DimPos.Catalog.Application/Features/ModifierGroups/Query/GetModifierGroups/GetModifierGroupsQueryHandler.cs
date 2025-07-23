@@ -36,7 +36,8 @@ public class GetModifierGroupsQueryHandler : IRequestHandler<GetModifierGroupsQu
                 SelectedType = x.SelectedType,
                 IsActive = x.IsActive,
             },
-            predicate: x=> x.BrandId == brandId,
+            predicate: x=> x.BrandId == brandId
+            && (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy,

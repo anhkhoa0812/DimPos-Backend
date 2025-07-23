@@ -58,7 +58,7 @@ public class IdentityContextSeed
                 new Role()
                 {
                     Name = ERoleName.BrandAdmin,
-                    Id = Guid.Parse("e19907f5-9866-4fd5-a7a9-06889af49fa5"),
+                        Id = Guid.Parse("e19907f5-9866-4fd5-a7a9-06889af49fa5"),
                     ShortName = "BA"
                 },
                 new Role()
