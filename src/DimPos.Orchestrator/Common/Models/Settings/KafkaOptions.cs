@@ -44,4 +44,9 @@ public sealed record Topics
     public string ChangeErrorStatusForStorePurchaseOrderRequest { get; set; } = default!;
     public string UpdateBrandMenuItemResponse { get; set; } = default!;
     public string CreateStorePriceForBrandMenuItemRequest { get; set; } = default!;
+    public string UpdateStoreByBrandRequest { get; set; } = default!;
+    public string UpdateAccountForStoreByBrandRequest { get; set; } = default!;
+    public string UpdateAccountForStoreByBrandResponse {get ; set; } = default!;
+    public string UpdateAccountForStoreByBrandError { get; set; } = default!;
+    public string RollbackUpdateStoreByBrandRequest { get; set; } = default!;
 }

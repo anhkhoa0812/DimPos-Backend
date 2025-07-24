@@ -7,12 +7,14 @@ using DimPos.Orchestrator.SagaState.StoreMenu.AssignNewStoreMenu;
 using DimPos.Orchestrator.SagaState.StoreMenu.RemoveStoreMenu;
 using DimPos.Orchestrator.SagaState.StorePurchaseOrder.UpdateInventoryForStorePurchaseOrder;
 using DimPos.Orchestrator.SagaState.Stores.CreateStaffSaga;
+using DimPos.Orchestrator.SagaState.Stores.UpdateStoreByBrand;
 using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
 using SharedProject.Events.Brand;
 using SharedProject.Events.RemoveMenuForStore;
 using SharedProject.Events.Store.CreateStaff;
 using SharedProject.Events.Store.CreateStore;
+using SharedProject.Events.Store.UpdateStoreByBrand;
 using SharedProject.Events.UpdateBrandMenuItem;
 using SharedProject.Events.UpdateInventoryForInternalOrder;
 
@@ -48,7 +50,11 @@ public static class ServiceExtensions
                     .AddSagaStateMachine<UpdateInventoryForStorePurchaseOrderStateMachine,
                         UpdateInventoryForStorePurchaseOrderSagaState>().InMemoryRepository();
                 rider
-                    .AddSagaStateMachine<UpdateBrandMenuItemSageStateMachine, UpdateBrandMenuItemSageState>().InMemoryRepository();
+                    .AddSagaStateMachine<UpdateBrandMenuItemSageStateMachine, 
+                        UpdateBrandMenuItemSageState>().InMemoryRepository();
+                rider
+                    .AddSagaStateMachine<UpdateStoreByBrandSagaStateMachine, UpdateStoreByBrandSagaState>()
+                    .InMemoryRepository();
                 //Add Producers
                 rider.AddProducer<Null, CreateBrandAccountModel>(kafkaOptions!.Topics.CreateBrandAccountRequest);
                 rider.AddProducer<Null, RollbackBrandAccountModel>(kafkaOptions!.Topics.RollbackBrandAccountRequest);
@@ -67,6 +73,10 @@ public static class ServiceExtensions
                     kafkaOptions.Topics.ChangeErrorStatusForStorePurchaseOrderRequest);
                 rider.AddProducer<Null, CreateStorePriceForBrandMenuItemRequestModel>(kafkaOptions.Topics
                     .CreateStorePriceForBrandMenuItemRequest);
+                rider.AddProducer<Null, UpdateAccountForStoreByBrandRequestModel>(
+                    kafkaOptions.Topics.UpdateAccountForStoreByBrandRequest);
+                rider.AddProducer<Null, RollbackUpdateStoreByBrandRequestModel>(
+                    kafkaOptions.Topics.RollbackUpdateStoreByBrandRequest);
                 
                 rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {
@@ -294,6 +304,40 @@ public static class ServiceExtensions
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureSaga<UpdateBrandMenuItemSageState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    //Update Store By Brand
+                    kafkaConfig.TopicEndpoint<Null, UpdateStoreByBrandRequestModel>(
+                        topicName: kafkaOptions!.Topics.UpdateStoreByBrandRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateStoreByBrandSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateAccountForStoreByBrandResponseModel>(
+                        topicName: kafkaOptions!.Topics.UpdateAccountForStoreByBrandResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateStoreByBrandSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateAccountForStoreByBrandErrorModel>(
+                        topicName: kafkaOptions!.Topics.UpdateAccountForStoreByBrandError,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateStoreByBrandSagaState>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

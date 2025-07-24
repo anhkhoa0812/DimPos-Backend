@@ -22,4 +22,7 @@ public sealed record Topics
     public string CreateStaffAccountError { get; set; } = default!;
     public string UpdateStaffRequest { get; set; } = default!;
     public string UpdateStoreRequest { get; set; } = default!;
+    public string UpdateAccountForStoreByBrandRequest { get; set; } = default!;
+    public string UpdateAccountForStoreByBrandResponse { get; set; } = default!;
+    public string UpdateAccountForStoreByBrandError { get; set; } = default!;
 }

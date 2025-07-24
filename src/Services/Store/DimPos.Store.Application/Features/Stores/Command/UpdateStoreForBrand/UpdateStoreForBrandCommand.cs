@@ -4,7 +4,7 @@ using Mediator;
 
 namespace DimPos.Store.Application.Features.Stores.Command.UpdateStoreForBrand;
 
-public class UpdateStoreForBrandQuery : IRequest<ApiResponse>
+public class UpdateStoreForBrandCommand : IRequest<ApiResponse>
 {
     public Guid StoreId { get; set; }
     public EStoreStatus? Status { get; set; }

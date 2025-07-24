@@ -34,6 +34,15 @@ public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountMod
             {
                 throw new BadHttpRequestException("Không tìm thấy role BrandAdmin");
             }
+            var existingAccount = await _unitOfWork.GetRepository<Accounts>().SingleOrDefaultAsync(
+                predicate: x => x.Code == context.Message.Code || x.Email == context.Message.Email || x.Username == context.Message.Username
+            );
+            if (existingAccount != null)
+            {
+                _logger.Error("Tài khoản đã tồn tại với mã: {Code}, email: {Email}, tên đăng nhập: {Username}",
+                    context.Message.Code, context.Message.Email, context.Message.Username);
+                throw new BadHttpRequestException("Tài khoản đã tồn tại");
+            }
             var account = new Accounts()
             {
                 Id = context.Message.AccountId,
