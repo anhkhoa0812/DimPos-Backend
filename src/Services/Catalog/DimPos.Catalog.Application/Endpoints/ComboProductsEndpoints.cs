@@ -1,6 +1,7 @@
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Application.Features.ComboProducts.Command.CreateComboProduct;
+using DimPos.Catalog.Application.Features.ComboProducts.Command.UpdateComboProduct;
 using DimPos.Catalog.Application.Features.ComboProducts.Query.GetAllComboProducts;
 using DimPos.Catalog.Application.Features.ComboProducts.Query.GetComboProductById;
 using DimPos.Catalog.Domain.Constants;
@@ -42,7 +43,15 @@ public class ComboProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-            
+        group.MapPatch("{id:guid}", UpdateComboProduct)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateComboProduct))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> CreateComboProduct(IMediator mediator, [FromForm] CreateComboProductCommand command,
@@ -79,6 +88,30 @@ public class ComboProductsEndpoints : ICarterModule
             ProductVariantId = id
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> UpdateComboProduct(IMediator mediator, [FromRoute] Guid id,
+        [FromForm] UpdateComboProductRequest request, ValidationUtil<UpdateComboProductCommand> validationUtil)
+    {
+        var command = new UpdateComboProductCommand()
+        {
+            Id = id,
+            Name = request.Name,
+            Description = request.Description,
+            Sku = request.Sku,
+            DisplayOrder = request.DisplayOrder,
+            IsActive = request.IsActive,
+            Price = request.Price,
+            ExistComboProductImages = request.ExistComboProductImages,
+            NewComboProductImages = request.NewComboProductImages
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }

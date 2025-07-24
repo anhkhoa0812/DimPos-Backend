@@ -1,3 +1,4 @@
+using DimPos.Identity.Application.Common.Protos;
 using DimPos.Store.Application.Services.Interface;
 using DimPos.Store.Domain.Entities;
 using DimPos.Store.Domain.Models.Common;
@@ -13,12 +14,14 @@ public class GetFinancialShiftByIdQueryHandler : IRequestHandler<GetFinancialShi
     private readonly IUnitOfWork<StoreContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
-    
-    public GetFinancialShiftByIdQueryHandler(IUnitOfWork<StoreContext> unitOfWork, ILogger logger, IClaimService claimService)
+    private readonly IdentityGrpcService.IdentityGrpcServiceClient _identityGrpcService;
+    public GetFinancialShiftByIdQueryHandler(IUnitOfWork<StoreContext> unitOfWork, ILogger logger, IClaimService claimService, 
+        IdentityGrpcService.IdentityGrpcServiceClient identityGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
+        _identityGrpcService = identityGrpcService ?? throw new ArgumentNullException(nameof(identityGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(GetFinancialShiftByIdQuery request, CancellationToken cancellationToken)
@@ -30,11 +33,21 @@ public class GetFinancialShiftByIdQueryHandler : IRequestHandler<GetFinancialShi
         var financialShift = await _unitOfWork.GetRepository<FinancialShifts>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.FinancialShiftId && x.FinancialShiftConfigs.StoreId == storeId
         );
-        
         if (financialShift == null)
         {
             throw new BadHttpRequestException("Không tìm thấy ca tài chính");
         }
+        
+        var accountIds = new List<string>();
+        accountIds.Add(financialShift.OpenedByAccountId.ToString());
+        if(financialShift.ClosedByAccountId != null && financialShift.ClosedByAccountId != financialShift.OpenedByAccountId)
+        {
+            accountIds.Add(financialShift.ClosedByAccountId.Value.ToString());
+        }
+        var accounts = await _identityGrpcService.GetStaffDetailAsync(new GetStaffDetailRequest()
+        {
+            AccountId = { accountIds }
+        });
         
         var response = new GetFinancialShiftByIdResponse()
         {
@@ -53,8 +66,33 @@ public class GetFinancialShiftByIdQueryHandler : IRequestHandler<GetFinancialShi
             TotalCashRoundingInShift = financialShift.TotalCashRoundingInShift,
             Status = financialShift.Status,
             CreatedDate = financialShift.CreatedDate,
-            LastModifiedDate = financialShift.LastModifiedDate
+            LastModifiedDate = financialShift.LastModifiedDate,
         };
+        var openedByAccount = accounts.Staffs.FirstOrDefault(x => x.Id == financialShift.OpenedByAccountId.ToString());
+        if (openedByAccount != null)
+        {
+            response.OpenedByAccount = new StaffDetailsResponse()
+            {
+                Id = Guid.Parse(openedByAccount.Id),
+                Username = openedByAccount.Username,
+                Email = openedByAccount.Email,
+                Code = openedByAccount.Code
+            };
+        }
+        if (financialShift.ClosedByAccountId != null)
+        {
+            var closedByAccount = accounts.Staffs.FirstOrDefault(x => x.Id == financialShift.ClosedByAccountId.Value.ToString());
+            if (closedByAccount != null)
+            {
+                response.ClosedByAccount = new StaffDetailsResponse()
+                {
+                    Id = Guid.Parse(closedByAccount.Id),
+                    Username = closedByAccount.Username,
+                    Email = closedByAccount.Email,
+                    Code = closedByAccount.Code
+                };
+            }
+        }
         return new ApiResponse()
         {
             Status = StatusCodes.Status200OK,

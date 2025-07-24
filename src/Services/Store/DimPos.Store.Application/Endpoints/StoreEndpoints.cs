@@ -4,6 +4,7 @@ using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
 using DimPos.Store.Application.Features.Stores.Command.UpdateStaff;
 using DimPos.Store.Application.Features.Stores.Command.UpdateStore;
+using DimPos.Store.Application.Features.Stores.Command.UpdateStoreForBrand;
 using DimPos.Store.Application.Features.Stores.Query.GetStaffById;
 using DimPos.Store.Application.Features.Stores.Query.GetStaffs;
 using DimPos.Store.Application.Features.Stores.Query.GetStore;
@@ -78,6 +79,15 @@ public class StoreEndpoints : ICarterModule
             .DisableAntiforgery()
             .WithName(nameof(UpdateStore))
             .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("{id:guid}", UpdateStoreByBrand)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateStoreByBrand))
+            .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
@@ -176,5 +186,24 @@ public class StoreEndpoints : ICarterModule
         };
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
-    }    
+    }
+
+    public async Task<IResult> UpdateStoreByBrand(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] UpdateStoreForBrandRequest request,
+        ValidationUtil<UpdateStoreForBrandCommand> validationUtil)
+    {
+        var command = new UpdateStoreForBrandCommand
+        {
+            StoreId = id,
+            StartingStoreCashLending = request.StartingStoreCashLending,
+            Status = request.Status
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
 }

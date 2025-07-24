@@ -1,5 +1,6 @@
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Entities;
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
@@ -9,17 +10,17 @@ using Google.Protobuf;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
-namespace DimPos.Catalog.Application.Features.InternalProducts.Command.UpdateInternalProduct;
+namespace DimPos.Catalog.Application.Features.ComboProducts.Command.UpdateComboProduct;
 
-public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInternalProductCommand, ApiResponse>
+public class UpdateComboProductCommandHandler : IRequestHandler<UpdateComboProductCommand, ApiResponse>
 {
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     private readonly MediaGrpcService.MediaGrpcServiceClient _mediaGrpcService;
-
-    public UpdateInternalProductCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger,
-        IClaimService claimService, MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
+    
+    public UpdateComboProductCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService,
+        MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -27,28 +28,31 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
         _mediaGrpcService = mediaGrpcService ?? throw new ArgumentNullException(nameof(mediaGrpcService));
     }
     
-    public async ValueTask<ApiResponse> Handle(UpdateInternalProductCommand request, CancellationToken cancellationToken)
+    public async ValueTask<ApiResponse> Handle(UpdateComboProductCommand request, CancellationToken cancellationToken)
     {
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
-        if (brandId == Guid.Empty)
+        if(brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
-
+        
         var accountId = _claimService.GetCurrentUserId;
         if (accountId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của tài khoản");
         
         var productVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.Id &&
-                            x.Product.BrandId == brandId &&
-                            x.Product.Type == Domain.Enums.EProductType.InternalOrder,
+            predicate: x => x.Id == request.Id
+            && x.Product.Type == EProductType.CustomerOrder
+            && x.Product.IsCombo
+            && x.Product.BrandId == brandId,
             include: x => x.Include(p => p.Product)
                 .ThenInclude(x => x.ProductImages)
         );
         if (productVariant == null)
-            throw new BadHttpRequestException("Không tìm thấy biến thể sản phẩm với ID đã cung cấp.");
+        {
+            throw new BadHttpRequestException("Không tìm thấy sản phẩm combo");
+        }
         
-        var existingMainImageCount = request.ExistInternalProductImages?.Count(x => x.IsMainImage) ?? 0;
-        var newMainImageCount = request.NewInternalProductImages?.Count(x => x.IsMainImage) ?? 0;
+        var existingMainImageCount = request.ExistComboProductImages?.Count(x => x.IsMainImage) ?? 0;
+        var newMainImageCount = request.NewComboProductImages?.Count(x => x.IsMainImage) ?? 0;
         if (productVariant.Product.ProductImages != null && productVariant.Product.ProductImages.Any())
         {
             if (existingMainImageCount + newMainImageCount != 1)
@@ -57,14 +61,14 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
             }
         }
 
-        if (request.ExistInternalProductImages?.Any() == true)
+        if (request.ExistComboProductImages?.Any() == true)
         {
-            var existProductImageIds = request.ExistInternalProductImages.Select(x => x.Id).ToList();
+            var existProductImageIds = request.ExistComboProductImages.Select(x => x.Id).ToList();
             var deleteProductImages = productVariant.Product.ProductImages?
                 .Where(x => !existProductImageIds.Contains(x.Id));
             if (deleteProductImages != null) 
                 _unitOfWork.GetRepository<ProductImages>().DeleteRangeAsync(deleteProductImages);
-            foreach (var existImage in request.ExistInternalProductImages)
+            foreach (var existImage in request.ExistComboProductImages)
             {
                 var productImage = productVariant.Product.ProductImages?.FirstOrDefault(x => x.Id == existImage.Id);
                 if (productImage != null)
@@ -84,7 +88,7 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
             }
         }
 
-        if (request.NewInternalProductImages != null)
+        if (request.NewComboProductImages != null)
         {
             if (newMainImageCount != 1)
             {
@@ -92,7 +96,7 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
             }
             var uploadImageGrpcRequest = new ListImageRequest();
             var productImageList = new List<ProductImages>();
-            foreach (var productImage in request.NewInternalProductImages)
+            foreach (var productImage in request.NewComboProductImages)
             {
                 var productImageId = Guid.CreateVersion7();
                 using var memoryStream = new MemoryStream();
@@ -131,7 +135,7 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
                 }
             }
         }
-
+        
         if (request.Name != null)
         {
             productVariant.Name = request.Name;
@@ -181,13 +185,15 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
         _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().UpdateAsync(productVariant);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         if (!isSuccess)
-            throw new BadHttpRequestException("Cập nhật sản phẩm không thành công");
-
+        {
+            throw new Exception("Cập nhật sản phẩm combo không thành công");
+        }
+        _logger.Information("Cập nhật sản phẩm combo thành công cho thương hiệu {BrandId}", brandId);
         return new ApiResponse()
         {
             Status = StatusCodes.Status200OK,
-            Message = "Cập nhật sản phẩm thành công",
-            Data = null
+            Message = "Cập nhật sản phẩm combo thành công",
+            Data = productVariant.Id
         };
     }
 }
