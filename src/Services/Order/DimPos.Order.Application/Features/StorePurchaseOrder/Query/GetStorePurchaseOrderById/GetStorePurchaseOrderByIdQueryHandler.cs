@@ -4,6 +4,7 @@ using DimPos.Order.Domain.Models.Common;
 using DimPos.Order.Domain.Models.Response;
 using DimPos.Order.Infrastructure.Persistence;
 using DimPos.Order.Infrastructure.Repositories.Interface;
+using DimPos.Store.Application.Common.Protos;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,12 +15,15 @@ public class GetStorePurchaseOrderByIdQueryHandler : IRequestHandler<GetStorePur
     private readonly IUnitOfWork<OrderContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
+    private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
     
-    public GetStorePurchaseOrderByIdQueryHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService)
+    public GetStorePurchaseOrderByIdQueryHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService,
+        StoreGrpcService.StoreGrpcServiceClient storeGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
+        _storeGrpcService = storeGrpcService ?? throw new ArgumentNullException(nameof(storeGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(GetStorePurchaseOrderByIdQuery request, CancellationToken cancellationToken)
@@ -54,7 +58,12 @@ public class GetStorePurchaseOrderByIdQueryHandler : IRequestHandler<GetStorePur
         }
         if (storePurchaseOrder == null)
             throw new BadHttpRequestException("Không tìm thấy đơn hàng mua sắm của cửa hàng.");
-        
+
+        var storeGrpcResponse = await _storeGrpcService.GetListStoreByStoreIdsAsync(new GetListStoreByStoreIdsRequest()
+        {
+            StoreIds = { storePurchaseOrder.StoreId.ToString() }
+        });
+        var store = storeGrpcResponse.Stores.FirstOrDefault();
         var response = new GetStorePurchaseOrderResponse()
         {
             Id = storePurchaseOrder.Id,
@@ -71,6 +80,17 @@ public class GetStorePurchaseOrderByIdQueryHandler : IRequestHandler<GetStorePur
             CreatedByAccountId = storePurchaseOrder.CreatedByAccountId,
             CreatedDate = storePurchaseOrder.CreatedDate,
             LastModifiedDate = storePurchaseOrder.LastModifiedDate,
+            Store = store != null ? new StoreForPurchaseOrderResponse
+            {
+                Id = Guid.Parse(store.Id),
+                Name = store.Name,
+                Phone = store.Phone,
+                Email = store.Email,
+                Description = store.Description,
+                Address = store.Address,
+                Latitude = store.Latitude,
+                Longitude = store.Longitude
+            } : new StoreForPurchaseOrderResponse(),
             StorePurchaseOrderItems = storePurchaseOrder.StorePurchaseOrderItems.Select(item => new GetStorePurchaseOrderItemByOrderResponse
             {
                 Id = item.Id,

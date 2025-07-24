@@ -36,7 +36,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse>
     {
         _logger.Information($"BEGIN: {nameof(LoginCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         var account = await _unitOfWork.GetRepository<Domain.Entities.Accounts>().SingleOrDefaultAsync(
-            predicate: x => x.Username == request.Username
+            predicate: x => x.Username == request.Username && x.Status == EAccountStatus.Active
         );
         if (account == null)
         {

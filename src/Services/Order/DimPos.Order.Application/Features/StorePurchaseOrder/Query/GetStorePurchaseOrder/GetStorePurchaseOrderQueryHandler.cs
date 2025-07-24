@@ -4,6 +4,7 @@ using DimPos.Order.Domain.Models.Common;
 using DimPos.Order.Domain.Models.Response;
 using DimPos.Order.Infrastructure.Persistence;
 using DimPos.Order.Infrastructure.Repositories.Interface;
+using DimPos.Store.Application.Common.Protos;
 using Mediator;
 
 namespace DimPos.Order.Application.Features.StorePurchaseOrder.Query.GetStorePurchaseOrder;
@@ -13,12 +14,15 @@ public class GetStorePurchaseOrderQueryHandler : IRequestHandler<GetStorePurchas
     private readonly IUnitOfWork<OrderContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
+    private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
     
-    public GetStorePurchaseOrderQueryHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService)
+    public GetStorePurchaseOrderQueryHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService,
+        StoreGrpcService.StoreGrpcServiceClient storeGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
+        _storeGrpcService = storeGrpcService ?? throw new ArgumentNullException(nameof(storeGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(GetStorePurchaseOrderQuery request, CancellationToken cancellationToken)
@@ -60,7 +64,31 @@ public class GetStorePurchaseOrderQueryHandler : IRequestHandler<GetStorePurchas
             size: request.Size,
             sortBy: request.SortBy ?? "CreatedDate",
             isAsc: request.IsAsc
-        ); 
+        );
+        
+        var storeIds = response.Items.Select(x => x.StoreId.ToString()).Distinct().ToList();
+        var stores = await _storeGrpcService.GetListStoreByStoreIdsAsync(new GetListStoreByStoreIdsRequest()
+        {
+            StoreIds = { storeIds }
+        });
+        foreach (var item in response.Items)
+        {
+            var store = stores.Stores.FirstOrDefault(s => s.Id == item.StoreId.ToString());
+            if (store != null)
+            {
+                item.Store = new StoreForPurchaseOrderResponse
+                {
+                    Id = Guid.Parse(store.Id),
+                    Name = store.Name,
+                    Phone = store.Phone,
+                    Email = store.Email,
+                    Description = store.Description,
+                    Address = store.Address,
+                    Latitude = store.Latitude,
+                    Longitude = store.Longitude
+                };
+            }
+        }
         return new ApiResponse
         {
             Status = StatusCodes.Status200OK,

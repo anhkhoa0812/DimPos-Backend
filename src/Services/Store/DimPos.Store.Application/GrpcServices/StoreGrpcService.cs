@@ -229,4 +229,36 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             BrandId = store.BrandId.ToString()
         };
     }
+
+    public override async Task<GetListStoreByStoreIdsResponse> GetListStoreByStoreIds(GetListStoreByStoreIdsRequest request, ServerCallContext context)
+    {
+        var storeIds = request.StoreIds.Select(Guid.Parse).ToList();
+        
+        var stores = await _unitOfWork.GetRepository<Domain.Entities.Store>().GetListAsync(
+            predicate: x => storeIds.Contains(x.Id)
+        );
+        if(storeIds.Count != stores.Count)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy thông tin cửa hàng"));
+        }
+        
+        var response = new GetListStoreByStoreIdsResponse();
+        foreach (var store in stores)
+        {
+            var storeResponse = new StoreResponse()
+            {
+                Id = store.Id.ToString(),
+                Name = store.Name,
+                Description = store.Description ?? String.Empty,
+                Address = store.Address,
+                Email = store.Email ?? String.Empty,
+                Phone = store.Phone ?? String.Empty,
+                Latitude = store.Latitude ?? String.Empty,
+                Longitude = store.Longitude ?? String.Empty,
+                Status = (StoreStatus)store.Status
+            };
+            response.Stores.Add(storeResponse);
+        }
+        return response;
+    }
 }

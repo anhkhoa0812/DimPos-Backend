@@ -40,6 +40,7 @@ public class CreateStoreAccountRequestConsumer : IConsumer<CreateStoreAccountReq
                     context.Message.Code, context.Message.Email, context.Message.Username);
                 throw new BadHttpRequestException("Tài khoản đã tồn tại");
             }
+            
             var account = new Accounts()
             {
                 Id = context.Message.AccountId,

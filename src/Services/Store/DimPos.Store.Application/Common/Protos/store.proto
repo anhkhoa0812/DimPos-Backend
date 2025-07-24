@@ -10,6 +10,7 @@ service StoreGrpcService {
   rpc GetTaxRateAndPaymentMethodConfig(GetTaxRateAndPaymentMethodConfigRequest) returns (GetTaxRateAndPaymentMethodConfigResponse);
   rpc GetCredentialsConfigByMerchantId(GetCredentialsConfigByMerchantIdRequest) returns (GetCredentialsConfigByMerchantIdResponse);
   rpc GetBrandIdByStoreId(GetBrandIdByStoreIdRequest) returns (GetBrandIdByStoreIdResponse);
+  rpc GetListStoreByStoreIds(GetListStoreByStoreIdsRequest) returns (GetListStoreByStoreIdsResponse);
 }
 message GetStoresByBrandPagingRequest {
   int32 page = 1;
@@ -96,4 +97,10 @@ message GetBrandIdByStoreIdRequest {
 }
 message GetBrandIdByStoreIdResponse {
   string brandId = 1;
+}
+message GetListStoreByStoreIdsRequest {
+  repeated string storeIds = 1;
+}
+message GetListStoreByStoreIdsResponse {
+  repeated StoreResponse stores = 1;
 }

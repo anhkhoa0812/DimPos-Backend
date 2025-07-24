@@ -15,7 +15,7 @@ public class CreateStaffAccountRequestConsumer : IConsumer<CreateStaffAccountReq
     private readonly ITopicProducer<Null, CreateStaffAccountResponseModel> _successTopicProducer;
     private readonly ITopicProducer<Null, CreateStaffAccountErrorModel> _errorTopicProducer;
     
-public CreateStaffAccountRequestConsumer(
+    public CreateStaffAccountRequestConsumer(
         IUnitOfWork<IdentityContext> unitOfWork,
         ILogger logger,
         ITopicProducer<Null, CreateStaffAccountResponseModel> successTopicProducer,
@@ -41,6 +41,7 @@ public CreateStaffAccountRequestConsumer(
                 _logger.Error($"Role not found for name: {ERoleName.Staff}");
                 throw new BadHttpRequestException("Không tìm thấy vai trò nhân viên");
             }
+            
             var account = new Accounts()
             {
                 Id = context.Message.AccountId,

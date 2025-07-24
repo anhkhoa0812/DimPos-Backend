@@ -16,4 +16,6 @@ public sealed record Topics
     public string RollbackStaffStoreAccountRequest { get; set; } = default!;
     public string UpdateStaffRequest { get; set; } = default!;
     public string UpdateStoreRequest { get; set; } = default!;
+    public string UpdateStoreByBrandRequest { get; set; } = default!;
+    public string RollbackUpdateStoreByBrandRequest { get; set; } = default!;
 }
