@@ -23,10 +23,3 @@ public class GetFinancialShiftsResponse
     public StaffDetailsResponse OpenedByAccount { get; set; } = new StaffDetailsResponse();
     public StaffDetailsResponse? ClosedByAccount { get; set; } = new StaffDetailsResponse();
 }
-public class StaffDetailsResponse
-{
-    public Guid Id { get; set; }
-    public string Code { get; set; } = String.Empty;
-    public string Username { get; set; } = String.Empty;
-    public string Email { get; set; } = String.Empty;
-}

@@ -20,4 +20,6 @@ public class GetFinancialShiftByIdResponse
     public EFinancialShiftStatus Status { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
+    public StaffDetailsResponse OpenedByAccount { get; set; } = new StaffDetailsResponse();
+    public StaffDetailsResponse? ClosedByAccount { get; set; } = new StaffDetailsResponse();
 }
