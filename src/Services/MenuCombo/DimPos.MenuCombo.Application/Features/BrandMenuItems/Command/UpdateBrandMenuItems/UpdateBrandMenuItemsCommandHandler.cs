@@ -80,8 +80,12 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
         newProductVariantIds.ExceptWith(existingProductVariants);
         var removeProductVariantIds = new HashSet<Guid>(existingProductVariantsSet);
         removeProductVariantIds.ExceptWith(request.UpdateBrandMenuItemsRequest.ProductVariantIds);
-        // var newProductVariantIds = request.ProductVariantIds.Except(existingProductVariantsSet).ToList();
-        // var removeProductVariantIds = existingProductVariantsSet.Except(request.ProductVariantIds).ToList();
+        
+        if (!newProductVariantIds.Any() && !removeProductVariantIds.Any())
+        {
+            throw new BadHttpRequestException("Không có sản phẩm nào để cập nhật");
+        }
+        
         if (newProductVariantIds.Any())
         {
             var newBrandMenuItems = new List<Domain.Entities.BrandMenuItems>();

@@ -1,9 +1,9 @@
 using DimPos.Catalog.Domain.Models.Common;
 using Mediator;
 
-namespace DimPos.Catalog.Application.Features.InternalProducts.Command.UpdateInternalProduct;
+namespace DimPos.Catalog.Application.Features.ComboProducts.Command.UpdateComboProduct;
 
-public class UpdateInternalProductCommand : IRequest<ApiResponse>
+public class UpdateComboProductCommand : IRequest<ApiResponse>
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }
@@ -12,10 +12,10 @@ public class UpdateInternalProductCommand : IRequest<ApiResponse>
     public int? DisplayOrder { get; set; }
     public bool? IsActive { get; set; }
     public decimal? Price { get; set; }
-    public List<UpdateInternalProductImages>? ExistInternalProductImages { get; set; } = new List<UpdateInternalProductImages>();
-    public List<UpdateNewInternalProductImages>? NewInternalProductImages { get; set; } = new List<UpdateNewInternalProductImages>();
+    public List<UpdateComboProductImages>? ExistComboProductImages { get; set; } = new List<UpdateComboProductImages>();
+    public List<UpdateNewComboProductImages>? NewComboProductImages { get; set; } = new List<UpdateNewComboProductImages>();
 }
-public class UpdateInternalProductImages
+public class UpdateComboProductImages
 {
     public Guid Id { get; set; }
     // public string ImageUrl { get; set; }
@@ -23,14 +23,13 @@ public class UpdateInternalProductImages
     public string? AltText { get; set; }
 }
 
-public class UpdateNewInternalProductImages
+public class UpdateNewComboProductImages
 {
     public bool IsMainImage { get; set; }
     public IFormFile Image { get; set; }
     public string? AltText { get; set; }
 }
-
-public class UpdateInternalProductRequest
+public class UpdateComboProductRequest
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
@@ -38,6 +37,6 @@ public class UpdateInternalProductRequest
     public int? DisplayOrder { get; set; }
     public bool? IsActive { get; set; }
     public decimal? Price { get; set; }
-    public List<UpdateInternalProductImages>? ExistInternalProductImages { get; set; } = new List<UpdateInternalProductImages>();
-    public List<UpdateNewInternalProductImages>? NewInternalProductImages { get; set; } = new List<UpdateNewInternalProductImages>();
+    public List<UpdateComboProductImages>? ExistComboProductImages { get; set; } = new List<UpdateComboProductImages>();
+    public List<UpdateNewComboProductImages>? NewComboProductImages { get; set; } = new List<UpdateNewComboProductImages>();
 }

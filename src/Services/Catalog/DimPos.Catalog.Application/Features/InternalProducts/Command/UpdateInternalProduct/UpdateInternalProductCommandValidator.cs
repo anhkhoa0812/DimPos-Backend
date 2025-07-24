@@ -6,10 +6,6 @@ public class UpdateInternalProductCommandValidator : AbstractValidator<UpdateInt
 {
     public UpdateInternalProductCommandValidator()
     {
-        RuleFor(x => x.Code)
-            .MinimumLength(1).WithMessage("Mã của sản phẩm phải có ít nhất 1 ký tự")
-            .MaximumLength(50).WithMessage("Mã của sản phẩm không được vượt quá 50 ký tự");
-        
         RuleFor(x => x.Name)
             .MinimumLength(1).WithMessage("Tên của sản phẩm phải có ít nhất 1 ký tự")
             .MaximumLength(200).WithMessage("Tên của sản phẩm không được vượt quá 200 ký tự");

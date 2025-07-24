@@ -1,5 +1,6 @@
 using Carter;
 using DimPos.MenuCombo.Application.Features.BrandMenu.Query.GetStoreMenu;
+using DimPos.MenuCombo.Application.Features.StoreMenuAssignments.Command.UpdateStoreMenu;
 using DimPos.MenuCombo.Application.Features.StoreMenuAssignments.Query.GetStoreMenuById;
 using DimPos.MenuCombo.Application.Features.StoreMenuAssignments.Query.GetStoreMenuByStoreId;
 using DimPos.MenuCombo.Domain.Constants;
@@ -37,6 +38,15 @@ public class StoreMenuEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{storeMenuId:guid}/stores/{storeId:guid}", UpdateStoreMenu)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateStoreMenu))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     public async Task<IResult> GetStoreMenuByStore(IMediator mediator)
     {
@@ -66,6 +76,19 @@ public class StoreMenuEndpoints : ICarterModule
             StoreMenuId = id
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> UpdateStoreMenu(IMediator mediator, [FromRoute] Guid storeMenuId,
+        [FromRoute] Guid storeId, [FromBody] UpdateStoreMenuRequest request)
+    {
+        var command = new UpdateStoreMenuCommand()
+        {
+            StoreId = storeId,
+            StoreMenuId = storeMenuId,
+            IsActiveAtStore = request.IsActiveAtStore
+        };
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }
