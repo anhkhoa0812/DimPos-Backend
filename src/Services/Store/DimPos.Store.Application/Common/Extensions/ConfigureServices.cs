@@ -11,6 +11,7 @@ using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
 using DimPos.Store.Application.Features.Stores.Command.UpdateStaff;
 using DimPos.Store.Application.Features.Stores.Command.UpdateStore;
+using DimPos.Store.Application.Features.Stores.Command.UpdateStoreForBrand;
 using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
 using DimPos.Store.Application.Features.TaxRate.Command.UpdateTaxRate;
 using DimPos.Store.Application.Services.Implement;
@@ -44,6 +45,7 @@ public static class ConfigureServices
         services.AddScoped<IValidator<UpdateStorePaymentConfigCommand>, UpdateStorePaymentConfigCommandValidator>();
         services.AddScoped<IValidator<UpdateStaffCommand>, UpdateStaffCommandValidator>();
         services.AddScoped<IValidator<UpdateStoreCommand>, UpdateStoreCommandValidator>();
+        services.AddScoped<IValidator<UpdateStoreForBrandCommand>, UpdateStoreForBrandCommandValidator>();
         services
             .AddScoped<IValidator<CreateStorePaymentMethodConfigCommand>,
                 CreateStorePaymentMethodConfigCommandValidator>();

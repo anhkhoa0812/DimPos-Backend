@@ -52,16 +52,24 @@ public class UpdateFinancialShiftConfigCommandHandler : IRequestHandler<UpdateFi
         }
         financialShiftConfig.OpeningTime = request.OpeningTime;
         financialShiftConfig.ClosingTime = request.ClosingTime;
-        if (request.IsActive)
+        if (!request.IsActive)
         {
-            if (financialShiftConfigList.Any(x => x.IsActive))
+            if (!financialShiftConfigList.Where(x => x != financialShiftConfig)
+                    .Any(x => x.IsActive))
             {
-                throw new BadHttpRequestException("Chỉ có thể kích hoạt một cấu hình ca tài chính tại một thời điểm");
+                throw new BadHttpRequestException("Không thể vô hiệu hóa cấu hình ca tài chính khi không còn cấu hình nào khác đang hoạt động");
+            }
+        }
+        else
+        {
+            foreach (var financialShiftConfigItem in financialShiftConfigList)
+            {
+                financialShiftConfigItem.IsActive = false;
             }
         }
         financialShiftConfig.IsActive = request.IsActive;
         
-        _unitOfWork.GetRepository<FinancialShiftConfigs>().UpdateAsync(financialShiftConfig);
+        _unitOfWork.GetRepository<FinancialShiftConfigs>().UpdateRange(financialShiftConfigList);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         if (!isSuccess)
         {
