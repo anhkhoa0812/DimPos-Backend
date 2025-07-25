@@ -44,4 +44,8 @@ public static class ApiEndPointConstants
     {
         public const string ComboProductsEndpoint = ApiEndpoint + "/combo-products";
     }
+    public static class ProductComboItems
+    {
+        public const string ProductComboItemsEndpoint = ApiEndpoint + "/product-combo-items";
+    }
 }
