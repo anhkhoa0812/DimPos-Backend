@@ -126,7 +126,6 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
 
         var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
             predicate: x => x.BrandId == Guid.Parse(request.BrandId)
-                            && x.Status == EProductStatus.Active
                             && x.Type == EProductType.CustomerOrder
                             && x.ProductVariants.Any(pv =>
                                 variantIds.Contains(pv.Id) && pv.IsActive),
@@ -314,7 +313,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var productVariantIds = request.ProductForOrders.Select(x => Guid.Parse(x.Id)).ToList();
         var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
             predicate: x => productVariantIds.Contains(x.Id)
-                            && x.IsActive == true && x.Product.Status == EProductStatus.Active 
+                            && x.IsActive == true
                             && x.Product.BrandId == brandId && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
                 .Include(x => x.Product.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
@@ -384,7 +383,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             predicate: x => requestProductVariantIds.Contains(x.Id)
                             && x.Product.BrandId == brandId
                             && x.Product.Type == EProductType.InternalOrder
-                            && x.IsActive == true && x.Product.Status == EProductStatus.Active 
+                            && x.IsActive == true
                             && x.RecipeItems != null && x.RecipeItems.Any(),
             include: x => 
                 x.Include(x => x.Product)

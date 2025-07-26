@@ -55,7 +55,6 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         product.Id = Guid.CreateVersion7();
         product.ProductVariants = new List<Domain.Entities.ProductVariants>();
         product.BrandId = brandId;
-        product.Status = EProductStatus.Active;
         product.Type = EProductType.CustomerOrder;
         product.IsCombo = false;
         var category = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
@@ -95,7 +94,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 var productVariants = ProductVariantMapper.ToPoProductVariants(productVariant);
                 productVariants.Id = Guid.CreateVersion7();
                 productVariants.ProductId = product.Id;
-                productVariants.IsActive = false;
+                productVariants.IsActive = true;
                 productVariants.Price = productVariant.BrandPrice;
                 productVariants.Description = productVariant.Description;
                 product.ProductVariants.Add(productVariants);
@@ -141,7 +140,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 Name = request.Name,
                 ProductId = product.Id,
                 Price = request.Price ?? 0,
-                IsActive = false,
+                IsActive = true,
                 DisplayOrder = request.DisplayOrder,
                 Description = request.Description,
                 Size = null,

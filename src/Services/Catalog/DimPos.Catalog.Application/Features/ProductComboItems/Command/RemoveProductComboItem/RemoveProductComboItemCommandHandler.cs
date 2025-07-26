@@ -26,17 +26,25 @@ public class RemoveProductComboItemCommandHandler : IRequestHandler<RemoveProduc
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
 
-        var productComboItem =  await _unitOfWork.GetRepository<Domain.Entities.ProductComboItems>()
-            .SingleOrDefaultAsync(
-                predicate: x => x.Id == request.ProductComboItemId && x.Product.BrandId == brandId,
-                include: x => x.Include(x => x.Product)
-                    .ThenInclude(x => x.ProductComboItems)
-            );
+        var productVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
+            predicate: x => x.Id == request.ProductVariantId &&
+                            x.Product.BrandId == brandId &&
+                            x.Product.IsCombo,
+            include: x => x.Include(x => x.Product)
+                .ThenInclude(x => x.ProductComboItems)
+        );
+        if (productVariant == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy sản phẩm combo");
+        }
+        
+        var productComboItem = productVariant.Product.ProductComboItems?
+            .FirstOrDefault(x => x.Id == request.ProductComboItemId);
         if (productComboItem == null)
         {
             throw new BadHttpRequestException("Không tìm thấy sản phẩm combo item");
         }
-        if (productComboItem.Product.ProductComboItems != null && productComboItem.Product.ProductComboItems.Count <= 2)
+        if(productVariant.Product.ProductComboItems != null && productVariant.Product.ProductComboItems.Count(x => x != productComboItem) <= 2)
         {
             throw new BadHttpRequestException("Không thể xóa sản phẩm combo item, phải có ít nhất 2 sản phẩm trong combo");
         }

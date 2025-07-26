@@ -57,7 +57,6 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
             Description = request.Description,
             DisplayOrder = request.DisplayOrder,
             Note = request.Note,
-            Status = EProductStatus.Active,
             IsCombo = true,
             Type = EProductType.CustomerOrder,
             IsHasVariants = false,

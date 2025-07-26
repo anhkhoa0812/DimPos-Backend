@@ -9,7 +9,6 @@ public class Products : EntityAuditBase<Guid>
     public string Name { get; set; }
     public string? Description { get; set; }
     public bool IsHasVariants { get; set; }
-    public EProductStatus Status { get; set; }
     public int? DisplayOrder { get; set; }
     public string? Note { get; set; }
     public EProductType Type { get; set; }

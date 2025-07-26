@@ -8,7 +8,6 @@ using DimPos.Catalog.Application.Features.Products.Query.GetProductsById;
 using DimPos.Catalog.Application.Features.ProductVariants.Command.CreateProductVariant;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Entities;
-using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Domain.Models.Product;
 using Mediator;
@@ -92,7 +91,6 @@ public class ProductsEndpoints : ICarterModule
 
     public async Task<IResult> GetProducts(IMediator mediator, [FromQuery] int page = 1, 
         [FromQuery] int size = 10, [FromQuery] string? sortBy = nameof(Products.DisplayOrder), [FromQuery] bool isAsc = true, 
-        [FromQuery] EProductStatus? status = null, 
         [FromQuery] string? name = null, [FromQuery] bool? isHasVariants = null)
     {
         var query = new GetAllProductsQueries()
@@ -101,7 +99,6 @@ public class ProductsEndpoints : ICarterModule
             Size = size,
             SortBy = sortBy,
             IsAsc = isAsc,
-            Status = status,
             Name = name,
             IsHasVariants = isHasVariants
         };

@@ -5,5 +5,6 @@ namespace DimPos.Catalog.Application.Features.ProductComboItems.Command.RemovePr
 
 public class RemoveProductComboItemCommand : IRequest<ApiResponse>
 {
+    public Guid ProductVariantId { get; set; }
     public Guid ProductComboItemId { get; set; }
 }

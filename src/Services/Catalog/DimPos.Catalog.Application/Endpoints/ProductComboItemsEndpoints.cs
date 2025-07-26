@@ -1,6 +1,5 @@
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
-using DimPos.Catalog.Application.Features.ProductComboItems.Command.RemoveProductComboItem;
 using DimPos.Catalog.Application.Features.ProductComboItems.Command.UpdateProductComboItem;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Models.Common;
@@ -18,15 +17,6 @@ public class ProductComboItemsEndpoints : ICarterModule
         group.MapPatch("{id:guid}", UpdateProductComboItem)
             .DisableAntiforgery()
             .WithName(nameof(UpdateProductComboItem))
-            .RequireAuthorization("BrandPolicy")
-            .Produces<ApiResponse>(StatusCodes.Status200OK)
-            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
-            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
-            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
-            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapDelete("{id:guid}", RemoveProductComboItem)
-            .DisableAntiforgery()
-            .WithName(nameof(RemoveProductComboItem))
             .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
@@ -53,14 +43,5 @@ public class ProductComboItemsEndpoints : ICarterModule
         var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
-
-    public async Task<IResult> RemoveProductComboItem(IMediator mediator, [FromRoute] Guid id)
-    {
-        var command = new RemoveProductComboItemCommand()
-        {
-            ProductComboItemId = id
-        };
-        var apiResponse = await mediator.Send(command);
-        return Results.Ok(apiResponse);
-    }
+    
 }

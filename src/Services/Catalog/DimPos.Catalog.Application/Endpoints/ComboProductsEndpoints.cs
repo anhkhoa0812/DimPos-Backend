@@ -5,6 +5,7 @@ using DimPos.Catalog.Application.Features.ComboProducts.Command.UpdateComboProdu
 using DimPos.Catalog.Application.Features.ComboProducts.Query.GetAllComboProducts;
 using DimPos.Catalog.Application.Features.ComboProducts.Query.GetComboProductById;
 using DimPos.Catalog.Application.Features.ProductComboItems.Command.CreateProductComboItem;
+using DimPos.Catalog.Application.Features.ProductComboItems.Command.RemoveProductComboItem;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Models.ComboProducts;
 using DimPos.Catalog.Domain.Models.Common;
@@ -53,7 +54,7 @@ public class ComboProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapPost("{id:guid}", CreateProductComboItem)
+        group.MapPost("{id:guid}/product-combo-items", CreateProductComboItem)
             .DisableAntiforgery()
             .WithName(nameof(CreateProductComboItem))
             .RequireAuthorization("BrandPolicy")
@@ -62,6 +63,16 @@ public class ComboProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapDelete("{id:guid}/product-combo-items/{productComboItemId:guid}", RemoveProductComboItem)
+            .DisableAntiforgery()
+            .WithName(nameof(RemoveProductComboItem))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        
     }
 
     public async Task<IResult> CreateComboProduct(IMediator mediator, [FromForm] CreateComboProductCommand command,
@@ -144,5 +155,15 @@ public class ComboProductsEndpoints : ICarterModule
         }
         var apiResponse = await mediator.Send(command);
         return Results.Created($"{ApiEndPointConstants.ComboProducts.ComboProductsEndpoint}/{id}", apiResponse);
+    }
+    public async Task<IResult> RemoveProductComboItem(IMediator mediator, [FromRoute] Guid id, [FromRoute] Guid productComboItemId)
+    {
+        var command = new RemoveProductComboItemCommand()
+        {
+            ProductVariantId = id,
+            ProductComboItemId = productComboItemId
+        };
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
     }
 }

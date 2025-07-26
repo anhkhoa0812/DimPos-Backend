@@ -63,7 +63,6 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
             Note = request.Note,
             IsHasVariants = false,
             Type = EProductType.InternalOrder,
-            Status = EProductStatus.Active,
             IsCombo = false
         };
         
