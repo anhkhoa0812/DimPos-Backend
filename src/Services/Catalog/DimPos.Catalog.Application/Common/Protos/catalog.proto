@@ -34,7 +34,7 @@ message GetProductVariantListByIdsRequest {
   repeated string productVariantIds = 2;
 }
 message GetProductVariantListByIdsResponse {
-  repeated ProductVariant productVariants = 1;
+  repeated ProductVariantWithImages productVariants = 1;
 }
 message ListProductVariantId {
   repeated string productVariantId = 1;
@@ -52,6 +52,24 @@ message ProductVariant {
   string size = 8;
   int32 displayOrder = 9;
   string sku = 10;
+}
+message ProductVariantWithImages {
+  string id = 1;
+  string code = 2;
+  string name = 4;
+  string description = 5;
+  float price = 6;
+  bool isActive = 7;
+  string size = 8;
+  int32 displayOrder = 9;
+  string sku = 10;
+  repeated ProductImage productImages = 11;
+}
+message ProductImage {
+  string id = 1;
+  string imageUrl = 2;
+  bool isMainImage = 3;
+  string altText = 4;
 }
 message GetMenuProductByStoreRequest {
   string storeId = 1;

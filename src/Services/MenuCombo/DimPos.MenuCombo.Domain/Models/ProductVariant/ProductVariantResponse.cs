@@ -13,4 +13,12 @@ public record ProductVariantResponse
     public string? Size { get; set; }
     public int DisplayOrder { get; set; }
     public string? Sku { get; set; }
+    public List<ProductImageResponse>? ProductImages { get; set; }
+}
+public record ProductImageResponse
+{
+    public Guid Id { get; set; }
+    public string ImageUrl { get; set; } = string.Empty;
+    public string? AltText { get; set; }
+    public bool IsMainImage { get; set; }
 }

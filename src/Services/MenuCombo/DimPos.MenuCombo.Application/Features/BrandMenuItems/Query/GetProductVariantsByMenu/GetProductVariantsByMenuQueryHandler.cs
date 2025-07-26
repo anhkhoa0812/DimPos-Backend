@@ -81,7 +81,14 @@ public class GetProductVariantsByMenuQueryHandler : IRequestHandler<GetProductVa
                 IsActive = x.IsActive,
                 Size = x.Size,
                 Sku = x.Sku,
-                Price = (decimal) x.Price
+                Price = (decimal) x.Price,
+                ProductImages = x.ProductImages.Any() ? x.ProductImages.Select(image => new ProductImageResponse()
+                {
+                    Id = Guid.Parse(image.Id),
+                    ImageUrl = image.ImageUrl,
+                    AltText = image.AltText,
+                    IsMainImage = image.IsMainImage
+                }).ToList() : null
             }).ToList();
         return new ApiResponse()
         {

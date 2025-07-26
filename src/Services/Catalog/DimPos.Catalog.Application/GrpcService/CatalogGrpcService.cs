@@ -272,12 +272,13 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             && x.Product.BrandId == brandId 
                             && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
+                .ThenInclude(x => x.ProductImages)
         );
         var response = new GetProductVariantListByIdsResponse()
         {
             ProductVariants =
             {
-                productVariants.Select(x => new ProductVariant()
+                productVariants.Select(x => new ProductVariantWithImages()
                 {
                     Id = x.Id.ToString(),
                     Code = x.Code,
@@ -288,7 +289,18 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     IsActive = x.IsActive,
                     Size = x.Size ?? String.Empty,
                     Sku = x.Sku ?? String.Empty,
-                }).ToList()
+                    ProductImages =
+                    {
+                        x.Product.ProductImages != null ?
+                            x.Product.ProductImages.Select(pi => new ProductImage()
+                            {
+                                Id = pi.Id.ToString(),
+                                ImageUrl = pi.ImageUrl,
+                                IsMainImage = pi.IsMainImage,
+                                AltText = pi.AltText ?? String.Empty,
+                            }).ToList() : new List<ProductImage>()
+                    }
+                }).ToList(),
             }
         };
         

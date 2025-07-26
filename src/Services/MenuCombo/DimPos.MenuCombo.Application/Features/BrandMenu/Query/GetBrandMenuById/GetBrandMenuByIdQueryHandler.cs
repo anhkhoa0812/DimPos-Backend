@@ -87,6 +87,13 @@ public class GetBrandMenuByIdQueryHandler : IRequestHandler<GetBrandMenuByIdQuer
                     Size = x.Size,
                     DisplayOrder = x.DisplayOrder,
                     Sku = x.Sku,
+                    ProductImages = x.ProductImages.Any() ? x.ProductImages.Select(image => new ProductImageResponse()
+                    {
+                        Id = Guid.Parse(image.Id),
+                        ImageUrl = image.ImageUrl,
+                        AltText = image.AltText,
+                        IsMainImage = image.IsMainImage
+                    }).ToList() : null
                 }).ToList(),
             Stores = storesGrpcResponse.Stores.Select(store => new BrandMenuByIdResponseWithStore()
             {
