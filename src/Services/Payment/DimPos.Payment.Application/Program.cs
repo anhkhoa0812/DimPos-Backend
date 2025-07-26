@@ -1,6 +1,7 @@
 using Carter;
 using Common.Logging;
 using DimPos.Payment.Application.Common.Extensions;
+using DimPos.Payment.Application.Common.Middlewares;
 using DimPos.Payment.Application.GrpcServices;
 using DimPos.Payment.Infrastructure;
 using DimPos.Payment.Infrastructure.Configurations;
@@ -47,6 +48,7 @@ try
         }
     });
     app.MapGrpcService<PaymentGrpcService>();
+    app.UseMiddleware<GlobalException>();
     app.UseCors(builder =>
         builder.AllowAnyOrigin()
             .AllowAnyMethod()

@@ -22,6 +22,7 @@ public static class ConfigureServices
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddScoped(typeof(ValidationUtil<>));
         services.AddScoped<IMPosService, MPosService>();
+        services.AddScoped<IClaimService, ClaimService>();
         services.AddHttpClient();
         services.Configure<RouteHandlerOptions>(options =>
         {

@@ -12,7 +12,7 @@ public static class ScalarConfig
             {
                 options.EndpointPathPrefix = "/api/{documentName}";
                 options.Theme = ScalarTheme.DeepSpace;
-                // options.Favicon = "/assets/images/dimposlogo.png";
+                options.Favicon = "/assets/images/dimposlogo.png";
             })
             .RequireAuthorization(options =>
             {
