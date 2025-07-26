@@ -10,7 +10,7 @@ using MassTransit;
 using Mediator;
 using SharedProject.Events.Brand;
 
-namespace DimPos.Brand.Application.Features.Brands.Command;
+namespace DimPos.Brand.Application.Features.Brands.Command.CreateBrand;
 
 public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, ApiResponse>
 {

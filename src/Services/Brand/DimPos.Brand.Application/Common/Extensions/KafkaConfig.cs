@@ -3,6 +3,7 @@ using DimPos.Brand.Application.Consumers;
 using DimPos.Brand.Infrastructure.Kafka;
 using MassTransit;
 using SharedProject.Events.Brand;
+using SharedProject.Events.UpdateBrandPassword;
 
 namespace DimPos.Brand.Application.Common.Extensions;
 
@@ -25,7 +26,8 @@ public static class KafkaConfig
             configureMassTransit.AddRider(configureRider =>
             {
                 configureRider.AddProducer<Null, CreateBrandAccountModel>(kafkaOptions!.Topics.CreateBrandResponse);
-
+                configureRider.AddProducer<Null, UpdateBrandPasswordRequestModel>(kafkaOptions!.Topics.UpdateBrandPasswordRequest);
+                
                 configureRider.AddConsumer<RollbackBrandAccountConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {

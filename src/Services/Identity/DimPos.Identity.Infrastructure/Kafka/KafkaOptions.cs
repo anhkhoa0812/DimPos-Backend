@@ -25,4 +25,5 @@ public sealed record Topics
     public string UpdateAccountForStoreByBrandRequest { get; set; } = default!;
     public string UpdateAccountForStoreByBrandResponse { get; set; } = default!;
     public string UpdateAccountForStoreByBrandError { get; set; } = default!;
+    public string UpdateBrandPasswordRequest { get; set; } = default!;
 }

@@ -8,6 +8,7 @@ using SharedProject.Events.Store.CreateStore;
 using SharedProject.Events.Store.UpdateStaff;
 using SharedProject.Events.Store.UpdateStore;
 using SharedProject.Events.Store.UpdateStoreByBrand;
+using SharedProject.Events.UpdateBrandPassword;
 
 namespace DimPos.Identity.Application.Common.Config;
 
@@ -46,6 +47,7 @@ public static class KafkaConfig
                 configureRider.AddConsumer<UpdateStaffConsumer>();
                 configureRider.AddConsumer<UpdateStoreRequestConsumer>();
                 configureRider.AddConsumer<UpdateAccountForStoreByBrandRequestConsumer>();
+                configureRider.AddConsumer<UpdateBrandPasswordConsumer>();
                 configureRider.UsingKafka(kafkaOptions.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, CreateBrandAccountModel>(
@@ -105,6 +107,16 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<UpdateAccountForStoreByBrandRequestConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateBrandPasswordRequestModel>(
+                        topicName: kafkaOptions.Topics.UpdateBrandPasswordRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<UpdateBrandPasswordConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.CreateIfMissing();
                         });

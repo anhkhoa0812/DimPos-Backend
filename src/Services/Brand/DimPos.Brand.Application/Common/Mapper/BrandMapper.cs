@@ -1,4 +1,4 @@
-using DimPos.Brand.Application.Features.Brands.Command;
+using DimPos.Brand.Application.Features.Brands.Command.CreateBrand;
 using DimPos.Brand.Domain.Entities;
 using DimPos.Brand.Domain.Models.Brand;
 using Riok.Mapperly.Abstractions;

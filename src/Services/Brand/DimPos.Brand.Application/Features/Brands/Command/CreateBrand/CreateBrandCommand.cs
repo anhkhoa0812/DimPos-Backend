@@ -1,7 +1,7 @@
 using DimPos.Brand.Domain.Models.Common;
 using Mediator;
 
-namespace DimPos.Brand.Application.Features.Brands.Command;
+namespace DimPos.Brand.Application.Features.Brands.Command.CreateBrand;
 
 public class CreateBrandCommand : IRequest<ApiResponse>
 {
