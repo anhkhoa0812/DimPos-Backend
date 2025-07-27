@@ -30,6 +30,8 @@ public static class ConfigureServices
                     policy.RequireAuthenticatedUser().RequireRole(ClaimTypes.Role, "BrandAdmin"));
                 options.AddPolicy("StorePolicy", policy =>
                     policy.RequireAuthenticatedUser().RequireRole(ClaimTypes.Role, "StoreAdmin", "Staff"));
+                options.AddPolicy("SystemAdminPolicy", policy =>
+                    policy.RequireAuthenticatedUser().RequireRole(ClaimTypes.Role, "SystemAdmin"));
             }
         );        
         services.Configure<MPosSettings>(configuration.GetSection("MPosSettings"));

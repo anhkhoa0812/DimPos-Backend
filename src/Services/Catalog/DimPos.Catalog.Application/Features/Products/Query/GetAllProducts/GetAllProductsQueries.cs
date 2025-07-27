@@ -11,7 +11,6 @@ public class GetAllProductsQueries : IRequest<ApiResponse>
     public int Size { get; set; }
     public string? SortBy { get; set; }
     public bool IsAsc { get; set; }
-    public EProductStatus? Status { get; set; }
     public string? Name { get; set; }
     public bool? IsHasVariants { get; set; }
 }

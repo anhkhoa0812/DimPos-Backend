@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace DimPos.Brand.Application.Features.Brands.Command;
+namespace DimPos.Brand.Application.Features.Brands.Command.CreateBrand;
 
 public class CreateBrandCommandValidator : AbstractValidator<CreateBrandCommand>
 {

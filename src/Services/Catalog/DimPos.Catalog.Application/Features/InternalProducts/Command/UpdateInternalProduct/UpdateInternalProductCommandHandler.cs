@@ -148,14 +148,8 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
             productVariant.DisplayOrder = request.DisplayOrder;
             productVariant.Product.DisplayOrder = request.DisplayOrder;
         }
-
-        if (request.IsActive != null)
-        {
-            productVariant.IsActive = request.IsActive.Value;
-            productVariant.Product.Status = request.IsActive.Value
-                ? Domain.Enums.EProductStatus.Active
-                : Domain.Enums.EProductStatus.Inactive;
-        }
+        
+        productVariant.IsActive = request.IsActive ?? productVariant.IsActive;
         productVariant.Sku = request.Sku ?? productVariant.Sku;
         if (request.Price != null)
         {

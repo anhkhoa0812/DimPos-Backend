@@ -126,7 +126,6 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
 
         var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
             predicate: x => x.BrandId == Guid.Parse(request.BrandId)
-                            && x.Status == EProductStatus.Active
                             && x.Type == EProductType.CustomerOrder
                             && x.ProductVariants.Any(pv =>
                                 variantIds.Contains(pv.Id) && pv.IsActive),
@@ -272,12 +271,13 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             && x.Product.BrandId == brandId 
                             && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
+                .ThenInclude(x => x.ProductImages)
         );
         var response = new GetProductVariantListByIdsResponse()
         {
             ProductVariants =
             {
-                productVariants.Select(x => new ProductVariant()
+                productVariants.Select(x => new ProductVariantWithImages()
                 {
                     Id = x.Id.ToString(),
                     Code = x.Code,
@@ -288,7 +288,18 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     IsActive = x.IsActive,
                     Size = x.Size ?? String.Empty,
                     Sku = x.Sku ?? String.Empty,
-                }).ToList()
+                    ProductImages =
+                    {
+                        x.Product.ProductImages != null ?
+                            x.Product.ProductImages.Select(pi => new ProductImage()
+                            {
+                                Id = pi.Id.ToString(),
+                                ImageUrl = pi.ImageUrl,
+                                IsMainImage = pi.IsMainImage,
+                                AltText = pi.AltText ?? String.Empty,
+                            }).ToList() : new List<ProductImage>()
+                    }
+                }).ToList(),
             }
         };
         
@@ -302,7 +313,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var productVariantIds = request.ProductForOrders.Select(x => Guid.Parse(x.Id)).ToList();
         var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
             predicate: x => productVariantIds.Contains(x.Id)
-                            && x.IsActive == true && x.Product.Status == EProductStatus.Active 
+                            && x.IsActive == true
                             && x.Product.BrandId == brandId && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
                 .Include(x => x.Product.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
@@ -372,7 +383,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             predicate: x => requestProductVariantIds.Contains(x.Id)
                             && x.Product.BrandId == brandId
                             && x.Product.Type == EProductType.InternalOrder
-                            && x.IsActive == true && x.Product.Status == EProductStatus.Active 
+                            && x.IsActive == true
                             && x.RecipeItems != null && x.RecipeItems.Any(),
             include: x => 
                 x.Include(x => x.Product)

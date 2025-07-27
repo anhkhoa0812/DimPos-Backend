@@ -42,7 +42,6 @@ public class UpdateProductsCommandHandler : IRequestHandler<UpdateProductsComman
             throw new NotFoundException("Không tìm thấy sản phẩm với ID đã cung cấp.");
         product.Name = request.UpdateProducts.Name ?? product.Name;
         product.Description = request.UpdateProducts.Description ?? product.Description;
-        product.Status = request.UpdateProducts.Status ?? product.Status;
         product.DisplayOrder = request.UpdateProducts.DisplayOrder ?? product.DisplayOrder;
         product.Note = request.UpdateProducts.Note ?? product.Note;
 

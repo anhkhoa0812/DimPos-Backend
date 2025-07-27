@@ -40,11 +40,5 @@ public class ProductsConfiguration : IEntityTypeConfiguration<Products>
             .WithMany(c => c.Products)
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.Property(p => p.Status)
-            .IsRequired()
-            .HasConversion(
-                v => v.ToString(),
-                v => (EProductStatus)Enum.Parse(typeof(EProductStatus), v)
-            );
     }
 }

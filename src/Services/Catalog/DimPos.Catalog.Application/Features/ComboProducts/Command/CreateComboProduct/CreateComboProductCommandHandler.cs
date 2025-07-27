@@ -57,7 +57,6 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
             Description = request.Description,
             DisplayOrder = request.DisplayOrder,
             Note = request.Note,
-            Status = EProductStatus.Active,
             IsCombo = true,
             Type = EProductType.CustomerOrder,
             IsHasVariants = false,
@@ -165,7 +164,7 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
            var requestItemProductVariant = request.ItemProductVariants
                .First(x => x.ProductVariantId == itemProductVariant.Id);
            
-           var productComboItem = new ProductComboItems()
+           var productComboItem = new Domain.Entities.ProductComboItems()
            {
                Id = Guid.CreateVersion7(),
                DisplayOrder = requestItemProductVariant.DisplayOrder,
@@ -173,7 +172,7 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
                ProductId = product.Id,
                ItemProductVariantId = itemProductVariant.Id,
            };
-           await _unitOfWork.GetRepository<ProductComboItems>().InsertAsync(productComboItem);
+           await _unitOfWork.GetRepository<Domain.Entities.ProductComboItems>().InsertAsync(productComboItem);
         }
         
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

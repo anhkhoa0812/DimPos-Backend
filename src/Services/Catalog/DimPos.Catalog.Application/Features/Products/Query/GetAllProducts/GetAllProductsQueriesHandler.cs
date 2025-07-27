@@ -33,7 +33,6 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
                 Name = p.Name,
                 Description = p.Description,
                 IsHasVariants = p.IsHasVariants,
-                Status = p.Status,
                 DisplayOrder = p.DisplayOrder,
                 Note = p.Note,
                 CreatedDate = p.CreatedDate,
@@ -60,7 +59,6 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
             predicate: x => x.BrandId == brandId && 
                             x.Type == EProductType.CustomerOrder &&
                             !x.IsCombo &&
-                           (request.Status == null || x.Status == request.Status) &&
                            (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)) &&
                            (request.IsHasVariants == null || x.IsHasVariants == request.IsHasVariants),
             page: request.Page,

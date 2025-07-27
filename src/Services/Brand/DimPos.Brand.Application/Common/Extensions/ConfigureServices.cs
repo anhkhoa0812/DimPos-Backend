@@ -1,7 +1,8 @@
 using DimPos.Brand.Application.Common.Behaviours;
 using DimPos.Brand.Application.Common.Protos;
 using DimPos.Brand.Application.Common.Utils;
-using DimPos.Brand.Application.Features.Brands.Command;
+using DimPos.Brand.Application.Features.Brands.Command.CreateBrand;
+using DimPos.Brand.Application.Features.Brands.Command.UpdatePassword;
 using DimPos.Brand.Application.Services.Implement;
 using DimPos.Brand.Application.Services.Interface;
 using DimPos.Brand.Domain.Models.Settings;
@@ -23,7 +24,7 @@ public static class ConfigureServices
         .AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddScoped(typeof(ValidationUtil<>));
         services.AddScoped<IValidator<CreateBrandCommand>, CreateBrandCommandValidator>();
-        
+        services.AddScoped<IValidator<UpdatePasswordCommand>, UpdatePasswordCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

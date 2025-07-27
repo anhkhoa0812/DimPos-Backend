@@ -42,6 +42,7 @@
         </Protobuf>
     </ItemGroup>
     <ItemGroup>
+      <Folder Include="Features\SystemPaymentMethod\Command\" />
       <Folder Include="wwwroot\temp\" />
     </ItemGroup>
 
