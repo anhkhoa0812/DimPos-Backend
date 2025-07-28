@@ -51,7 +51,9 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, ApiResponse>
             predicate: x => (storeId == Guid.Empty || x.StoreId == storeId) && 
                             (brandId == Guid.Empty || x.BrandId == brandId) &&
                             (request.Status == null || x.Status == request.Status) &&
-                            (request.Type == null || x.Type == request.Type),
+                            (request.Type == null || x.Type == request.Type) &&
+                            (request.FromDate == null || x.CreatedDate >= request.FromDate) && 
+                            (request.ToDate == null || x.CreatedDate <= request.ToDate),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy,

@@ -6,6 +6,7 @@ using DimPos.Catalog.Application.Features.Products.Commands.UpdateProducts;
 using DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;
 using DimPos.Catalog.Application.Features.Products.Query.GetProductsById;
 using DimPos.Catalog.Application.Features.ProductVariants.Command.CreateProductVariant;
+using DimPos.Catalog.Application.Features.ProductVariants.Command.UpdateInactiveForProductVariants;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Models.Common;
@@ -62,6 +63,14 @@ public class ProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{id:guid}/product-variants/inactive", UpdateInactiveProductVariants)
+            .WithName(nameof(UpdateInactiveProductVariants))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     public async Task<IResult> CreateProduct(IMediator mediator,  [FromForm] CreateProductRequest request, ValidationUtil<CreateProductsCommand> validationUtil)
@@ -161,5 +170,15 @@ public class ProductsEndpoints : ICarterModule
         }
         var apiResponse = await mediator.Send(command);
         return Results.Created($"{ApiEndPointConstants.Products.ProductsEndpoint}/{id}/product-variants", apiResponse);
+    }
+    public async Task<IResult> UpdateInactiveProductVariants(IMediator mediator, [FromRoute] Guid id)
+    {
+        var command = new UpdateInactiveForProductVariantsCommand()
+        {
+            ProductId = id
+        };
+        
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
     }
 }

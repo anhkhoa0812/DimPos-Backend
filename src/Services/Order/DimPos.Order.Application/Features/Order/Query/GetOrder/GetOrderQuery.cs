@@ -12,4 +12,6 @@ public class GetOrderQuery : IRequest<ApiResponse>
     public bool IsAsc { get; set; }
     public EOrderStatus? Status { get; set; }
     public EOrderType? Type { get; set; }
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
 }

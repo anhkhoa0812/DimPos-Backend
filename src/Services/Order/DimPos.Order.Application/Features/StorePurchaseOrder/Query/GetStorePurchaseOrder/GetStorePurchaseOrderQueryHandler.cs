@@ -59,7 +59,9 @@ public class GetStorePurchaseOrderQueryHandler : IRequestHandler<GetStorePurchas
                 }).ToList()
             },
             predicate: x => (storeId == Guid.Empty || x.StoreId == storeId) &&
-                            (brandId == Guid.Empty || x.BrandId == brandId),
+                            (brandId == Guid.Empty || x.BrandId == brandId) &&
+                            (request.FromDate == null || x.CreatedDate >= request.FromDate) && 
+                            (request.ToDate == null || x.CreatedDate <= request.ToDate),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy ?? "CreatedDate",
