@@ -9,4 +9,6 @@ public class GetStorePurchaseOrderQuery : IRequest<ApiResponse>
     public int Size { get; set; }
     public string? SortBy { get; set; }
     public bool IsAsc { get; set; }
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
 }

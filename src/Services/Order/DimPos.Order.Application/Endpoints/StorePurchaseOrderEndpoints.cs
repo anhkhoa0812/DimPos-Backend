@@ -69,7 +69,8 @@ public class StorePurchaseOrderEndpoints : ICarterModule
     }
 
     public async Task<IResult> GetStorePurchaseOrders(IMediator mediator, [FromQuery] int page = 1,
-        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,
+        [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         var query = new GetStorePurchaseOrderQuery()
         {
