@@ -35,6 +35,7 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
                 IsHasVariants = p.IsHasVariants,
                 DisplayOrder = p.DisplayOrder,
                 Note = p.Note,
+                IsActive = p.ProductVariants.Any(pv => pv.IsActive),
                 CreatedDate = p.CreatedDate,
                 LastModifiedDate = p.LastModifiedDate,
                 ProductVariants = p.ProductVariants.Select(v => new ProductVariantsResponse
@@ -48,13 +49,14 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
                     Size = v.Size,
                     Sku = v.Sku,
                 }).ToList(),
-                ProductImages = p.ProductImages.Select(i => new ProductImagesResponse
-                {
-                    Id = i.Id,
-                    ImageUrl = i.ImageUrl,
-                    IsMainImage = i.IsMainImage,
-                    AltText = i.AltText
-                }).ToList()
+                ProductImages = p.ProductImages != null ? 
+                    p.ProductImages.Select(i => new ProductImagesResponse
+                    {
+                        Id = i.Id,
+                        ImageUrl = i.ImageUrl,
+                        IsMainImage = i.IsMainImage,
+                        AltText = i.AltText
+                    }).ToList() : null
             },
             predicate: x => x.BrandId == brandId && 
                             x.Type == EProductType.CustomerOrder &&

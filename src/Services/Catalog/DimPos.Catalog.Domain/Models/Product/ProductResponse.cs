@@ -11,6 +11,7 @@ public class ProductResponse
     public bool IsHasVariants { get; set; }
     public int? DisplayOrder { get; set; }
     public string? Note { get; set; }
+    public bool IsActive { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
     public List<ProductVariantsResponse> ProductVariants { get; set; } = new List<ProductVariantsResponse>();

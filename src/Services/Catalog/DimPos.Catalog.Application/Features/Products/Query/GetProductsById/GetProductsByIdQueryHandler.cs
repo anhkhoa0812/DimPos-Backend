@@ -42,6 +42,7 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
                 IsHasVariants = p.IsHasVariants,
                 DisplayOrder = p.DisplayOrder,
                 Note = p.Note,
+                IsActive = p.ProductVariants.Any(pv => pv.IsActive),
                 CreatedDate = p.CreatedDate,
                 LastModifiedDate = p.LastModifiedDate,
                 ProductImages = p.ProductImages != null 

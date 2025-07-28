@@ -59,16 +59,16 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
             _unitOfWork.GetRepository<BasePrice>().UpdateAsync(brandPrice);
             productVariant.Price = (decimal)request.UpdateProductVariants.Price;
         } 
-        if (request.UpdateProductVariants.IsActive != null)
-        {
-            if (request.UpdateProductVariants.IsActive == false &&
-                productVariant.IsActive != request.UpdateProductVariants.IsActive &&
-                productVariant.Product.ProductVariants.Count <= 1)
-            {
-                throw new BadHttpRequestException("Không thể vô hiệu hóa biến thể sản phẩm");
-            }
-            productVariant.IsActive = request.UpdateProductVariants.IsActive.Value;
-        }
+        // if (request.UpdateProductVariants.IsActive != null)
+        // {
+        //     if (request.UpdateProductVariants.IsActive == false &&
+        //         productVariant.IsActive != request.UpdateProductVariants.IsActive &&
+        //         productVariant.Product.ProductVariants.Count <= 1)
+        //     {
+        //         throw new BadHttpRequestException("Không thể vô hiệu hóa biến thể sản phẩm");
+        //     }
+        //     productVariant.IsActive = request.UpdateProductVariants.IsActive.Value;
+        // }
         productVariant.IsActive = request.UpdateProductVariants.IsActive ?? productVariant.IsActive;
         productVariant.Size = request.UpdateProductVariants.Size ?? productVariant.Size;
         productVariant.DisplayOrder = request.UpdateProductVariants.DisplayOrder ?? productVariant.DisplayOrder;
