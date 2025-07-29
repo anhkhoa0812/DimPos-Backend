@@ -44,7 +44,7 @@ public class RemoveProductComboItemCommandHandler : IRequestHandler<RemoveProduc
         {
             throw new BadHttpRequestException("Không tìm thấy sản phẩm combo item");
         }
-        if(productVariant.Product.ProductComboItems != null && productVariant.Product.ProductComboItems.Count(x => x != productComboItem) <= 2)
+        if(productVariant.Product.ProductComboItems != null && productVariant.Product.ProductComboItems.Count(x => x != productComboItem) <= 1)
         {
             throw new BadHttpRequestException("Không thể xóa sản phẩm combo item, phải có ít nhất 2 sản phẩm trong combo");
         }

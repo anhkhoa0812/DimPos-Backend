@@ -202,13 +202,22 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
 
     public override async Task<GetCredentialsConfigByMerchantIdResponse> GetCredentialsConfigByMerchantId(GetCredentialsConfigByMerchantIdRequest request, ServerCallContext context)
     {
-        var storePaymentMethodConfig = await _unitOfWork.GetRepository<StorePaymentMethodConfigs>().SingleOrDefaultAsync(
-            predicate: x => x.CredentialsConfigAtStore != null
-            && EF.Property<long>(x.CredentialsConfigAtStore, "MerchantId") == request.MerchantId
+        var storePaymentMethodConfigs = await _unitOfWork.GetRepository<StorePaymentMethodConfigs>().GetListAsync(
+            predicate: x => x.CredentialsConfigAtStore != null 
         );
+        if (storePaymentMethodConfigs == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng"));
+        }
+
+        var storePaymentMethodConfig = storePaymentMethodConfigs
+            .FirstOrDefault(x =>
+                JsonSerializer.Deserialize<MPosModelRequest>(x.CredentialsConfigAtStore)?.MerchantId ==
+                request.MerchantId);
         if (storePaymentMethodConfig == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình thanh toán cho MerchantId"));
+            _logger.Warning("No StorePaymentMethodConfig found for MerchantId: {MerchantId}", request.MerchantId);
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng"));
         }
 
         return new GetCredentialsConfigByMerchantIdResponse()
