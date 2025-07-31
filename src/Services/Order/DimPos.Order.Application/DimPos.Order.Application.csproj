@@ -47,5 +47,11 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Protobuf>
     </ItemGroup>
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\inventory.proto" GrpcServices="Client">
+            <Link>Common\Protos\inventory.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
     
 </Project>

@@ -184,12 +184,26 @@ message ProductForOrderResponse {
   float unitPrice = 5;
   string note = 6;
   repeated ModifierOptionForOrderResponse modifierOptions = 7;
+  repeated RecipeItemsForOrderResponse recipeItems = 8;
 }
 message ModifierOptionForOrderResponse {
   string id = 1;
   string modifierGroupId = 2;
   string modifierGroupName = 3;
   string modifierOptionName = 4;
+}
+message RecipeItemsForOrderResponse {
+  string recipeItemId = 1;
+  float quantity = 2;
+  IngredientForOrderResponse ingredient = 3;
+}
+message IngredientForOrderResponse {
+  string id = 1;
+  string code = 2;
+  string sku = 3;
+  string name = 4;
+  string measureUnit = 5;
+  string description = 6;
 }
 message GetProductVariantForInternalOrderRequest {
   string brandId = 1;

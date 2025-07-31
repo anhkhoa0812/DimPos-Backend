@@ -1,6 +1,9 @@
 using Carter;
 using DimPos.Payment.Application.Services.Interface;
+using DimPos.Payment.Domain.Models.Common;
+using DimPos.Payment.Domain.Models.MPos.Base;
 using DimPos.Payment.Domain.Models.Payment;
+using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DimPos.Payment.Application.Endpoints;
@@ -24,6 +27,9 @@ public class PaymentEndpoints : ICarterModule
             .WithName(nameof(GetEDCStatus));
         group.MapPost("/edc/refund", RefundEDCPayment)
             .WithName(nameof(RefundEDCPayment));
+        group.MapPost("/callback", Callback)
+            .DisableAntiforgery()
+            .WithName(nameof(Callback)); 
     }
 
     public async Task<IResult> CreateQr(IMPosService service, [FromBody] CreateQrPaymentRequest request)
@@ -69,5 +75,16 @@ public class PaymentEndpoints : ICarterModule
     {
         var apiResponse = await service.GetRefundEDCPayment(request);
         return Results.Json(apiResponse);
+    }
+
+    public async Task<IResult> Callback(IMPosService service, [FromBody] MPosRequest request)
+    {
+        await service.HandleMPosCallback(request);
+        var response =  new ApiResponse()
+        {
+            Data = StatusCodes.Status200OK,
+            Message = "Callback processed successfully",
+        };
+        return Results.Ok(response);
     }
 }

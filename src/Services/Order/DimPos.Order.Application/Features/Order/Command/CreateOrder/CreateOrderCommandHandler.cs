@@ -1,4 +1,5 @@
 using DimPos.Catalog.Application.Common.Protos;
+using DimPos.Inventory.Application.Common.Protos;
 using DimPos.Order.Application.Services.Interface;
 using DimPos.Order.Domain.Entities;
 using DimPos.Order.Domain.Enums;
@@ -21,12 +22,13 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
     private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
     private readonly PromotionGrpcService.PromotionGrpcServiceClient _promotionGrpcService;
     private readonly PaymentGrpcService.PaymentGrpcServiceClient _paymentGrpcService;
-
+    private readonly InventoryGrpcService.InventoryGrpcServiceClient _inventoryGrpcService;
     public CreateOrderCommandHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService,
         CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService,
         StoreGrpcService.StoreGrpcServiceClient storeGrpcService,
         PromotionGrpcService.PromotionGrpcServiceClient promotionGrpcService,
-        PaymentGrpcService.PaymentGrpcServiceClient paymentGrpcService)
+        PaymentGrpcService.PaymentGrpcServiceClient paymentGrpcService,
+        InventoryGrpcService.InventoryGrpcServiceClient inventoryGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -35,6 +37,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         _storeGrpcService = storeGrpcService ?? throw new ArgumentNullException(nameof(storeGrpcService));
         _promotionGrpcService = promotionGrpcService ?? throw new ArgumentNullException(nameof(promotionGrpcService));
         _paymentGrpcService = paymentGrpcService ?? throw new ArgumentNullException(nameof(paymentGrpcService));
+        _inventoryGrpcService = inventoryGrpcService ?? throw new ArgumentNullException(nameof(inventoryGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -83,6 +86,28 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 })
             }
         });
+        var checkInventoryResponse = await _inventoryGrpcService.CheckInventoryForOrderAsync(new CheckInventoryForOrderRequest()
+        {
+            StoreId = storeId.ToString(),
+            IngredientInventory =
+            {
+                orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
+                    .GroupBy(y => y.Ingredient.Id)
+                    .Select(group => new IngredientInventory()
+                {
+                    IngredientId = group.Key,
+                    Quantity = group.Sum(item => item.Quantity)
+                })
+            }
+        });
+
+        if (!checkInventoryResponse.IsValid)
+        {
+            var ingredientNames = orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
+                .Where(x => checkInventoryResponse.InsufficientIngredientIds.Contains(x.Ingredient.Id))
+                .Select(x => x.Ingredient.Name).ToList();
+            throw new BadHttpRequestException("Không đủ nguyên liệu trong kho cho đơn hàng. Nguyên liệu không đủ: " + string.Join(", ", ingredientNames));
+        }
         var orderItems = orderItemsFromGrpc.ProductForOrders.Select(x => new OrderItems()
         {
             Id = Guid.CreateVersion7(),
@@ -155,11 +180,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 order.AppliedOrderPromotions.Add(appliedOrderPromotion);
             }
         }
-
         order.DiscountAmount = order.AppliedOrderPromotions.Sum(x => x.DiscountAmountApplied);
         order.TaxAmount = (order.SubTotalAmount - order.DiscountAmount) * ((decimal) storeDetailGrpcResponse.Rate / 100);
         order.TotalAmount = order.TaxAmount + (order.SubTotalAmount - order.DiscountAmount);
-
         var paymentGrpcResponse = await _paymentGrpcService.CreatePaymentTransactionAsync(
             new CreatePaymentTransactionRequest()
             {

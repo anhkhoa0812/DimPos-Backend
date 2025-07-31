@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using DimPos.Order.Application.Consumers;
 using DimPos.Order.Infrastructure.Kafka;
 using MassTransit;
+using SharedProject.Events.Payment.UpdatePaymentTransaction;
 using SharedProject.Events.UpdateInventoryForInternalOrder;
 
 namespace DimPos.Order.Application.Common.Extensions;
@@ -25,8 +26,10 @@ public static class KafkaConfig
             configureMassTransit.AddRider(configureRider =>
             {
                 configureRider.AddProducer<Null, InternalOrderDoneByStoreResponseModel>(kafkaOptions!.Topics.InternalOrderDoneByStoreResponse);
-                
+                configureRider.AddProducer<Null, UpdateOrderStatusResponseModel>(kafkaOptions!.Topics.UpdateOrderStatusResponse);
+                configureRider.AddProducer<Null, UpdateOrderStatusErrorModel>(kafkaOptions!.Topics.UpdateOrderStatusError);
                 configureRider.AddConsumer<ChangeErrorStatusForStorePurchaseOrderRequestConsumer>();
+                configureRider.AddConsumer<UpdateOrderStatusRequestConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, ChangeErrorStatusForStorePurchaseOrderRequestModel>(
@@ -36,6 +39,17 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<ChangeErrorStatusForStorePurchaseOrderRequestConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateOrderStatusRequestModel>(
+                        topicName: kafkaOptions!.Topics.UpdateOrderStatusRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<UpdateOrderStatusRequestConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

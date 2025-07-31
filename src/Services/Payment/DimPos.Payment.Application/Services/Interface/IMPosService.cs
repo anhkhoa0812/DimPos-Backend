@@ -21,5 +21,5 @@ public interface IMPosService
     
     Task<GetEDCStatusResponseData> GetEDCStatus(GetEDCStatusRequest request);
     Task<RefundEDCPaymentResponseData> GetRefundEDCPayment(GetRefundEDCPaymentRequest request);
-    // Task HandleMPosCallback(MPosRequest request);
+    Task HandleMPosCallback(MPosRequest request);
 } 

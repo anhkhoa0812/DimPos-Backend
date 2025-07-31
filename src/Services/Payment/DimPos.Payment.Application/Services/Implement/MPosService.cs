@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Confluent.Kafka;
 using DimPos.Payment.Application.Common.Utils;
 using DimPos.Payment.Application.Services.Interface;
 using DimPos.Payment.Domain.Enums;
@@ -16,21 +17,26 @@ using DimPos.Payment.Domain.Models.MPos.RefundEDCPayment;
 using DimPos.Payment.Domain.Models.Payment;
 using DimPos.Payment.Domain.Settings;
 using DimPos.Store.Application.Common.Protos;
+using MassTransit;
 using Microsoft.Extensions.Options;
 using Net.Codecrete.QrCodeGenerator;
+using SharedProject.Events.Payment.UpdatePaymentTransaction;
 
 namespace DimPos.Payment.Application.Services.Implement;
 
 public class MPosService : IMPosService
 {
+    private readonly ILogger _logger;
     private readonly HttpClient _httpClient;
     private MPosSettings _settings;
     private readonly string _qrUrl;
     private readonly string _edcPaymentUrl;
     private readonly string _refundEdcUrl;
     private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
+    private readonly ITopicProducer<Null, CallbackPaymentResponseModel> _topicProducer;
     public MPosService(HttpClient httpClient, IOptions<MPosSettings> settings,
-        StoreGrpcService.StoreGrpcServiceClient storeGrpcService)
+        StoreGrpcService.StoreGrpcServiceClient storeGrpcService, ILogger logger,
+        ITopicProducer<Null, CallbackPaymentResponseModel> topicProducer)
     {
         _httpClient = httpClient;
         _settings = settings.Value;
@@ -38,6 +44,9 @@ public class MPosService : IMPosService
         _qrUrl = _settings.DevDomain + "/orderQR";
         _edcPaymentUrl = _settings.DevDomain + "/order";
         _refundEdcUrl = _settings.DevDomain + "/transaction";
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger)); 
+        _topicProducer = topicProducer ?? throw new ArgumentNullException(nameof(topicProducer));
+        
     }
     public async Task<string> CreateQr(CreateQrPaymentRequest request)
     {
@@ -257,11 +266,11 @@ public class MPosService : IMPosService
         
         var responseData = DecodeData<RefundEDCPaymentResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
         return responseData;
-
     }
 
     public async Task HandleMPosCallback(MPosRequest request)
     {
+        _logger.Information("Received MPos callback: {@Request}", request);
         var credentialsConfig = await _storeGrpcService.GetCredentialsConfigByMerchantIdAsync(
             new GetCredentialsConfigByMerchantIdRequest()
             {
@@ -277,7 +286,28 @@ public class MPosService : IMPosService
         {
             throw new BadHttpRequestException("Không thể giải mã dữ liệu callback");
         }
-        
+        _logger.Information("Received MPos callback: {@CallbackRequestData}", callbackRequestData);
+        var status = Enum.IsDefined(typeof(MPosTransStatus), (int) callbackRequestData.TransStatus)
+            ? (MPosTransStatus?) (int) callbackRequestData.TransStatus : null;
+        if (status != null && (status == MPosTransStatus.Settled ||
+            status == MPosTransStatus.Fail ||
+            status == MPosTransStatus.Rejected ||
+            status == MPosTransStatus.Voided))
+        {
+            var callbackPaymentResponseModel = new CallbackPaymentResponseModel()
+            {
+                CorrelationId = Guid.CreateVersion7(),
+                OrderId = Guid.Parse(callbackRequestData.OrderId),
+                TransCode = callbackRequestData.TransCode,
+                TransAmount = callbackRequestData.TransAmount,
+                TransStatus = status.Value,
+            };
+            await _topicProducer.Produce(
+                null,
+                callbackPaymentResponseModel
+            ).ConfigureAwait(false);
+            _logger.Information("Published UpdatePaymentTransactionRequestModel: {@CallbackPaymentResponseModel}", callbackPaymentResponseModel);
+        }
         
     }
 

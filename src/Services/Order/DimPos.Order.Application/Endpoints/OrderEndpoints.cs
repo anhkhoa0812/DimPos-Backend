@@ -68,7 +68,7 @@ public class OrderEndpoints : ICarterModule
     public async Task<IResult> GetOrder(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int pageSize = 30,
         [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,
         [FromQuery] EOrderStatus? status = null, [FromQuery] EOrderType? type = null,
-        [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+        [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
     {
         var query = new GetOrderQuery()
         {
@@ -77,7 +77,9 @@ public class OrderEndpoints : ICarterModule
             SortBy = sortBy,
             IsAsc = isAsc,
             Status = status,
-            Type = type
+            Type = type,
+            FromDate = fromDate,
+            ToDate = toDate
         };
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);

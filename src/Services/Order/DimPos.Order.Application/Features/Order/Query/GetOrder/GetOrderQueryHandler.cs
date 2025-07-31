@@ -56,7 +56,7 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, ApiResponse>
                             (request.ToDate == null || x.CreatedDate <= request.ToDate),
             page: request.Page,
             size: request.Size,
-            sortBy: request.SortBy,
+            sortBy: request.SortBy ?? "CreatedDate",
             isAsc: request.IsAsc
         );
         return new ApiResponse()

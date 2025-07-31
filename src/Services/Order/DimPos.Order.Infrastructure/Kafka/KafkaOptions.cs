@@ -12,4 +12,7 @@ public sealed record Topics
 {
     public string InternalOrderDoneByStoreResponse { get; set; } = default!;
     public string ChangeErrorStatusForStorePurchaseOrderRequest { get; set; } = default!;
+    public string UpdateOrderStatusRequest { get; set; } = default!;
+    public string UpdateOrderStatusResponse { get; set; } = default!;
+    public string UpdateOrderStatusError { get; set; } = default!;
 }

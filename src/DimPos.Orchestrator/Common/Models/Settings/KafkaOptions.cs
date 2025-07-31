@@ -49,4 +49,11 @@ public sealed record Topics
     public string UpdateAccountForStoreByBrandResponse {get ; set; } = default!;
     public string UpdateAccountForStoreByBrandError { get; set; } = default!;
     public string RollbackUpdateStoreByBrandRequest { get; set; } = default!;
+    public string CallbackPaymentResponse { get; set; } = default!;
+    public string UpdatePaymentTransactionRequest { get; set; } = default!;
+    public string UpdatePaymentTransactionResponse { get; set; } = default!;
+    public string UpdateOrderStatusRequest { get; set; } = default!;
+    public string UpdateOrderStatusResponse { get; set; } = default!;
+    public string UpdateOrderStatusError { get; set; } = default!;
+    public string RollbackPaymentTransactionRequest { get; set; } = default!;
 }

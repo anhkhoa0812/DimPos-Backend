@@ -97,9 +97,6 @@ namespace DimPos.Store.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("StoreId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<decimal?>("TotalCashRoundingInShift")
                         .HasColumnType("decimal(18,2)");
 
@@ -118,8 +115,6 @@ namespace DimPos.Store.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("FinancialShiftConfigId");
-
-                    b.HasIndex("StoreId");
 
                     b.ToTable("FinancialShifts");
                 });
@@ -328,10 +323,6 @@ namespace DimPos.Store.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DimPos.Store.Domain.Entities.Store", null)
-                        .WithMany("FinancialShifts")
-                        .HasForeignKey("StoreId");
-
                     b.Navigation("FinancialShiftConfigs");
                 });
 
@@ -376,8 +367,6 @@ namespace DimPos.Store.Infrastructure.Migrations
             modelBuilder.Entity("DimPos.Store.Domain.Entities.Store", b =>
                 {
                     b.Navigation("FinancialShiftConfigs");
-
-                    b.Navigation("FinancialShifts");
 
                     b.Navigation("StoreAccounts");
 
