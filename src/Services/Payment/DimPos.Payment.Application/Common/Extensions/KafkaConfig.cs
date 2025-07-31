@@ -1,11 +1,10 @@
 using Confluent.Kafka;
-using DimPos.Order.Application.Consumers;
-using DimPos.Order.Infrastructure.Kafka;
+using DimPos.Payment.Application.Consumers;
+using DimPos.Payment.Infrastructure.Kafka;
 using MassTransit;
 using SharedProject.Events.Payment.UpdatePaymentTransaction;
-using SharedProject.Events.UpdateInventoryForInternalOrder;
 
-namespace DimPos.Order.Application.Common.Extensions;
+namespace DimPos.Payment.Application.Common.Extensions;
 
 public static class KafkaConfig
 {
@@ -25,31 +24,33 @@ public static class KafkaConfig
             configureMassTransit.UsingInMemory();
             configureMassTransit.AddRider(configureRider =>
             {
-                configureRider.AddProducer<Null, InternalOrderDoneByStoreResponseModel>(kafkaOptions!.Topics.InternalOrderDoneByStoreResponse);
-                configureRider.AddProducer<Null, UpdateOrderStatusResponseModel>(kafkaOptions!.Topics.UpdateOrderStatusResponse);
-                configureRider.AddProducer<Null, UpdateOrderStatusErrorModel>(kafkaOptions!.Topics.UpdateOrderStatusError);
-                configureRider.AddConsumer<ChangeErrorStatusForStorePurchaseOrderRequestConsumer>();
-                configureRider.AddConsumer<UpdateOrderStatusRequestConsumer>();
+                configureRider.AddProducer<Null, CallbackPaymentResponseModel>(kafkaOptions!.Topics.CallbackPaymentResponse);
+                configureRider.AddProducer<Null, UpdatePaymentTransactionResponseModel>(kafkaOptions.Topics.UpdatePaymentTransactionResponse);
+                
+                configureRider.AddConsumer<UpdatePaymentTransactionRequestConsumer>();
+                configureRider.AddConsumer<RollbackPaymentTransactionConsumer>();
+                
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
-                    kafkaConfig.TopicEndpoint<Null, ChangeErrorStatusForStorePurchaseOrderRequestModel>(
-                        topicName: kafkaOptions!.Topics.ChangeErrorStatusForStorePurchaseOrderRequest,
+                    kafkaConfig.TopicEndpoint<Null, UpdatePaymentTransactionRequestModel>(
+                        topicName: kafkaOptions!.Topics.UpdatePaymentTransactionRequest,
                         groupId: kafkaOptions.ConsumerGroup,
                         configure: topicConfig =>
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
-                            topicConfig.ConfigureConsumer<ChangeErrorStatusForStorePurchaseOrderRequestConsumer>(riderContext);
+                            topicConfig.ConfigureConsumer<UpdatePaymentTransactionRequestConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();
                         });
-                    kafkaConfig.TopicEndpoint<Null, UpdateOrderStatusRequestModel>(
-                        topicName: kafkaOptions!.Topics.UpdateOrderStatusRequest,
+                    
+                    kafkaConfig.TopicEndpoint<Null, RollbackPaymentTransactionRequestModel>(
+                        topicName: kafkaOptions!.Topics.RollbackPaymentTransactionRequest,
                         groupId: kafkaOptions.ConsumerGroup,
                         configure: topicConfig =>
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
-                            topicConfig.ConfigureConsumer<UpdateOrderStatusRequestConsumer>(riderContext);
+                            topicConfig.ConfigureConsumer<RollbackPaymentTransactionConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

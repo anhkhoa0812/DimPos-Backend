@@ -2,6 +2,7 @@ using Carter;
 using Common.Logging;
 using DimPos.Inventory.Application.Common.Extensions;
 using DimPos.Inventory.Application.Common.Middlewares;
+using DimPos.Inventory.Application.GrpcServices;
 using DimPos.Inventory.Infrastructure;
 using DimPos.Inventory.Infrastructure.Persistence;
 using DimPos.MenuCombo.Infrastructure.Configurations;
@@ -51,6 +52,7 @@ try
             .AllowAnyMethod()
             .AllowAnyHeader());
     app.UseMiddleware<GlobalException>();
+    app.MapGrpcService<InventoryGrpcService>();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapCarter();

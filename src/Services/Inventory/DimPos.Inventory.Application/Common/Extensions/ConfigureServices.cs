@@ -22,9 +22,10 @@ public static class ConfigureServices
         {
             options.ThrowOnBadRequest = true;
         });
+        services.AddCustomKafka(configuration);
+        services.AddGrpc();
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();
-        services.AddCustomKafka(configuration);
         services.AddHealthChecks();
         return services;
     }

@@ -318,7 +318,10 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             include: x => x.Include(x => x.Product)
                 .Include(x => x.Product.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
                 .ThenInclude(pmg => pmg.ModifierGroup)
-                .ThenInclude(mg => mg.ModifierOptions));
+                .ThenInclude(mg => mg.ModifierOptions)
+                .Include(x => x.RecipeItems)
+                .ThenInclude(ri => ri.Ingredient)
+            );
             
         var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
             predicate: x => x.StoreId == storeId
@@ -347,6 +350,24 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 UnitPrice = (float) price.OverridePrice,
                 Quantity = productForOrder.Quantity,
                 Note = productForOrder.Note ?? String.Empty,
+                RecipeItems =
+                {
+                    productVariant.RecipeItems != null ?
+                        productVariant.RecipeItems.Select(x => new RecipeItemsForOrderResponse()
+                        {
+                            RecipeItemId = x.Id.ToString(),
+                            Quantity = (float) x.Quantity,
+                            Ingredient = new IngredientForOrderResponse()
+                            {
+                                Id = x.Ingredient.Id.ToString(),
+                                Name = x.Ingredient.Name,
+                                Sku = x.Ingredient.Sku ?? String.Empty,
+                                Code = x.Ingredient.Code ?? String.Empty,
+                                MeasureUnit = x.Ingredient.MeasureUnit ?? String.Empty,
+                                Description = x.Ingredient.Description ?? String.Empty
+                            }
+                        }).ToList() : new List<RecipeItemsForOrderResponse>()
+                }
             };
             foreach (var modifierOptionId in productForOrder.ModifierOptionIds)
             {

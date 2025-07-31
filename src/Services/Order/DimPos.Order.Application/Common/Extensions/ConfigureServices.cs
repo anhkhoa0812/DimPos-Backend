@@ -1,4 +1,5 @@
 using DimPos.Catalog.Application.Common.Protos;
+using DimPos.Inventory.Application.Common.Protos;
 using DimPos.Order.Application.Common.Behaviours;
 using DimPos.Order.Application.Common.Utils;
 using DimPos.Order.Application.Features.Order.Command.CreateOrder;
@@ -67,6 +68,11 @@ public static class ConfigureServices
         {
             x.Address = new Uri(settings.PaymentUrl);
         });
+        services.AddGrpcClient<InventoryGrpcService.InventoryGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.InventoryUrl);
+        });
+            
         return services;
     }
 }

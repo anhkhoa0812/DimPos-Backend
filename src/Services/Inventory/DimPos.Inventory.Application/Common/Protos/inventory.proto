@@ -1,0 +1,20 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Inventory.Application.Common.Protos";
+
+
+service InventoryGrpcService {
+  rpc CheckInventoryForOrder (CheckInventoryForOrderRequest) returns (CheckInventoryForOrderResponse);
+}
+message CheckInventoryForOrderRequest {
+  string storeId = 1;
+  repeated IngredientInventory ingredientInventory = 2;
+}
+message IngredientInventory {
+  string ingredientId = 1;
+  float quantity = 2;
+}
+message CheckInventoryForOrderResponse {
+  bool isValid = 1;
+  repeated string insufficientIngredientIds = 2;
+}

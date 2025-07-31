@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
       <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
       <PackageReference Include="Mediator.SourceGenerator" Version="2.1.7">
         <PrivateAssets>all</PrivateAssets>
@@ -18,6 +19,19 @@
       </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Remove="Common\Protos\inventory.proto" />
+        <Protobuf Include="Common\Protos\inventory.proto" GrpcServices="Server">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <ProtoRoot></ProtoRoot>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net9.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+        </Protobuf>
+    </ItemGroup>
+    
     <ItemGroup>
       <ProjectReference Include="..\DimPos.Inventory.Infrastructure\DimPos.Inventory.Infrastructure.csproj" />
     </ItemGroup>
