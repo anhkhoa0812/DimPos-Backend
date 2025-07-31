@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using DimPos.Inventory.Application.Consumers;
 using DimPos.Inventory.Infrastructure.Kafka;
 using MassTransit;
+using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
 using SharedProject.Events.UpdateInventoryForInternalOrder;
 
 namespace DimPos.Inventory.Application.Common.Extensions;
@@ -26,8 +27,11 @@ public static class KafkaConfig
             {
                 configureRider.AddProducer<Null, UpdateInventoryForInternalOrderResponseModel>(kafkaOptions!.Topics.UpdateInventoryForInternalOrderResponse);
                 configureRider.AddProducer<Null, UpdateInventoryForInternalOrderErrorModel>(kafkaOptions!.Topics.UpdateInventoryForInternalOrderError);
+                configureRider.AddProducer<Null, UpdateInventoryForSuccessOrderResponseModel>(kafkaOptions.Topics.UpdateInventoryForSuccessOrderResponse);
+                configureRider.AddProducer<Null, UpdateInventoryForSuccessOrderErrorModel>(kafkaOptions.Topics.UpdateInventoryForSuccessOrderError);
                 
                 configureRider.AddConsumer<UpdateInventoryForInternalOrderRequestConsumer>();
+                configureRider.AddConsumer<UpdateInventoryForSuccessOrderConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, UpdateInventoryForInternalOrderRequestModel>(
@@ -37,6 +41,17 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<UpdateInventoryForInternalOrderRequestConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateInventoryForSuccessOrderRequestModel>(
+                        topicName: kafkaOptions!.Topics.UpdateInventoryForSuccessOrderRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<UpdateInventoryForSuccessOrderConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

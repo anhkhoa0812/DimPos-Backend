@@ -3,6 +3,7 @@ using DimPos.Orchestrator.Common.Models.Settings;
 using DimPos.Orchestrator.SagaState.BrandMenuItems.UpdateBrandMenuItem;
 using DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga;
 using DimPos.Orchestrator.SagaState.Brands.CreateStoreSaga;
+using DimPos.Orchestrator.SagaState.Orders.UpdateInventoryForSuccessOrder;
 using DimPos.Orchestrator.SagaState.Payment.UpdatePaymentTransaction;
 using DimPos.Orchestrator.SagaState.StoreMenu.AssignNewStoreMenu;
 using DimPos.Orchestrator.SagaState.StoreMenu.RemoveStoreMenu;
@@ -12,6 +13,7 @@ using DimPos.Orchestrator.SagaState.Stores.UpdateStoreByBrand;
 using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
 using SharedProject.Events.Brand;
+using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
 using SharedProject.Events.Payment.UpdatePaymentTransaction;
 using SharedProject.Events.RemoveMenuForStore;
 using SharedProject.Events.Store.CreateStaff;
@@ -60,6 +62,9 @@ public static class ServiceExtensions
                 rider
                     .AddSagaStateMachine<UpdatePaymentTransactionSagaStateMachine, UpdatePaymentTransactionSagaState>()
                     .InMemoryRepository();
+                rider.AddSagaStateMachine<UpdateInventoryForSuccessOrderSagaStateMachine,
+                    UpdateInventoryForSuccessOrderSagaState>()
+                    .InMemoryRepository();
                 //Add Producers
                 rider.AddProducer<Null, CreateBrandAccountModel>(kafkaOptions!.Topics.CreateBrandAccountRequest);
                 rider.AddProducer<Null, RollbackBrandAccountModel>(kafkaOptions!.Topics.RollbackBrandAccountRequest);
@@ -85,6 +90,8 @@ public static class ServiceExtensions
                 rider.AddProducer<Null, UpdatePaymentTransactionRequestModel>(kafkaOptions!.Topics.UpdatePaymentTransactionRequest);
                 rider.AddProducer<Null, UpdateOrderStatusRequestModel>(kafkaOptions!.Topics.UpdateOrderStatusRequest);
                 rider.AddProducer<Null, RollbackPaymentTransactionRequestModel>(kafkaOptions.Topics.RollbackPaymentTransactionRequest);
+                rider.AddProducer<Null, UpdateInventoryForSuccessOrderRequestModel>(kafkaOptions.Topics.UpdateInventoryForSuccessOrderRequest);
+                rider.AddProducer<Null, UpdateOrderNeedToChangeInventoryRequestModel>(kafkaOptions.Topics.UpdateOrderNeedToChangeInventoryRequest);
                 
                 rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {
@@ -392,6 +399,41 @@ public static class ServiceExtensions
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureSaga<UpdatePaymentTransactionSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    
+                    //Update Inventory for Success Order
+                    kafkaConfig.TopicEndpoint<Null, CreateOrderResponseModel>(
+                        topicName: kafkaOptions!.Topics.CreateOrderResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateInventoryForSuccessOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateInventoryForSuccessOrderResponseModel>(
+                        topicName: kafkaOptions!.Topics.UpdateInventoryForSuccessOrderResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateInventoryForSuccessOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateInventoryForSuccessOrderErrorModel>(
+                        topicName: kafkaOptions!.Topics.UpdateInventoryForSuccessOrderError,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<UpdateInventoryForSuccessOrderSagaState>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();
