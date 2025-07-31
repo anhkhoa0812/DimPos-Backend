@@ -45,5 +45,7 @@ public class OrdersConfiguration : IEntityTypeConfiguration<Orders>
             .HasMaxLength(500);
         builder.Property(o => o.SystemPaymentMethodNameSnapshot)
             .IsRequired();
+        builder.Property(o => o.IsNeedToUpdateInventory)
+            .IsRequired();
     }
 }

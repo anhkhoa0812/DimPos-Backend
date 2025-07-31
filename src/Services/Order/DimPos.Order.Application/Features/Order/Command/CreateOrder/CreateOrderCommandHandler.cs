@@ -1,3 +1,4 @@
+using Confluent.Kafka;
 using DimPos.Catalog.Application.Common.Protos;
 using DimPos.Inventory.Application.Common.Protos;
 using DimPos.Order.Application.Services.Interface;
@@ -9,7 +10,9 @@ using DimPos.Order.Infrastructure.Repositories.Interface;
 using DimPos.Payment.Application.Common.Protos;
 using DimPos.Promotion.Application.Common.Protos;
 using DimPos.Store.Application.Common.Protos;
+using MassTransit;
 using Mediator;
+using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
 
 namespace DimPos.Order.Application.Features.Order.Command.CreateOrder;
 
@@ -23,12 +26,14 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
     private readonly PromotionGrpcService.PromotionGrpcServiceClient _promotionGrpcService;
     private readonly PaymentGrpcService.PaymentGrpcServiceClient _paymentGrpcService;
     private readonly InventoryGrpcService.InventoryGrpcServiceClient _inventoryGrpcService;
+    private readonly ITopicProducer<Null, CreateOrderResponseModel> _topicProducer;
     public CreateOrderCommandHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService,
         CatalogGrpcService.CatalogGrpcServiceClient catalogGrpcService,
         StoreGrpcService.StoreGrpcServiceClient storeGrpcService,
         PromotionGrpcService.PromotionGrpcServiceClient promotionGrpcService,
         PaymentGrpcService.PaymentGrpcServiceClient paymentGrpcService,
-        InventoryGrpcService.InventoryGrpcServiceClient inventoryGrpcService)
+        InventoryGrpcService.InventoryGrpcServiceClient inventoryGrpcService,
+        ITopicProducer<Null, CreateOrderResponseModel> topicProducer)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -38,6 +43,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         _promotionGrpcService = promotionGrpcService ?? throw new ArgumentNullException(nameof(promotionGrpcService));
         _paymentGrpcService = paymentGrpcService ?? throw new ArgumentNullException(nameof(paymentGrpcService));
         _inventoryGrpcService = inventoryGrpcService ?? throw new ArgumentNullException(nameof(inventoryGrpcService));
+        _topicProducer = topicProducer ?? throw new ArgumentNullException(nameof(topicProducer));
     }
     
     public async ValueTask<ApiResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -61,7 +67,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             Status = EOrderStatus.PendingPayment,
             TableNumberDineIn = request.TableNumberDineIn,
             PickupTime = request.PickupTime,
-            CreatedByAccountId = accountId
+            CreatedByAccountId = accountId,
+            IsNeedToUpdateInventory = false
         };
         if (request.CustomerId != null && request.CustomerId != Guid.Empty)
         {
@@ -207,6 +214,25 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             throw new Exception("Tạo đơn hàng thất bại");
         }
         _logger.Information("Tạo đơn hàng thành công với ID: {OrderId}", order.Id);
+        var createOrderResponseModel = new CreateOrderResponseModel()
+        {
+            CorrelationId = Guid.CreateVersion7(),
+            OrderId = order.Id,
+            StoreId = storeId,
+            Ingredients = orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
+                .GroupBy(x => x.Ingredient.Id)
+                .Select(group => new IngredientForUpdateInventoryModel()
+                {
+                    IngredientId = Guid.Parse(group.Key),
+                    Quantity = (decimal)group.Sum(x => x.Quantity)
+                }).ToList()
+        };
+        await _topicProducer.Produce(
+            null,
+            createOrderResponseModel,
+            cancellationToken: cancellationToken
+        ).ConfigureAwait(false);
+        
         return new ApiResponse()
         {
             Status = StatusCodes.Status201Created,

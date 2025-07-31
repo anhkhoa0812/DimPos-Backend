@@ -28,6 +28,7 @@ public class Orders : EntityAuditBase<Guid>
     public DateTime? CompletedAt { get; set; }
     public Guid CreatedByAccountId { get; set; }
     public string? TableNumberDineIn { get; set; }
+    public bool IsNeedToUpdateInventory { get; set; }
     
     public virtual ICollection<OrderItems> OrderItems { get; set; } = new List<OrderItems>();
     public virtual ICollection<AppliedOrderPromotions> AppliedOrderPromotions { get; set; } = new List<AppliedOrderPromotions>();

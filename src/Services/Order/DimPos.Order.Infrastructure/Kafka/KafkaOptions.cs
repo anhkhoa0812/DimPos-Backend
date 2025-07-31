@@ -15,4 +15,6 @@ public sealed record Topics
     public string UpdateOrderStatusRequest { get; set; } = default!;
     public string UpdateOrderStatusResponse { get; set; } = default!;
     public string UpdateOrderStatusError { get; set; } = default!;
+    public string CreateOrderResponse { get; set; } = default!;
+    public string UpdateOrderNeedToChangeInventoryRequest { get; set; } = default!;
 }
