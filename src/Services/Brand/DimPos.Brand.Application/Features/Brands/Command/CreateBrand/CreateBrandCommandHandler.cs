@@ -48,35 +48,33 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Api
         await _unitOfWork.GetRepository<BrandAccounts>().InsertAsync(brandAccount);
         
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        if (isSuccess)
+        if (!isSuccess)
         {
-            var (hashPassword, saltPassword) = PasswordUtil.HashPassword(request.Password);
-            var createBrandAccountModel = new CreateBrandAccountModel()
-            {
-                CorrelationId = Guid.CreateVersion7(),
-                BrandId = brand.Id,
-                AccountId = accountId,
-                Code = brand.Code,
-                Email = brand.Email,
-                Username = request.Username,
-                HashPassword = hashPassword,
-                SaltPassword = saltPassword,
-            };
-            await _producer.Produce(
-                key: null,
-                createBrandAccountModel,
-                cancellationToken: cancellationToken
-            );
-            return new ApiResponse()
-            {
-                Status = StatusCodes.Status201Created,
-                Message = "Tạo mới thương hiệu thành công",
-            };
+            throw new Exception("Không thể tạo mới thương hiệu");
         }
+        
+        var (hashPassword, saltPassword) = PasswordUtil.HashPassword(request.Password);
+        var createBrandAccountModel = new CreateBrandAccountModel()
+        {
+            CorrelationId = Guid.CreateVersion7(),
+            BrandId = brand.Id,
+            AccountId = accountId,
+            Code = brand.Code,
+            Email = brand.Email,
+            Username = request.Username,
+            HashPassword = hashPassword,
+            SaltPassword = saltPassword,
+        };
+        await _producer.Produce(
+            key: null,
+            createBrandAccountModel,
+            cancellationToken: cancellationToken
+        );
         return new ApiResponse()
         {
-            Status = StatusCodes.Status500InternalServerError,
-            Message = "Tạo mới thương hiệu thất bại",
+            Status = StatusCodes.Status201Created,
+            Message = "Tạo mới thương hiệu thành công",
         };
+        
     }
 }
