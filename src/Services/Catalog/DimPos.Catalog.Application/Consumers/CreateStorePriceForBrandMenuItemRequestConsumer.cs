@@ -38,7 +38,7 @@ public class CreateStorePriceForBrandMenuItemRequestConsumer : IConsumer<CreateS
                         ProductVariantId = basePrice.ProductVariantId,
                         CurrencyCode = "VND",
                         OverridePrice = basePrice.Price,
-                        EffectiveFrom = DateTime.UtcNow,
+                        EffectiveFrom = TimeUtil.GetCurrentSEATime(),
                         StorePriceHistories = new List<StorePriceHistory>()
                         {
                             new()

@@ -92,6 +92,7 @@ public static class ServiceExtensions
                 rider.AddProducer<Null, RollbackPaymentTransactionRequestModel>(kafkaOptions.Topics.RollbackPaymentTransactionRequest);
                 rider.AddProducer<Null, UpdateInventoryForSuccessOrderRequestModel>(kafkaOptions.Topics.UpdateInventoryForSuccessOrderRequest);
                 rider.AddProducer<Null, UpdateOrderNeedToChangeInventoryRequestModel>(kafkaOptions.Topics.UpdateOrderNeedToChangeInventoryRequest);
+                rider.AddProducer<Null, RollbackInventoryForOrderRequestModel>(kafkaOptions.Topics.RollbackInventoryForOrderRequest);
                 
                 rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {

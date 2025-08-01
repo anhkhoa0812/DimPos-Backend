@@ -67,6 +67,13 @@ public class UpdatePaymentTransactionSagaStateMachine : MassTransitStateMachine<
                         $"[Saga] Published UpdateOrderStatusRequest for {context.CorrelationId!.Value}");
                     _logger.Information("[Saga] Published UpdateOrderStatusRequest for {CorrelationId}", context.CorrelationId!.Value);
                 })
+                .Activity(config => config.OfType<RollbackInventoryForFailedPaymentActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine(
+                        $"[Saga] Published RollbackInventoryForFailedPaymentRequest for {context.CorrelationId!.Value}");
+                    _logger.Information("[Saga] Published RollbackInventoryForFailedPaymentRequest for {CorrelationId}", context.CorrelationId!.Value);
+                })
                 .TransitionTo(UpdateOrderStatusState)
         );
         During(UpdateOrderStatusState,
@@ -91,6 +98,13 @@ public class UpdatePaymentTransactionSagaStateMachine : MassTransitStateMachine<
                     Console.WriteLine(
                         $"[Saga] Published RollbackPaymentTransactionRequest for {context.CorrelationId!.Value}");
                     _logger.Information("[Saga] Published RollbackPaymentTransactionRequest for {CorrelationId}", context.CorrelationId!.Value);
+                })
+                .Activity(config => config.OfType<RollbackInventoryForOrderActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine(
+                        $"[Saga] Published RollbackInventoryForOrderRequest for {context.CorrelationId!.Value}");
+                    _logger.Information("[Saga] Published RollbackInventoryForOrderRequest for {CorrelationId}", context.CorrelationId!.Value);
                 })
                 .Finalize()
         );

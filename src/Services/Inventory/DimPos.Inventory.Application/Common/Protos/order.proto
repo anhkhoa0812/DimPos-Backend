@@ -1,0 +1,16 @@
+syntax="proto3";
+
+option csharp_namespace = "DimPos.Order.Application.Common.Protos";
+
+
+service OrderGrpcService {
+  rpc GetIsNeedToUpdateInventoryByOrderId (GetIsNeedToUpdateInventoryByOrderIdRequest) returns (GetIsNeedToUpdateInventoryByOrderIdResponse);
+}
+message GetIsNeedToUpdateInventoryByOrderIdRequest {
+  string storeId = 1;
+  string orderId = 2;
+}
+message GetIsNeedToUpdateInventoryByOrderIdResponse {
+  string orderId = 1;
+  bool isNeedToUpdateInventory = 2;
+}
