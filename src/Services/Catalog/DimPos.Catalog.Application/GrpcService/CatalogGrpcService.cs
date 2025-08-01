@@ -487,6 +487,37 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         }
         return response;
     }
+
+    public override async Task<GetIngredientsByIngredientIdsResponse> GetIngredientsByIngredientIds(GetIngredientsByIngredientIdsRequest request, ServerCallContext context)
+    {
+        var ingredientIds = request.IngredientIds
+            .Select(Guid.Parse)
+            .ToList();
+        var ingredients = await _unitOfWork.GetRepository<Ingredients>().GetListAsync(
+            predicate: x => ingredientIds.Contains(x.Id)
+        );
+        if (ingredients.Count != request.IngredientIds.Count)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Một hoặc nhiều nguyên liệu không tồn tại."));
+        }
+        var response = new GetIngredientsByIngredientIdsResponse()
+        {
+            Ingredients =
+            {
+                ingredients.Select(x => new IngredientForGetIngredientsResponse()
+                {
+                    Id = x.Id.ToString(),
+                    Name = x.Name,
+                    Sku = x.Sku ?? String.Empty,
+                    Code = x.Code ?? String.Empty,
+                    MeasureUnit = x.MeasureUnit,
+                    Description = x.Description ?? String.Empty,
+                })
+            }
+        };
+        return response;
+
+    }
     // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     // {
     //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();

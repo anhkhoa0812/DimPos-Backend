@@ -1,9 +1,12 @@
+using DimPos.Catalog.Application.Common.Protos;
 using DimPos.Inventory.Application.Common.Behaviours;
 using DimPos.Inventory.Application.Common.Utils;
+using DimPos.Inventory.Application.Features.InventoryStock.Command.UpdateQuantiyOfInventoryStock;
 using DimPos.Inventory.Application.Services.Implement;
 using DimPos.Inventory.Application.Services.Interface;
 using DimPos.Inventory.Domain.Models.Settings;
 using DimPos.Order.Application.Common.Protos;
+using FluentValidation;
 using Mediator;
 
 namespace DimPos.Inventory.Application.Common.Extensions;
@@ -20,6 +23,9 @@ public static class ConfigureServices
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>))
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddScoped(typeof(ValidationUtil<>));
+        services
+            .AddScoped<IValidator<UpdateQuantityOfInventoryStockCommand>,
+                UpdateQuantityOfInventoryStockCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;
@@ -44,6 +50,10 @@ public static class ConfigureServices
                 x.Address = new Uri(settings.OrderUrl);
             }
         );
+        services.AddGrpcClient<CatalogGrpcService.CatalogGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.CatalogUrl);
+        });
         return services;
     }
 }
