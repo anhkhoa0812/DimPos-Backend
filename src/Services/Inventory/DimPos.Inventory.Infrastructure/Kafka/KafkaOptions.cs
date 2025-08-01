@@ -16,4 +16,5 @@ public sealed record Topics
     public string UpdateInventoryForSuccessOrderRequest { get; set; } = default!;
     public string UpdateInventoryForSuccessOrderResponse { get; set; } = default!;
     public string UpdateInventoryForSuccessOrderError { get; set; } = default!;
+    public string RollbackInventoryForOrderRequest { get; set; } = default!;
 }

@@ -5,6 +5,7 @@ using DimPos.Order.Infrastructure;
 using DimPos.Order.Infrastructure.Configurations;
 using DimPos.Order.Infrastructure.Persistence;
 using DimPos.Order.Application.Common.Extensions;
+using DimPos.Order.Application.GrpcServices;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +46,7 @@ try
             .AllowAnyMethod()
             .AllowAnyHeader());
     app.UseMiddleware<GlobalException>();
+    app.MapGrpcService<OrderGrpcService>();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapCarter();

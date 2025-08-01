@@ -98,13 +98,25 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             StoreId = storeId.ToString(),
             IngredientInventory =
             {
-                orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
-                    .GroupBy(y => y.Ingredient.Id)
+                // orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
+                //     .GroupBy(y => y.Ingredient.Id)
+                //     .Select(group => new IngredientInventory()
+                // {
+                //     IngredientId = group.Key,
+                //     Quantity = group.Sum(item => item.Quantity)
+                // })
+                orderItemsFromGrpc.ProductForOrders
+                    .SelectMany(product => product.RecipeItems.Select(recipe => new
+                    {
+                        IngredientId = recipe.Ingredient.Id,
+                        Quantity = recipe.Quantity * product.Quantity
+                    }))
+                    .GroupBy(x => x.IngredientId)
                     .Select(group => new IngredientInventory()
-                {
-                    IngredientId = group.Key,
-                    Quantity = group.Sum(item => item.Quantity)
-                })
+                    {
+                        IngredientId = group.Key,
+                        Quantity = group.Sum(item => item.Quantity)
+                    })
             }
         });
 
@@ -219,12 +231,17 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             CorrelationId = Guid.CreateVersion7(),
             OrderId = order.Id,
             StoreId = storeId,
-            Ingredients = orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
-                .GroupBy(x => x.Ingredient.Id)
+            Ingredients = orderItemsFromGrpc.ProductForOrders
+                .SelectMany(product => product.RecipeItems.Select(recipe => new
+                {
+                    IngredientId = recipe.Ingredient.Id,
+                    Quantity = recipe.Quantity * product.Quantity
+                }))
+                .GroupBy(x => x.IngredientId)
                 .Select(group => new IngredientForUpdateInventoryModel()
                 {
                     IngredientId = Guid.Parse(group.Key),
-                    Quantity = (decimal)group.Sum(x => x.Quantity)
+                    Quantity = (decimal) group.Sum(item => item.Quantity)
                 }).ToList()
         };
         await _topicProducer.Produce(
