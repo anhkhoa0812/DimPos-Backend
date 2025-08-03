@@ -2,6 +2,7 @@ using DimPos.Catalog.Application.Common.Protos;
 using DimPos.Inventory.Application.Common.Protos;
 using DimPos.Order.Application.Common.Behaviours;
 using DimPos.Order.Application.Common.Utils;
+using DimPos.Order.Application.Features.Order.Command.ConfirmCashOrder;
 using DimPos.Order.Application.Features.Order.Command.CreateOrder;
 using DimPos.Order.Application.Features.Order.Command.UpdatePaymentMethod;
 using DimPos.Order.Application.Features.StorePurchaseOrder.Command.CreateStorePurchaseOrder;
@@ -33,6 +34,7 @@ public static class ConfigureServices
         services.AddScoped<IValidator<UpdatePaymentMethodCommand>, UpdatePaymentMethodCommandValidator>();
         services.AddScoped<IValidator<CreateStorePurchaseOrderCommand>, CreateStorePurchaseOrderCommandValidator>();
         services.AddScoped<IValidator<UpdateStorePurchaseOrderCommand>, UpdateStorePurchaseOrderCommandValidator>();
+        services.AddScoped<IValidator<ConfirmCashOrderCommand>, ConfirmCashOrderCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

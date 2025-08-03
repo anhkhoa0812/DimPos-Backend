@@ -405,4 +405,21 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             PaymentMethod = (PaymentMethod)paymentTransaction.SystemPaymentMethodType.Type
         };
     }
+
+    public override async Task<CheckSuccessPaymentTransactionResponse> CheckSuccessPaymentTransaction(CheckSuccessPaymentTransactionRequest request, ServerCallContext context)
+    {
+        var storeId = Guid.Parse(request.StoreId);
+        var orderId = Guid.Parse(request.OrderId);
+        var paymentTransaction = await _unitOfWork.GetRepository<PaymentTransactions>().SingleOrDefaultAsync(
+            predicate: x => x.StoreId == storeId && x.OrderId == orderId
+            && x.Status == EPaymentTransactionStatus.SUCCESS && x.TransactionType == ETransactionType.SALE_CAPTURE_B2C
+        );
+        var response = new CheckSuccessPaymentTransactionResponse();
+        if (paymentTransaction == null)
+        {
+            response.IsSuccess = false;
+        }
+        response.IsSuccess = true;
+        return response;
+    }
 }

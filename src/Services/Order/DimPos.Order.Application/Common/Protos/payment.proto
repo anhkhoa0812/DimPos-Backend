@@ -9,6 +9,7 @@ service PaymentGrpcService {
   rpc GetSystemPaymentMethodListById(GetSystemPaymentMethodListByIdRequest) returns (GetSystemPaymentMethodListByIdResponse);
   rpc UpdatePaymentMethodForOrder (UpdatePaymentMethodForOrderRequest) returns (UpdatePaymentMethodForOrderResponse);
   rpc GetPaymentTransactionByOrderId(GetPaymentTransactionByOrderIdRequest) returns (GetPaymentTransactionByOrderIdResponse);
+  rpc CheckSuccessPaymentTransaction(CheckSuccessPaymentTransactionRequest) returns (CheckSuccessPaymentTransactionResponse);
 }
 message CreateB2CPaymentRequest {
   string storeId = 1;
@@ -84,4 +85,11 @@ message GetPaymentTransactionByOrderIdResponse {
   string currencyCode = 4;
   string systemPaymentMethodId = 5;
   PaymentMethod paymentMethod = 6;
+}
+message CheckSuccessPaymentTransactionRequest {
+  string storeId = 1;
+  string orderId = 2;
+}
+message CheckSuccessPaymentTransactionResponse {
+  bool  isSuccess = 1;
 }

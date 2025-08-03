@@ -8,3 +8,8 @@ public class ConfirmCashOrderCommand : IRequest<ApiResponse>
     public Guid OrderId { get; set; }
     public decimal AmountPaid { get; set; }
 }
+
+public class ConfirmCashOrderRequest
+{
+    public decimal AmountPaid { get; set; }
+}
