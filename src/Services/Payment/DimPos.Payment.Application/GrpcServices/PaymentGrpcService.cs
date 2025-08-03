@@ -380,4 +380,29 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             SystemPaymentMethodName = systemPaymentMethod.Name,
         };
     }
+
+    public override async Task<GetPaymentTransactionByOrderIdResponse> GetPaymentTransactionByOrderId(GetPaymentTransactionByOrderIdRequest request, ServerCallContext context)
+    {
+        var storeId = Guid.Parse(request.StoreId);
+        var orderId = Guid.Parse(request.OrderId);
+        var paymentTransaction = await _unitOfWork.GetRepository<PaymentTransactions>().SingleOrDefaultAsync(
+            predicate: x => x.StoreId == storeId && x.OrderId == orderId
+            && x.Status == EPaymentTransactionStatus.PENDING && x.TransactionType == ETransactionType.SALE_CAPTURE_B2C,
+            include: x => x.Include(y => y.SystemPaymentMethodType)
+        );
+        if (paymentTransaction == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy giao dịch thanh toán cho đơn hàng này"));
+        }
+
+        return new GetPaymentTransactionByOrderIdResponse()
+        {
+            Id = paymentTransaction.Id.ToString(),
+            OrderId = paymentTransaction.OrderId.ToString(),
+            Amount = (float)paymentTransaction.Amount,
+            CurrencyCode = paymentTransaction.CurrencyCode,
+            SystemPaymentMethodId = paymentTransaction.SystemPaymentMethodTypeId.ToString(),
+            PaymentMethod = (PaymentMethod)paymentTransaction.SystemPaymentMethodType.Type
+        };
+    }
 }

@@ -3,6 +3,7 @@ using DimPos.Order.Application.Consumers;
 using DimPos.Order.Infrastructure.Kafka;
 using MassTransit;
 using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
+using SharedProject.Events.Order.UpdatePaymentTransactionForCashOrder;
 using SharedProject.Events.Payment.UpdatePaymentTransaction;
 using SharedProject.Events.UpdateInventoryForInternalOrder;
 
@@ -30,10 +31,13 @@ public static class KafkaConfig
                 configureRider.AddProducer<Null, UpdateOrderStatusResponseModel>(kafkaOptions!.Topics.UpdateOrderStatusResponse);
                 configureRider.AddProducer<Null, UpdateOrderStatusErrorModel>(kafkaOptions!.Topics.UpdateOrderStatusError);
                 configureRider.AddProducer<Null, CreateOrderResponseModel>(kafkaOptions!.Topics.CreateOrderResponse);
+                configureRider.AddProducer<Null, ConfirmForCashOrderResponseModel>(kafkaOptions.Topics
+                    .ConfirmForCashOrderResponse);
                 
                 configureRider.AddConsumer<ChangeErrorStatusForStorePurchaseOrderRequestConsumer>();
                 configureRider.AddConsumer<UpdateOrderStatusRequestConsumer>();
                 configureRider.AddConsumer<UpdateOrderNeedToChangeInventoryConsumer>();
+                configureRider.AddConsumer<RollbackPendingForCashOrderConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, ChangeErrorStatusForStorePurchaseOrderRequestModel>(
@@ -65,6 +69,17 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<UpdateOrderNeedToChangeInventoryConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, RollbackPendingForCashOrderRequestModel>(
+                        topicName: kafkaOptions!.Topics.RollbackPendingForCashOrderRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<RollbackPendingForCashOrderConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();
