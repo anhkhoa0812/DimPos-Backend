@@ -7,7 +7,6 @@ public class RecipeItems : EntityAuditBase<Guid>
     public Guid ProductVariantId { get; set; }
     public Guid IngredientId { get; set; }
     public decimal Quantity { get; set; }
-    public string UnitOfMeasureSnapshot { get; set; } = string.Empty;
     public Guid? CreatedByAccountId { get; set; }
     
     public virtual ProductVariants ProductVariant { get; set; } = null!;

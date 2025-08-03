@@ -59,7 +59,6 @@ public class CreateRecipeItemCommandHandler : IRequestHandler<CreateRecipeItemCo
             ProductVariantId = request.ProductVariantId,
             IngredientId = request.IngredientId,
             Quantity = request.Quantity,
-            UnitOfMeasureSnapshot = ingredient.MeasureUnit,
             CreatedByAccountId = accountId
         };
         await _unitOfWork.GetRepository<Domain.Entities.RecipeItems>().InsertAsync(recipeItem);

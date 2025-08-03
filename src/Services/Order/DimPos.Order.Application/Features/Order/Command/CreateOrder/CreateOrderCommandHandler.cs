@@ -5,6 +5,7 @@ using DimPos.Order.Application.Services.Interface;
 using DimPos.Order.Domain.Entities;
 using DimPos.Order.Domain.Enums;
 using DimPos.Order.Domain.Models.Common;
+using DimPos.Order.Domain.Models.Response;
 using DimPos.Order.Infrastructure.Persistence;
 using DimPos.Order.Infrastructure.Repositories.Interface;
 using DimPos.Payment.Application.Common.Protos;
@@ -254,7 +255,11 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         {
             Status = StatusCodes.Status201Created,
             Message = "Tạo đơn hàng thành công",
-            Data = paymentGrpcResponse.QrLink != String.Empty ? paymentGrpcResponse.QrLink : null
+            Data = new CreateOrderResponse()
+            {
+                OrderId = order.Id,
+                PaymentUrl = paymentGrpcResponse.QrLink != String.Empty ? paymentGrpcResponse.QrLink : null
+            }
         };
     }
 }

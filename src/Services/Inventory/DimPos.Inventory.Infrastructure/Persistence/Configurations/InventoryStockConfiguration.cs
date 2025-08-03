@@ -15,8 +15,5 @@ public class InventoryStockConfiguration : IEntityTypeConfiguration<InventorySto
             .IsRequired();
         builder.Property(i => i.Quantity)
             .IsRequired();
-        builder.Property(i => i.UnitOfMeasure)
-            .HasMaxLength(50)
-            .IsRequired();
     }
 }

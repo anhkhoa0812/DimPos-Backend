@@ -29,9 +29,6 @@ public class RecipeItemsConfiguration : IEntityTypeConfiguration<RecipeItems>
             .IsRequired();
         builder.Property(ri => ri.Quantity)
             .IsRequired();
-        builder.Property(ri => ri.UnitOfMeasureSnapshot)
-            .IsRequired()
-            .HasMaxLength(50);
         builder.HasOne(ri => ri.Ingredient)
             .WithMany(i => i.RecipeItems)
             .HasForeignKey(ri => ri.IngredientId)

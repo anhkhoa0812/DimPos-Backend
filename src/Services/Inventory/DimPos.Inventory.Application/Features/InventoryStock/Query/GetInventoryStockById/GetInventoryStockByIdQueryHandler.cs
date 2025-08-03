@@ -62,8 +62,6 @@ public class GetInventoryStockByIdQueryHandler : IRequestHandler<GetInventorySto
             Id = inventoryStock.Id,
             Quantity = inventoryStock.Quantity,
             ReOrderLevel = inventoryStock.ReOrderLevel,
-            UnitOfMeasure = inventoryStock.UnitOfMeasure,
-            LastCountedAt = inventoryStock.LastCountedAt,
             CreatedDate = inventoryStock.CreatedDate,
             LastModifiedDate = inventoryStock.LastModifiedDate,
             Ingredient = new IngredientsForGetInventoryStockByIdResponse()
