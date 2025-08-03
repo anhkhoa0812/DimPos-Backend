@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using DimPos.Payment.Application.Consumers;
 using DimPos.Payment.Infrastructure.Kafka;
 using MassTransit;
+using SharedProject.Events.Order.UpdatePaymentTransactionForCashOrder;
 using SharedProject.Events.Payment.UpdatePaymentTransaction;
 
 namespace DimPos.Payment.Application.Common.Extensions;
@@ -26,10 +27,14 @@ public static class KafkaConfig
             {
                 configureRider.AddProducer<Null, CallbackPaymentResponseModel>(kafkaOptions!.Topics.CallbackPaymentResponse);
                 configureRider.AddProducer<Null, UpdatePaymentTransactionResponseModel>(kafkaOptions.Topics.UpdatePaymentTransactionResponse);
+                configureRider.AddProducer<Null, UpdatePaymentTransactionForCashOrderResponseModel>(
+                    kafkaOptions.Topics.UpdatePaymentTransactionForCashOrderResponse);
+                configureRider.AddProducer<Null, UpdatePaymentTransactionForCashOrderErrorModel>(
+                    kafkaOptions.Topics.UpdatePaymentTransactionForCashOrderError);
                 
                 configureRider.AddConsumer<UpdatePaymentTransactionRequestConsumer>();
                 configureRider.AddConsumer<RollbackPaymentTransactionConsumer>();
-                
+                configureRider.AddConsumer<UpdatePaymentTransactionForCashOrderConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, UpdatePaymentTransactionRequestModel>(
@@ -51,6 +56,17 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<RollbackPaymentTransactionConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdatePaymentTransactionForCashOrderRequestModel>(
+                        topicName: kafkaOptions!.Topics.UpdatePaymentTransactionForCashOrderRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<UpdatePaymentTransactionForCashOrderConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

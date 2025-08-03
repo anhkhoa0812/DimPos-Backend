@@ -62,4 +62,9 @@ public sealed record Topics
     public string UpdateInventoryForSuccessOrderError { get; set; } = default!;
     public string UpdateOrderNeedToChangeInventoryRequest { get; set; } = default!;
     public string RollbackInventoryForOrderRequest { get; set; } = default!;
+    public string ConfirmForCashOrderResponse { get; set; } = default!;
+    public string UpdatePaymentTransactionForCashOrderRequest { get; set; } = default!;
+    public string UpdatePaymentTransactionForCashOrderResponse { get; set; } = default!;
+    public string UpdatePaymentTransactionForCashOrderError { get; set; } = default!;
+    public string RollbackPendingForCashOrderRequest { get; set; } = default!;
 }

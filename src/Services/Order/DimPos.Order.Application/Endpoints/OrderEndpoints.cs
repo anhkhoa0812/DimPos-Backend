@@ -1,6 +1,8 @@
 using Carter;
 using DimPos.Order.Application.Common.Utils;
+using DimPos.Order.Application.Features.Order.Command.ConfirmCashOrder;
 using DimPos.Order.Application.Features.Order.Command.CreateOrder;
+using DimPos.Order.Application.Features.Order.Command.UpdateCompleteOrder;
 using DimPos.Order.Application.Features.Order.Command.UpdatePaymentMethod;
 using DimPos.Order.Application.Features.Order.Query.GetOrder;
 using DimPos.Order.Application.Features.Order.Query.GetOrderWithId;
@@ -45,7 +47,26 @@ public class OrderEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapPut("{id:guid}/payment-method", UpdatePaymentMethod)
+            .DisableAntiforgery()
             .WithName(nameof(UpdatePaymentMethod))
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{id:guid}/confirm", ConfirmCashOrder)
+            .DisableAntiforgery()
+            .WithName(nameof(ConfirmCashOrder))
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{id:guid}/complete", UpdateCompleteOrder)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateCompleteOrder))
             .RequireAuthorization("StaffPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
@@ -109,4 +130,32 @@ public class OrderEndpoints : ICarterModule
         var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
-}
+
+    public async Task<IResult> ConfirmCashOrder(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] ConfirmCashOrderRequest request,
+        ValidationUtil<ConfirmCashOrderCommand> validationUtil)
+    {
+        var command = new ConfirmCashOrderCommand()
+        {
+            OrderId = id,
+            AmountPaid = request.AmountPaid
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> UpdateCompleteOrder(IMediator mediator, [FromRoute] Guid id)
+    {
+        var command = new UpdateCompleteOrderCommand()
+        {
+            OrderId = id
+        };
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+ }
