@@ -4,9 +4,7 @@ public class GetInventoryStocksResponse
 {
     public Guid Id { get; set; }
     public decimal Quantity { get; set; }
-    public string UnitOfMeasure { get; set; } = string.Empty;
     public decimal ReOrderLevel { get; set; }
-    public DateTime LastCountedAt { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
     public IngredientsForGetInventoryStocksResponse Ingredient { get; set; } = new IngredientsForGetInventoryStocksResponse();

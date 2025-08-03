@@ -8,11 +8,11 @@ public static class ApiEndpointConstants
     
     public static class InventoryStock
     {
-        public const string InventoryStockEndpoint = ApiEndpoint + "inventory-stocks";
+        public const string InventoryStockEndpoint = ApiEndpoint + "/inventory-stocks";
     }
     public static class InventoryTransaction
     {
-        public const string InventoryTransactionEndpoint = ApiEndpoint + "inventory-transactions";
+        public const string InventoryTransactionEndpoint = ApiEndpoint + "/inventory-transactions";
     }
     
 }

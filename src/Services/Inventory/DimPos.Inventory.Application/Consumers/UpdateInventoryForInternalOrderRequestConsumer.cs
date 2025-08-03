@@ -44,8 +44,6 @@ public class UpdateInventoryForInternalOrderRequestConsumer : IConsumer<UpdateIn
                         IngredientId = ingredientDetailsModel.IngredientId,
                         ReOrderLevel = 0,
                         Quantity = ingredientDetailsModel.Quantity,
-                        LastCountedAt = TimeUtil.GetCurrentSEATime(),
-                        UnitOfMeasure = "",
                         InventoryTransactions = new List<InventoryTransactions>()
                         {
                             new InventoryTransactions()
@@ -63,7 +61,6 @@ public class UpdateInventoryForInternalOrderRequestConsumer : IConsumer<UpdateIn
                 else
                 {
                     inventoryStock.Quantity += ingredientDetailsModel.Quantity;
-                    inventoryStock.LastCountedAt = TimeUtil.GetCurrentSEATime();
                     inventoryStock.InventoryTransactions.Add(new InventoryTransactions()
                     {
                         Id = Guid.CreateVersion7(),

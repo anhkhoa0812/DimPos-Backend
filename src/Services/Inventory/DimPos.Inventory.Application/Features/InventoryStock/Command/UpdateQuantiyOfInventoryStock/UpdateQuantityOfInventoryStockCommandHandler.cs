@@ -40,7 +40,6 @@ public class UpdateQuantityOfInventoryStockCommandHandler : IRequestHandler<Upda
         var oldQuantity = inventoryStock.Quantity;
         
         inventoryStock.Quantity = request.Quantity;
-        inventoryStock.LastCountedAt = TimeUtil.GetCurrentSEATime();
         _unitOfWork.GetRepository<Domain.Entities.InventoryStock>().UpdateAsync(inventoryStock);
         
         var newInventoryTransaction = new Domain.Entities.InventoryTransactions()

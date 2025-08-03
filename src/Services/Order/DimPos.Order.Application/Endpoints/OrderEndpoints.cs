@@ -23,7 +23,7 @@ public class OrderEndpoints : ICarterModule
             .DisableAntiforgery()
             .WithName(nameof(CreateOrder))
             .RequireAuthorization("StaffPolicy")
-            .Produces<ApiResponse>(StatusCodes.Status201Created)
+            .Produces<ApiResponse<CreateOrderResponse>>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
