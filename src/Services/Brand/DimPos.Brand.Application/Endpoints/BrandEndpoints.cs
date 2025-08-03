@@ -2,6 +2,7 @@ using Carter;
 using DimPos.Brand.Application.Common.Utils;
 using DimPos.Brand.Application.Features.Brands.Command.CreateBrand;
 using DimPos.Brand.Application.Features.Brands.Command.UpdatePassword;
+using DimPos.Brand.Application.Features.Brands.Query.GetBrandById;
 using DimPos.Brand.Application.Features.Brands.Query.GetBrandDetail;
 using DimPos.Brand.Application.Features.Brands.Query.GetBrands;
 using DimPos.Brand.Domain.Constants;
@@ -35,6 +36,14 @@ public class BrandEndpoints : ICarterModule
             .WithName(nameof(GetBrands))
             .RequireAuthorization("SystemAdminPolicy")
             .Produces<ApiResponse<IPaginate<GetBrandsResponse>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("{id:guid}", GetBrandById)
+            .WithName(nameof(GetBrandById))
+            .RequireAuthorization("SystemAdminPolicy")
+            .Produces<GetBrandByIdResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
@@ -103,6 +112,16 @@ public class BrandEndpoints : ICarterModule
             return Results.BadRequest(response);
         }
         var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> GetBrandById(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetBrandByIdQuery()
+        {
+            BrandId = id
+        };
+        var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }
 }
