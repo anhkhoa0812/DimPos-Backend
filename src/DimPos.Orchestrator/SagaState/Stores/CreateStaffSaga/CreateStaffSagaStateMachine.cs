@@ -60,6 +60,11 @@ public class CreateStaffSagaStateMachine : MassTransitStateMachine<CreateStaffSa
                 {
                     Console.WriteLine($"[Saga] Rolled back staff store account for {context.CorrelationId!.Value}");
                 })
+                .Activity(config => config.OfType<SendNotificationForCreateStaffAccountErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Sent notification for create staff account error for {context.CorrelationId!.Value}");
+                })
                 .TransitionTo(CreateStaffAccountFailedState)
                 .Finalize()
         );

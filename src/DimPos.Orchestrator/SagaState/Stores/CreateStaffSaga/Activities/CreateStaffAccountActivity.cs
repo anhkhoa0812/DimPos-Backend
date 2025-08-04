@@ -23,6 +23,7 @@ public class CreateStaffAccountActivity : IStateMachineActivity<CreateStaffSagaS
         var createStaffAccountModel = new CreateStaffAccountRequestModel
         {
             CorrelationId = context.Message.CorrelationId,
+            StoreAdminAccountId = context.Message.StoreAdminAccountId,
             StoreId = context.Message.StoreId,
             AccountId = context.Message.AccountId,
             Code = context.Message.Code,

@@ -100,6 +100,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimPos.Inventory.Domain", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimPos.Inventory.Infrastructure", "src\Services\Inventory\DimPos.Inventory.Infrastructure\DimPos.Inventory.Infrastructure.csproj", "{23DC2540-3933-4AF7-87D6-6E43B5BAEE73}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Notification", "Notification", "{A09B7BA9-10EA-4B90-8180-8048359A7DB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimPos.Notification.Application", "src\Services\Notification\DimPos.Notification.Application\DimPos.Notification.Application.csproj", "{6F937CD9-5631-4DD0-A920-0B7D1560EAE7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimPos.Notification.Infrastructure", "src\Services\Notification\DimPos.Notification.Infrastructure\DimPos.Notification.Infrastructure.csproj", "{EA8DC2D6-F4A8-42C5-BC6A-AF971397A41A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimPos.Notification.Domain", "src\Services\Notification\DimPos.Notification.Domain\DimPos.Notification.Domain.csproj", "{9ADB1C6C-A95F-44AE-A219-D0ADFAF330D7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -246,6 +254,18 @@ Global
 		{23DC2540-3933-4AF7-87D6-6E43B5BAEE73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23DC2540-3933-4AF7-87D6-6E43B5BAEE73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23DC2540-3933-4AF7-87D6-6E43B5BAEE73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F937CD9-5631-4DD0-A920-0B7D1560EAE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F937CD9-5631-4DD0-A920-0B7D1560EAE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F937CD9-5631-4DD0-A920-0B7D1560EAE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F937CD9-5631-4DD0-A920-0B7D1560EAE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA8DC2D6-F4A8-42C5-BC6A-AF971397A41A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA8DC2D6-F4A8-42C5-BC6A-AF971397A41A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA8DC2D6-F4A8-42C5-BC6A-AF971397A41A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA8DC2D6-F4A8-42C5-BC6A-AF971397A41A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9ADB1C6C-A95F-44AE-A219-D0ADFAF330D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9ADB1C6C-A95F-44AE-A219-D0ADFAF330D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9ADB1C6C-A95F-44AE-A219-D0ADFAF330D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9ADB1C6C-A95F-44AE-A219-D0ADFAF330D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{0465F150-B54F-8684-ADBE-69762F6984F7} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
@@ -297,5 +317,9 @@ Global
 		{79F63FC3-599E-4532-BFA2-C3CE7823F677} = {CC54BA99-90DA-45C0-838E-C8EFB36B0481}
 		{ED043A82-4931-460C-9F55-91BF4F6C9E5A} = {CC54BA99-90DA-45C0-838E-C8EFB36B0481}
 		{23DC2540-3933-4AF7-87D6-6E43B5BAEE73} = {CC54BA99-90DA-45C0-838E-C8EFB36B0481}
+		{A09B7BA9-10EA-4B90-8180-8048359A7DB8} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
+		{6F937CD9-5631-4DD0-A920-0B7D1560EAE7} = {A09B7BA9-10EA-4B90-8180-8048359A7DB8}
+		{EA8DC2D6-F4A8-42C5-BC6A-AF971397A41A} = {A09B7BA9-10EA-4B90-8180-8048359A7DB8}
+		{9ADB1C6C-A95F-44AE-A219-D0ADFAF330D7} = {A09B7BA9-10EA-4B90-8180-8048359A7DB8}
 	EndGlobalSection
 EndGlobal
