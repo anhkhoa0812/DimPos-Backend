@@ -14,6 +14,16 @@ builder.Host.UseSerilog(SeriLogger.Configure);
 Log.Information("Starting Notification API up");
 try
 {
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("CorsPolicy", builder =>
+        {
+            builder.AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+                .SetIsOriginAllowed(_ => true);
+        });
+    });
     builder.Services.AddInfrastructureServices(builder.Configuration);
     builder.Services.AddApplicationServices(builder.Configuration);
     builder.Services.AddCarter(new DependencyContextAssemblyCatalog([typeof(Program).Assembly]));
@@ -39,16 +49,13 @@ try
     }
     app.UseRouting();
     app.UseStaticFiles();
-    app.UseCors(builder =>
-        builder.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader());
     app.UseMiddleware<GlobalException>();
+    app.UseCors("CorsPolicy");
+    app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapCarter();
-    app.UseHttpsRedirection();
-    app.MapHub<NotificationHub>("hubs/notification");
+    app.MapHub<NotificationHub>("/hubs/notification");
     app.Run();
 }
 catch (Exception ex)
