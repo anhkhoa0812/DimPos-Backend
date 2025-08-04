@@ -19,7 +19,11 @@ public static class ConfigureServices
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>))
             .AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddScoped(typeof(ValidationUtil<>));
-        services.AddSignalR(options => { options.EnableDetailedErrors = true; });
+        services.AddSignalR(options =>
+            {
+                options.EnableDetailedErrors = true;
+            }
+        );
 
         services.AddScoped<IClaimService, ClaimService>();
         services.AddScoped<INotificationService, NotificationService>();

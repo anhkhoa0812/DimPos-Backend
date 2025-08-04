@@ -2,6 +2,7 @@ using DimPos.Notification.Application.Services.Interface;
 using DimPos.Notification.Application.SignalR;
 using DimPos.Notification.Domain.Entities;
 using DimPos.Notification.Domain.Models.Request;
+using DimPos.Notification.Domain.Models.Response;
 using DimPos.Notification.Infrastructure.Persistence;
 using DimPos.Notification.Infrastructure.Repositories.Interface;
 using Microsoft.AspNetCore.SignalR;
@@ -48,7 +49,18 @@ public class NotificationService : INotificationService
             _logger.Error("Failed to send notification to account {AccountId}", accountId);
             // throw;
         }
-        await _hubContext.Clients.Groups(accountGroup).SendAsync("ReceiveNotification", notificationMessage);
+        var unreadCount = await _unitOfWork.GetRepository<NotificationRecipients>().GetListAsync(
+            predicate: x => x.AccountId == accountId && !x.IsRead
+        );
+
+        var receiveNotificationResponse = new ReceiveNotificationResponse()
+        {
+            Message = notificationMessage.Message,
+            Type = notificationMessage.Type,
+            UnReadCount = unreadCount.Count,
+        };
+        
+        await _hubContext.Clients.Groups(accountGroup).SendAsync("ReceiveNotification", receiveNotificationResponse);
         _logger.Information("Notification sent to account {AccountId} with message: {Message}",
             accountId, notificationMessage.Message);
     }

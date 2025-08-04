@@ -9,5 +9,5 @@ public class NotificationRecipients : EntityAuditBase<Guid>
     public DateTime? ReadAt { get; set; }
 
     public Guid NotificationId { get; set; }
-    public virtual Notifications? Notification { get; set; }
+    public virtual Notifications Notification { get; set; } = null!;
 }

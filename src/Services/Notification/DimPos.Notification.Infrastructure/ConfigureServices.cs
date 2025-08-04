@@ -24,7 +24,7 @@ public static class ConfigureServices
         services.AddOpenApiConfig();
         services.AddAuthorization();
         services.AddEndpointsApiExplorer();
-        services.AddCors();
+        // services.AddCors();
         return services;
     }
 }
