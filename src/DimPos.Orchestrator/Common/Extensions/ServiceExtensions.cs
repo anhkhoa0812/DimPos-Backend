@@ -14,6 +14,7 @@ using DimPos.Orchestrator.SagaState.Stores.UpdateStoreByBrand;
 using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
 using SharedProject.Events.Brand;
+using SharedProject.Events.Notification;
 using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
 using SharedProject.Events.Order.UpdatePaymentTransactionForCashOrder;
 using SharedProject.Events.Payment.UpdatePaymentTransaction;
@@ -101,6 +102,7 @@ public static class ServiceExtensions
                 rider.AddProducer<Null, RollbackInventoryForOrderRequestModel>(kafkaOptions.Topics.RollbackInventoryForOrderRequest);
                 rider.AddProducer<Null, UpdatePaymentTransactionForCashOrderRequestModel>(kafkaOptions.Topics.UpdatePaymentTransactionForCashOrderRequest);
                 rider.AddProducer<Null, RollbackPendingForCashOrderRequestModel>(kafkaOptions.Topics.RollbackPendingForCashOrderRequest);
+                rider.AddProducer<Null, SendNotificationForAccountRequestModel>(kafkaOptions.Topics.SendNotificationForAccountRequest);
                 
                 rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {

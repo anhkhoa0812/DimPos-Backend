@@ -39,7 +39,7 @@ public class CreateStaffAccountRequestConsumer : IConsumer<CreateStaffAccountReq
             if (role == null)
             {
                 _logger.Error($"Role not found for name: {ERoleName.Staff}");
-                throw new BadHttpRequestException("Không tìm thấy vai trò nhân viên");
+                throw new BadHttpRequestException($"Không tìm thấy vai trò nhân viên với tài khoản : {context.Message.Username} và StoreId: {context.Message.StoreId}");
             }
             
             var account = new Accounts()
@@ -73,7 +73,7 @@ public class CreateStaffAccountRequestConsumer : IConsumer<CreateStaffAccountReq
             else
             {
                 _logger.Error($"Failed to create staff account for StoreId: {context.Message.StoreId}, AccountId: {context.Message.AccountId}");
-                throw new Exception("Không thể tạo tài khoản nhân viên");
+                throw new Exception($"Không thể tạo tài khoản nhân viên với Username: {context.Message.Username} và StoreId: {context.Message.StoreId}");
             }
         }
         catch (Exception e)
@@ -83,8 +83,10 @@ public class CreateStaffAccountRequestConsumer : IConsumer<CreateStaffAccountReq
                 key: null,
                 value: new CreateStaffAccountErrorModel() {
                     CorrelationId = context.Message.CorrelationId,
+                    StoreAdminAccountId = context.Message.StoreAdminAccountId,
                     AccountId = context.Message.AccountId,
-                    StoreId = context.Message.StoreId
+                    StoreId = context.Message.StoreId,
+                    Message = e.Message
                 },
                 cancellationToken: context.CancellationToken
             );

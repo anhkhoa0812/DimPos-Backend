@@ -36,6 +36,10 @@ public class CreateStaffCommandHandler : IRequestHandler<CreateStaffCommand, Api
         if (storeId == null || storeId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy ID của cửa hàng");
 
+        var storeAdminAccountId = _claimService.GetCurrentUserId;
+        if (storeAdminAccountId == Guid.Empty)
+            throw new BadHttpRequestException("Không tìm thấy ID của tài khoản quản trị cửa hàng");
+        
         var store = await _unitOfWork.GetRepository<Domain.Entities.Store>().SingleOrDefaultAsync(
             predicate: x => x.Status == EStoreStatus.Active && x.Id == storeId
         );
@@ -59,6 +63,7 @@ public class CreateStaffCommandHandler : IRequestHandler<CreateStaffCommand, Api
         var createStaffResponseModel = new CreateStaffResponseModel()
         {
             CorrelationId = Guid.CreateVersion7(),
+            StoreAdminAccountId = storeAdminAccountId,
             StoreId = store.Id,
             AccountId = accountId,
             Code = request.Code,
