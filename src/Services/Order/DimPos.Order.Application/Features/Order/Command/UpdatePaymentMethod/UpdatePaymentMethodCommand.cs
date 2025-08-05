@@ -6,10 +6,13 @@ namespace DimPos.Order.Application.Features.Order.Command.UpdatePaymentMethod;
 public class UpdatePaymentMethodCommand : IRequest<ApiResponse>
 {
     public Guid OrderId { get; set; }
-    public Guid StorePaymentMethodConfigId { get; set; }
+    public Guid OldStorePaymentMethodConfigId { get; set; }
+    public Guid NewStorePaymentMethodConfigId { get; set; }
 }
 
 public class UpdatePaymentMethodRequest
 {
-    public Guid StorePaymentMethodConfigId { get; set; }
+    public Guid OldStorePaymentMethodConfigId { get; set; }
+
+    public Guid NewStorePaymentMethodConfigId { get; set; }
 }

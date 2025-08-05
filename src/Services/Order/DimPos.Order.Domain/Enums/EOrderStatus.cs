@@ -4,7 +4,7 @@ public enum EOrderStatus
 {
     PendingPayment = 0,
     Confirmed = 1,
-    ReadyForPickup = 3,
-    Completed = 4,
-    Cancelled = 5,
+    ReadyForPickup = 2,
+    Completed = 3,
+    Cancelled = 4,
 }

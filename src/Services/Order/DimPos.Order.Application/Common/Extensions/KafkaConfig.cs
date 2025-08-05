@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using DimPos.Order.Application.Consumers;
 using DimPos.Order.Infrastructure.Kafka;
 using MassTransit;
+using SharedProject.Events.Order.CancelOrder;
 using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
 using SharedProject.Events.Order.UpdatePaymentTransactionForCashOrder;
 using SharedProject.Events.Payment.UpdatePaymentTransaction;
@@ -33,6 +34,7 @@ public static class KafkaConfig
                 configureRider.AddProducer<Null, CreateOrderResponseModel>(kafkaOptions!.Topics.CreateOrderResponse);
                 configureRider.AddProducer<Null, ConfirmForCashOrderResponseModel>(kafkaOptions.Topics
                     .ConfirmForCashOrderResponse);
+                configureRider.AddProducer<Null, CancelOrderResponseModel>(kafkaOptions.Topics.CancelOrderResponse);
                 
                 configureRider.AddConsumer<ChangeErrorStatusForStorePurchaseOrderRequestConsumer>();
                 configureRider.AddConsumer<UpdateOrderStatusRequestConsumer>();

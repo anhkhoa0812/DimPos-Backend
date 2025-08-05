@@ -3,6 +3,7 @@ using DimPos.Orchestrator.Common.Models.Settings;
 using DimPos.Orchestrator.SagaState.BrandMenuItems.UpdateBrandMenuItem;
 using DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga;
 using DimPos.Orchestrator.SagaState.Brands.CreateStoreSaga;
+using DimPos.Orchestrator.SagaState.Orders.CancelOrder;
 using DimPos.Orchestrator.SagaState.Orders.UpdateInventoryForSuccessOrder;
 using DimPos.Orchestrator.SagaState.Orders.UpdatePaymentTransactionForCashOrder;
 using DimPos.Orchestrator.SagaState.Payment.UpdatePaymentTransaction;
@@ -15,6 +16,7 @@ using MassTransit;
 using SharedProject.Events.AssignMenuForStore;
 using SharedProject.Events.Brand;
 using SharedProject.Events.Notification;
+using SharedProject.Events.Order.CancelOrder;
 using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
 using SharedProject.Events.Order.UpdatePaymentTransactionForCashOrder;
 using SharedProject.Events.Payment.UpdatePaymentTransaction;
@@ -71,6 +73,8 @@ public static class ServiceExtensions
                 rider.AddSagaStateMachine<UpdatePaymentTransactionForCashOrderSagaStateMachine,
                         UpdatePaymentTransactionForCashOrderSagaState>()
                     .InMemoryRepository();
+                rider.AddSagaStateMachine<CancelOrderSagaStateMachine, CancelOrderSagaState>()
+                    .InMemoryRepository();
                 
                 //Add Producers
                 rider.AddProducer<Null, CreateBrandAccountModel>(kafkaOptions!.Topics.CreateBrandAccountRequest);
@@ -103,6 +107,7 @@ public static class ServiceExtensions
                 rider.AddProducer<Null, UpdatePaymentTransactionForCashOrderRequestModel>(kafkaOptions.Topics.UpdatePaymentTransactionForCashOrderRequest);
                 rider.AddProducer<Null, RollbackPendingForCashOrderRequestModel>(kafkaOptions.Topics.RollbackPendingForCashOrderRequest);
                 rider.AddProducer<Null, SendNotificationForAccountRequestModel>(kafkaOptions.Topics.SendNotificationForAccountRequest);
+                rider.AddProducer<Null, UpdateInventoryForCancelOrderRequestModel>(kafkaOptions.Topics.UpdateInventoryForCancelOrderRequest);
                 
                 rider.UsingKafka( kafkaOptions.ClientConfig,(riderContext, kafkaConfig) =>
                 {
@@ -480,6 +485,41 @@ public static class ServiceExtensions
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureSaga<UpdatePaymentTransactionForCashOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    
+                    //Cancel Order
+                    kafkaConfig.TopicEndpoint<Null, CancelOrderResponseModel>(
+                        topicName: kafkaOptions!.Topics.CancelOrderResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<CancelOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateInventoryForCancelOrderResponseModel>(
+                        topicName: kafkaOptions!.Topics.UpdateInventoryForCancelOrderResponse,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<CancelOrderSagaState>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateInventoryForCancelOrderErrorModel>(
+                        topicName: kafkaOptions!.Topics.UpdateInventoryForCancelOrderError,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureSaga<CancelOrderSagaState>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

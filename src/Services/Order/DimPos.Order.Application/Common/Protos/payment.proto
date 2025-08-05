@@ -10,6 +10,7 @@ service PaymentGrpcService {
   rpc UpdatePaymentMethodForOrder (UpdatePaymentMethodForOrderRequest) returns (UpdatePaymentMethodForOrderResponse);
   rpc GetPaymentTransactionByOrderId(GetPaymentTransactionByOrderIdRequest) returns (GetPaymentTransactionByOrderIdResponse);
   rpc CheckSuccessPaymentTransaction(CheckSuccessPaymentTransactionRequest) returns (CheckSuccessPaymentTransactionResponse);
+  rpc CheckForCancelOrder(CheckForCancelOrderRequest) returns (CheckForCancelOrderResponse);
 }
 message CreateB2CPaymentRequest {
   string storeId = 1;
@@ -66,9 +67,11 @@ message GetSystemPaymentMethodByIdResponse {
 message UpdatePaymentMethodForOrderRequest {
   string orderId = 1;
   string storeId = 2;
-  string systemPaymentMethodId = 3;
-  string credentialsConfig = 4;
-  float amount = 5;
+  string oldSystemPaymentMethodId = 3;
+  string oldCredentialsConfig = 4;
+  string newSystemPaymentMethodId = 5;
+  string newCredentialsConfig = 6;
+  float amount = 7;
 }
 message UpdatePaymentMethodForOrderResponse {
   string qrLink = 1;
@@ -92,4 +95,14 @@ message CheckSuccessPaymentTransactionRequest {
 }
 message CheckSuccessPaymentTransactionResponse {
   bool  isSuccess = 1;
+}
+message CheckForCancelOrderRequest {
+  string storeId = 1;
+  string orderId = 2;
+  string credentialsConfig = 3;
+}
+message CheckForCancelOrderResponse {
+  bool isSuccess = 1;
+  string message = 2;
+  string paymentTransactionId = 3;
 }

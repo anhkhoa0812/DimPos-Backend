@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using DimPos.Inventory.Application.Consumers;
 using DimPos.Inventory.Infrastructure.Kafka;
 using MassTransit;
+using SharedProject.Events.Order.CancelOrder;
 using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
 using SharedProject.Events.Payment.UpdatePaymentTransaction;
 using SharedProject.Events.UpdateInventoryForInternalOrder;
@@ -30,10 +31,13 @@ public static class KafkaConfig
                 configureRider.AddProducer<Null, UpdateInventoryForInternalOrderErrorModel>(kafkaOptions!.Topics.UpdateInventoryForInternalOrderError);
                 configureRider.AddProducer<Null, UpdateInventoryForSuccessOrderResponseModel>(kafkaOptions.Topics.UpdateInventoryForSuccessOrderResponse);
                 configureRider.AddProducer<Null, UpdateInventoryForSuccessOrderErrorModel>(kafkaOptions.Topics.UpdateInventoryForSuccessOrderError);
+                configureRider.AddProducer<Null, UpdateInventoryForCancelOrderResponseModel>(kafkaOptions.Topics.UpdateInventoryForCancelOrderResponse);
+                configureRider.AddProducer<Null, UpdateInventoryForCancelOrderErrorModel>(kafkaOptions.Topics.UpdateInventoryForCancelOrderError);
                 
                 configureRider.AddConsumer<UpdateInventoryForInternalOrderRequestConsumer>();
                 configureRider.AddConsumer<UpdateInventoryForSuccessOrderConsumer>();
                 configureRider.AddConsumer<RollbackInventoryForOrderConsumer>();
+                configureRider.AddConsumer<UpdateInventoryForCancelOrderConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, UpdateInventoryForInternalOrderRequestModel>(
@@ -65,6 +69,17 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<RollbackInventoryForOrderConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, UpdateInventoryForCancelOrderRequestModel>(
+                        topicName: kafkaOptions!.Topics.UpdateInventoryForCancelOrderRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<UpdateInventoryForCancelOrderConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

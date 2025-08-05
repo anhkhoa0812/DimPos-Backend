@@ -1,5 +1,6 @@
 using Carter;
 using DimPos.Order.Application.Common.Utils;
+using DimPos.Order.Application.Features.Order.Command.CancelOrder;
 using DimPos.Order.Application.Features.Order.Command.ConfirmCashOrder;
 using DimPos.Order.Application.Features.Order.Command.CreateOrder;
 using DimPos.Order.Application.Features.Order.Command.UpdateCompleteOrder;
@@ -73,6 +74,15 @@ public class OrderEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{id:guid}/cancel", CancelOrder)
+            .DisableAntiforgery()
+            .WithName(nameof(CancelOrder))
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> CreateOrder(IMediator mediator, [FromBody] CreateOrderCommand command,
@@ -120,7 +130,8 @@ public class OrderEndpoints : ICarterModule
         var command = new UpdatePaymentMethodCommand()
         {
             OrderId = id,
-            StorePaymentMethodConfigId = request.StorePaymentMethodConfigId
+            NewStorePaymentMethodConfigId = request.NewStorePaymentMethodConfigId,
+            OldStorePaymentMethodConfigId = request.OldStorePaymentMethodConfigId
         };
         var (isValid, response) = await validationUtil.ValidateAsync(command);
         if (!isValid)
@@ -155,6 +166,23 @@ public class OrderEndpoints : ICarterModule
         {
             OrderId = id
         };
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> CancelOrder(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] CancelOrderRequest request, ValidationUtil<CancelOrderCommand> validationUtil)
+    {
+        var command = new CancelOrderCommand()
+        {
+            OrderId = id,
+            CancellationReason = request.CancellationReason
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
         var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }

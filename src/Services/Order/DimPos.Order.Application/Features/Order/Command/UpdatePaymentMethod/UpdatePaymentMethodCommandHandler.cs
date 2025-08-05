@@ -51,11 +51,12 @@ public class UpdatePaymentMethodCommandHandler : IRequestHandler<UpdatePaymentMe
         {
             throw new BadHttpRequestException("Chỉ có thể cập nhật phương thức thanh toán cho đơn hàng đang chờ thanh toán.");
         }
-        var storeDetailGrpcResponse = await _storeGrpcService.GetTaxRateAndPaymentMethodConfigAsync(new GetTaxRateAndPaymentMethodConfigRequest()
+        var storeDetailGrpcResponse = await _storeGrpcService.GetPaymentMethodConfigForUpdatePaymentMethodAsync(new GetPaymentMethodConfigForUpdatePaymentMethodRequest()
         {
             StoreId = storeId.ToString(),
             BrandId = order.BrandId.ToString(),
-            StorePaymentMethodConfigId = request.StorePaymentMethodConfigId.ToString()
+            OldStorePaymentMethodConfigId = request.OldStorePaymentMethodConfigId.ToString(),
+            NewStorePaymentMethodConfigId = request.NewStorePaymentMethodConfigId.ToString(),
         });
 
         var updatePaymentMethodResponse = await _paymentGrpcService.UpdatePaymentMethodForOrderAsync(
@@ -63,13 +64,15 @@ public class UpdatePaymentMethodCommandHandler : IRequestHandler<UpdatePaymentMe
             {
                 OrderId = order.Id.ToString(),
                 StoreId = storeId.ToString(),
-                CredentialsConfig = storeDetailGrpcResponse.CredentialsConfigAtStore,
-                SystemPaymentMethodId = storeDetailGrpcResponse.SystemPaymentMethodId,
+                OldSystemPaymentMethodId = storeDetailGrpcResponse.OldSystemPaymentMethodId,
+                OldCredentialsConfig = storeDetailGrpcResponse.OldCredentialsConfigAtStore,
+                NewSystemPaymentMethodId = storeDetailGrpcResponse.NewSystemPaymentMethodId,
+                NewCredentialsConfig = storeDetailGrpcResponse.NewCredentialsConfigAtStore,
                 Amount = (float)order.TotalAmount,
             });
         
         order.SystemPaymentMethodNameSnapshot = updatePaymentMethodResponse.SystemPaymentMethodName;
-
+        order.SystemPaymentMethodId = Guid.Parse(storeDetailGrpcResponse.NewSystemPaymentMethodId);
         _unitOfWork.GetRepository<Orders>().UpdateAsync(order);
         _logger.Information("END: UpdatePaymentMethodCommandHandler.Handle");
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

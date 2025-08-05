@@ -270,4 +270,46 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
         }
         return response;
     }
+
+    public override async Task<GetPaymentMethodConfigForUpdatePaymentMethodResponse> GetPaymentMethodConfigForUpdatePaymentMethod(GetPaymentMethodConfigForUpdatePaymentMethodRequest request,
+        ServerCallContext context)
+    {
+        var store = await _unitOfWork.GetRepository<Domain.Entities.Store>().SingleOrDefaultAsync(
+            predicate: x => x.Id == Guid.Parse(request.StoreId) && x.BrandId == Guid.Parse(request.BrandId),
+            include: x => x.Include(x => x.StorePaymentMethodConfigs)
+        );
+        if (store == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cửa hàng"));
+        }
+        if (store.StorePaymentMethodConfigs == null || !store.StorePaymentMethodConfigs.Any())
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng"));
+        }
+
+        var oldStorePaymentMethodConfig = store.StorePaymentMethodConfigs.FirstOrDefault(x => x.IsActiveByStore
+            && x.StoreId == Guid.Parse(request.StoreId)
+            && x.Id == Guid.Parse(request.OldStorePaymentMethodConfigId)
+        );
+        if (oldStorePaymentMethodConfig == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình phương thức thanh toán cũ cho cửa hàng"));
+        }
+        var newStorePaymentMethodConfig = store.StorePaymentMethodConfigs.FirstOrDefault(x => x.IsActiveByStore
+            && x.StoreId == Guid.Parse(request.StoreId)
+            && x.Id == Guid.Parse(request.NewStorePaymentMethodConfigId)
+        );
+        if (newStorePaymentMethodConfig == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình phương thức thanh toán mới cho cửa hàng"));
+        }
+
+        return new GetPaymentMethodConfigForUpdatePaymentMethodResponse()
+        {
+            OldSystemPaymentMethodId = oldStorePaymentMethodConfig.SystemPaymentMethodTypeId.ToString(),
+            OldCredentialsConfigAtStore = oldStorePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty,
+            NewSystemPaymentMethodId = newStorePaymentMethodConfig.SystemPaymentMethodTypeId.ToString(),
+            NewCredentialsConfigAtStore = newStorePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
+        };
+    }
 }
