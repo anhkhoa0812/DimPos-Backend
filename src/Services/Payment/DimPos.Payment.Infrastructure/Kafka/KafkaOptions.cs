@@ -18,4 +18,5 @@ public sealed record Topics
     public string UpdatePaymentTransactionForCashOrderRequest { get; set; } = default!;
     public string UpdatePaymentTransactionForCashOrderResponse { get; set; } = default!;
     public string UpdatePaymentTransactionForCashOrderError { get; set; } = default!;
+    public string CancelOrderResponse { get; set; } = default!;
 }

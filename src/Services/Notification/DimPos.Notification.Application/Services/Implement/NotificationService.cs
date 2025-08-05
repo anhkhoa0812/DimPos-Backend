@@ -33,7 +33,7 @@ public class NotificationService : INotificationService
             Message = notificationMessage.Message,
             Type = notificationMessage.Type,
         };
-        notification.Recipients.Add(new NotificationRecipients()
+        notification.Recipients?.Add(new NotificationRecipients()
         {
             Id = Guid.CreateVersion7(),
             NotificationId = notification.Id,

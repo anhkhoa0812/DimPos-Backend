@@ -265,6 +265,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
     {
         var paymentTransaction = await _unitOfWork.GetRepository<PaymentTransactions>().SingleOrDefaultAsync(
             predicate: x => x.StoreId == Guid.Parse(request.StoreId) &&
+                            x.SystemPaymentMethodTypeId == Guid.Parse(request.OldSystemPaymentMethodId) &&
                             x.OrderId == Guid.Parse(request.OrderId)
         );
         if (paymentTransaction == null)
@@ -277,7 +278,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             throw new RpcException(new Status(StatusCode.FailedPrecondition, "Chỉ có thể cập nhật phương thức thanh toán cho giao dịch đang chờ xử lý"));
         }
 
-        if (paymentTransaction.SystemPaymentMethodTypeId == Guid.Parse(request.SystemPaymentMethodId))
+        if (paymentTransaction.SystemPaymentMethodTypeId == Guid.Parse(request.NewSystemPaymentMethodId))
         {
             throw new RpcException(new Status(StatusCode.FailedPrecondition, "Phương thức thanh toán đã được cập nhật trước đó"));
         }
@@ -285,7 +286,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             predicate: x => x.Id == paymentTransaction.SystemPaymentMethodTypeId && x.IsGloballyActive == true
         );
         var systemPaymentMethod = await _unitOfWork.GetRepository<SystemPaymentMethods>().SingleOrDefaultAsync(
-            predicate: x => x.Id == Guid.Parse(request.SystemPaymentMethodId) && x.IsGloballyActive == true
+            predicate: x => x.Id == Guid.Parse(request.NewSystemPaymentMethodId) && x.IsGloballyActive == true
         );
         if (systemPaymentMethod == null)
         {
@@ -299,7 +300,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                 await _mPosService.CancelEDCPayment(new CreateCancelEDCRequest()
                 {
                     OrderId = Guid.Parse(request.OrderId),
-                    CredentialsConfig = request.CredentialsConfig,
+                    CredentialsConfig = request.OldCredentialsConfig,
                     Key = Guid.Parse(request.StoreId).ToString("N"),
                     Amount = (decimal)request.Amount,
                 });
@@ -308,7 +309,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                 await _mPosService.CancelEDCPayment(new CreateCancelEDCRequest()
                 {
                     OrderId = Guid.Parse(request.OrderId),
-                    CredentialsConfig = request.CredentialsConfig,
+                    CredentialsConfig = request.OldCredentialsConfig,
                     Key = Guid.Parse(request.StoreId).ToString("N"),
                     Amount = (decimal)request.Amount,
                 });
@@ -317,7 +318,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                 await _mPosService.CancelQrPayment(new CreateCancelQrRequest()
                 {
                     OrderId = Guid.Parse(request.OrderId),
-                    CredentialsConfig = request.CredentialsConfig,
+                    CredentialsConfig = request.OldCredentialsConfig,
                     Key = Guid.Parse(request.StoreId).ToString("N"),
                     Amount = (decimal)request.Amount,
                 });
@@ -335,7 +336,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                     OrderId = Guid.Parse(request.OrderId),
                     Amount = (decimal) request.Amount,
                     Description = paymentTransaction.Description ?? String.Empty,
-                    CredentialsConfig = request.CredentialsConfig,
+                    CredentialsConfig = request.NewCredentialsConfig,
                     PaymentMethod = EEDCPaymentMethod.QR,
                     Key = Guid.Parse(request.StoreId).ToString("N")
                 });
@@ -347,7 +348,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                     Amount = paymentTransaction.Amount,
                     Description = paymentTransaction.Description,
                     PaymentMethod = EEDCPaymentMethod.CARD,
-                    CredentialsConfig = request.CredentialsConfig,
+                    CredentialsConfig = request.NewCredentialsConfig,
                     Key = Guid.Parse(request.StoreId).ToString("N")
                 });
                 break;
@@ -358,7 +359,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                 {
                     OrderId = Guid.Parse(request.OrderId),
                     Amount = (decimal) request.Amount,
-                    CredentialsConfig = request.CredentialsConfig,
+                    CredentialsConfig = request.NewCredentialsConfig,
                     Key = Guid.Parse(request.StoreId).ToString("N")
                 });
                 break;
@@ -366,7 +367,7 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                 throw new RpcException(new Status(StatusCode.Unimplemented, "Không hỗ trợ phương thức thanh toán này"));
         }
         
-        paymentTransaction.SystemPaymentMethodTypeId = Guid.Parse(request.SystemPaymentMethodId);
+        paymentTransaction.SystemPaymentMethodTypeId = Guid.Parse(request.NewSystemPaymentMethodId);
         _unitOfWork.GetRepository<PaymentTransactions>().UpdateAsync(paymentTransaction);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         if (!isSuccess)
@@ -421,5 +422,79 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
         }
         response.IsSuccess = true;
         return response;
+    }
+
+    public override async Task<CheckForCancelOrderResponse> CheckForCancelOrder(CheckForCancelOrderRequest request, ServerCallContext context)
+    {
+        var orderId = Guid.Parse(request.OrderId);
+        var storeId = Guid.Parse(request.StoreId);
+        
+        var paymentTransaction = await _unitOfWork.GetRepository<PaymentTransactions>().SingleOrDefaultAsync(
+            predicate: x => x.OrderId == orderId && x.StoreId == storeId
+            && (x.Status == EPaymentTransactionStatus.PENDING),
+            include:x => x.Include(x => x.SystemPaymentMethodType)
+        );
+        if (paymentTransaction == null)
+        {
+            return new CheckForCancelOrderResponse()
+            {
+                IsSuccess = false,
+                Message = "Không tìm thấy giao dịch thanh toán cho đơn hàng này",
+                PaymentTransactionId = String.Empty
+            };
+        }
+        paymentTransaction.Status = EPaymentTransactionStatus.FAILED;
+        _unitOfWork.GetRepository<PaymentTransactions>().UpdateAsync(paymentTransaction);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (!isSuccess)
+        {
+            return new CheckForCancelOrderResponse()
+            {
+                IsSuccess = false,
+                Message = "Không thể hủy giao dịch thanh toán cho đơn hàng này",
+                PaymentTransactionId = String.Empty
+            };
+        }
+
+        switch (paymentTransaction.SystemPaymentMethodType.Type)
+        {
+            case ESystemPaymentMethod.CARD_EDC:
+            case ESystemPaymentMethod.QR_EDC:
+                await _mPosService.CancelEDCPayment(new CreateCancelEDCRequest()
+                {
+                    OrderId = orderId,
+                    CredentialsConfig = request.CredentialsConfig,
+                    Amount = paymentTransaction.Amount,
+                    Key = storeId.ToString("N")
+                });
+                break;
+            case ESystemPaymentMethod.QR_VIETQR:
+                await _mPosService.CancelQrPayment(
+                    new CreateCancelQrRequest()
+                    {
+                        OrderId = orderId,
+                        Amount = paymentTransaction.Amount,
+                        CredentialsConfig = request.CredentialsConfig,
+                        Key = storeId.ToString("N")
+                    }
+                );
+                break;
+            case ESystemPaymentMethod.CASH:
+                break;
+            default:
+                return new CheckForCancelOrderResponse()
+                {
+                    IsSuccess = false,
+                    Message = "Không hỗ trợ phương thức thanh toán này",
+                    PaymentTransactionId = String.Empty
+                };
+        }
+
+        return new CheckForCancelOrderResponse()
+        {
+            IsSuccess = true,
+            Message = String.Empty,
+            PaymentTransactionId = paymentTransaction.Id.ToString()
+        };
     }
 }

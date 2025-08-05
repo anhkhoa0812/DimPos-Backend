@@ -217,7 +217,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 CustomerId = request.CustomerId != null ? request.CustomerId.ToString() : String.Empty
             });
         order.SystemPaymentMethodNameSnapshot = paymentGrpcResponse.SystemPaymentMethodName;
-        
+        order.SystemPaymentMethodId = Guid.Parse(storeDetailGrpcResponse.SystemPaymentMethodId);
         await _unitOfWork.GetRepository<Orders>().InsertAsync(order);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         
