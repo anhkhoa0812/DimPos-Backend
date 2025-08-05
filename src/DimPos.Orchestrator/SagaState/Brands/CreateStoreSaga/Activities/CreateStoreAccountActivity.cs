@@ -21,6 +21,7 @@ public class CreateStoreAccountActivity : IStateMachineActivity<CreateStoreSagaS
         var createStoreAccountModel = new CreateStoreAccountRequestModel
         {
             CorrelationId = context.Message.CorrelationId,
+            BrandAccountId = context.Message.BrandAccountId,
             StoreId = context.Message.StoreId,
             AccountId = context.Message.AccountId,
             Code = context.Message.Code,

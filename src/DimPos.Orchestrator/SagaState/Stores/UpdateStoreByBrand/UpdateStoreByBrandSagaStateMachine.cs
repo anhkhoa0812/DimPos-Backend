@@ -59,6 +59,11 @@ public class UpdateStoreByBrandSagaStateMachine : MassTransitStateMachine<Update
                 {
                     Console.WriteLine($"[Saga] Rolled back UpdateStoreByBrandRequest for {context.CorrelationId!.Value}");
                 })
+                .Activity(config => config.OfType<SendNotificationForUpdateAccountForStoreByBrandErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Sent notification for UpdateAccountForStoreByBrandError for {context.CorrelationId!.Value}");
+                })
                 .Finalize()
         );
         SetCompletedWhenFinalized();

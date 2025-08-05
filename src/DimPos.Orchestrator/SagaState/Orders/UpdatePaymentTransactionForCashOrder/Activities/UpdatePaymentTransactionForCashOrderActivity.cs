@@ -26,6 +26,7 @@ public class UpdatePaymentTransactionForCashOrderActivity : IStateMachineActivit
         var updatePaymentTransactionForCashOrderRequestModel = new UpdatePaymentTransactionForCashOrderRequestModel()
         {
             CorrelationId = context.Message.CorrelationId,
+            AccountId = context.Message.AccountId,
             OrderId = context.Message.OrderId,
             StoreId = context.Message.StoreId,
             PaymentTransactionId = context.Message.PaymentTransactionId

@@ -21,6 +21,7 @@ public class CreateBrandAccountActivity : IStateMachineActivity<CreateBrandSagaS
         var createBrandAccountModel = new CreateBrandAccountModel
         {
             CorrelationId = context.Message.CorrelationId,
+            SystemAdminAccountId = context.Message.SystemAdminAccountId,
             BrandId = context.Message.BrandId,
             AccountId = context.Message.AccountId,
             Code = context.Message.Code,

@@ -38,6 +38,12 @@ public class ConfirmCashOrderCommandHandler : IRequestHandler<ConfirmCashOrderCo
             throw new BadHttpRequestException("Không tìm thấy thông tin cửa hàng");
         }
 
+        var accountId = _claimService.GetCurrentUserId;
+        if (accountId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy thông tin người dùng");
+        }
+        
         var order = await _unitOfWork.GetRepository<Orders>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.OrderId 
                             && x.StoreId == storeId 
@@ -79,6 +85,7 @@ public class ConfirmCashOrderCommandHandler : IRequestHandler<ConfirmCashOrderCo
         var confirmForCashOrderResponseModel = new ConfirmForCashOrderResponseModel()
         {
             CorrelationId = Guid.CreateVersion7(),
+            AccountId = accountId,
             OrderId = order.Id,
             StoreId = storeId,
             PaymentTransactionId = Guid.Parse(paymentTransactionGrpc.Id)

@@ -1,6 +1,7 @@
 using Confluent.Kafka;
 using DimPos.Brand.Application.Common.Mapper;
 using DimPos.Brand.Application.Common.Utils;
+using DimPos.Brand.Application.Services.Interface;
 using DimPos.Brand.Domain.Entities;
 using DimPos.Brand.Domain.Enums;
 using DimPos.Brand.Domain.Models.Common;
@@ -16,16 +17,23 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Api
 {
     private readonly IUnitOfWork<BrandContext> _unitOfWork;
     private readonly ILogger _logger;
+    private readonly IClaimService _claimService;
     private readonly ITopicProducer<Null, CreateBrandAccountModel> _producer;
-    public CreateBrandCommandHandler(IUnitOfWork<BrandContext> unitOfWork, ILogger logger,
+    public CreateBrandCommandHandler(IUnitOfWork<BrandContext> unitOfWork, ILogger logger, IClaimService claimService,
         ITopicProducer<Null, CreateBrandAccountModel> producer)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
         _producer = producer ?? throw new ArgumentNullException(nameof(producer));
     }
     public async ValueTask<ApiResponse> Handle(CreateBrandCommand request, CancellationToken cancellationToken)
     {
+        var systemAdminAccountId = _claimService.GetCurrentUserId;
+        if (systemAdminAccountId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy tài khoản hiện tại");
+        }
         var existingBrand = await _unitOfWork.GetRepository<Domain.Entities.Brands>().SingleOrDefaultAsync(
             predicate: x => x.Code == request.Code
         );
@@ -57,6 +65,7 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Api
         var createBrandAccountModel = new CreateBrandAccountModel()
         {
             CorrelationId = Guid.CreateVersion7(),
+            SystemAdminAccountId = systemAdminAccountId,
             BrandId = brand.Id,
             AccountId = accountId,
             Code = brand.Code,

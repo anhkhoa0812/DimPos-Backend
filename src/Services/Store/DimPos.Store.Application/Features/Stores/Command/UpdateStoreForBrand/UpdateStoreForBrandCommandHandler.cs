@@ -32,6 +32,10 @@ public class UpdateStoreForBrandCommandHandler : IRequestHandler<UpdateStoreForB
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
 
+        var accountId = _claimService.GetCurrentUserId;
+        if (accountId == Guid.Empty)
+            throw new BadHttpRequestException("Không tìm thấy Id của tài khoản thương hiệu");
+        
         var store = await _unitOfWork.GetRepository<Domain.Entities.Store>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.StoreId,
             include: x => x.Include(x => x.StoreAccounts)
@@ -43,7 +47,8 @@ public class UpdateStoreForBrandCommandHandler : IRequestHandler<UpdateStoreForB
         var updateStoreByBrandRequestModel = new UpdateStoreByBrandRequestModel()
         {
             StoreId = store.Id,
-            CorrelationId = Guid.CreateVersion7()
+            CorrelationId = Guid.CreateVersion7(),
+            BrandAccountId = accountId
         };
         if (request.Status != null && request.Status != store.Status)
         {

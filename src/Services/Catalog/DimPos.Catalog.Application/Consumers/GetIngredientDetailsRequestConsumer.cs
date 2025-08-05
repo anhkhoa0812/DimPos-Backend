@@ -40,12 +40,13 @@ public class GetIngredientDetailsRequestConsumer : IConsumer<GetIngredientDetail
             if (productVariants.Count != productVariantIds.Count)
             {
                 _logger.Error("Không tìm thấy thông tin của một số sản phẩm trong đơn hàng");
-                throw new BadHttpRequestException("Không tìm thấy thông tin của một số sản phẩm trong đơn hàng");
+                throw new BadHttpRequestException($"Không tìm thấy thông tin của một số sản phẩm trong đơn hàng nội bộ {context.Message.StorePurchaseOrderId}");
             }
 
             var response = new GetIngredientDetailsResponseModel()
             {
                 CorrelationId = context.Message.CorrelationId,
+                AccountId = context.Message.AccountId,
                 StoreId = context.Message.StoreId,
                 StorePurchaseOrderId = context.Message.StorePurchaseOrderId,
             };
@@ -57,7 +58,7 @@ public class GetIngredientDetailsRequestConsumer : IConsumer<GetIngredientDetail
                 {
                     _logger.Error("Không tìm thấy số lượng yêu cầu cho sản phẩm {ProductVariantId}", productVariant.Id);
                     throw new BadHttpRequestException(
-                        $"Không tìm thấy số lượng yêu cầu cho sản phẩm {productVariant.Id}");
+                        $"Không tìm thấy số lượng yêu cầu cho sản phẩm {productVariant.Id} trong đơn hàng nội bộ {context.Message.StorePurchaseOrderId}");
                 }
 
                 var ingredientDetailsModels = productVariant.RecipeItems!.Select(x => new IngredientDetailsModel()
@@ -82,8 +83,10 @@ public class GetIngredientDetailsRequestConsumer : IConsumer<GetIngredientDetail
             var errorResponse = new UpdateInventoryForInternalOrderErrorModel()
             {
                 CorrelationId = context.Message.CorrelationId,
+                AccountId = context.Message.
                 StoreId = context.Message.StoreId,
                 StorePurchaseOrderId = context.Message.StorePurchaseOrderId,
+                Message = ex.Message
             };
             await _failureTopicProducer.Produce(
                 key: null,

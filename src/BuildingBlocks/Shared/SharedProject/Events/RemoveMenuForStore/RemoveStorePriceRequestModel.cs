@@ -5,6 +5,7 @@ namespace SharedProject.Events.RemoveMenuForStore;
 public class RemoveStorePriceRequestModel : CorrelatedBy<Guid>
 {
     public Guid CorrelationId { get; set; }
+    public Guid BrandAccountId { get; set; }
     public Guid BrandId { get; set; }
     public List<StorePriceRequest> StorePrices { get; set; } = new();
     public List<StoreMenuAssignmentsModel> StoreMenuAssignments { get; set; } = new();

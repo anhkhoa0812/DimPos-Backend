@@ -41,7 +41,17 @@ public class CreateStaffAccountRequestConsumer : IConsumer<CreateStaffAccountReq
                 _logger.Error($"Role not found for name: {ERoleName.Staff}");
                 throw new BadHttpRequestException($"Không tìm thấy vai trò nhân viên với tài khoản : {context.Message.Username} và StoreId: {context.Message.StoreId}");
             }
-            
+
+            var existingAccount = await _unitOfWork.GetRepository<Accounts>().SingleOrDefaultAsync(
+                predicate: x => x.Username == context.Message.Username
+                            || (string.IsNullOrEmpty(context.Message.Email) || x.Email == context.Message.Email)
+                            || x.Code == context.Message.Code
+            );
+            if (existingAccount != null)
+            {
+                _logger.Error($"Account already exists with Code: {context.Message.Code}, Email: {context.Message.Email}, Username: {context.Message.Username}");
+                throw new BadHttpRequestException($"Tên đăng nhập, Email hoặc Mã nhân viên đã tồn tại với tài khoản : {context.Message.Username} và StoreId: {context.Message.StoreId}");
+            }
             var account = new Accounts()
             {
                 Id = context.Message.AccountId,

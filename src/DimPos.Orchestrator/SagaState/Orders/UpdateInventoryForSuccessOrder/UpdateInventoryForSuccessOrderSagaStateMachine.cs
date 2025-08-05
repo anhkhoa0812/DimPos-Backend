@@ -66,6 +66,12 @@ public class UpdateInventoryForSuccessOrderSagaStateMachine :  MassTransitStateM
                     Console.WriteLine($"[Saga] Published UpdateOrderNeedToChangeInventory for {context.CorrelationId!.Value}");
                     _logger.Information("Published UpdateOrderNeedToChangeInventory for {CorrelationId}", context.CorrelationId!.Value);
                 })
+                .Activity(config => config.OfType<SendNotificationForUpdateInventoryForSuccessOrderErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Published SendNotificationForUpdateInventoryForSuccessOrderError for {context.CorrelationId!.Value}");
+                    _logger.Information("Published SendNotificationForUpdateInventoryForSuccessOrderError for {CorrelationId}", context.CorrelationId!.Value);
+                })
                 .Finalize()
         );
         SetCompletedWhenFinalized();

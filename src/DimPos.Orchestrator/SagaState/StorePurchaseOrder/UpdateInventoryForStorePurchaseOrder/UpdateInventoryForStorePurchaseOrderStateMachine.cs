@@ -70,6 +70,11 @@ public class UpdateInventoryForStorePurchaseOrderStateMachine : MassTransitState
                 {
                     Console.WriteLine($"[Saga] Published ChangeErrorStatusForStorePurchaseOrder for {context.CorrelationId!.Value}");
                 })
+                .Activity(config => config.OfType<SendNotificationForUpdateInventoryForInternalOrderErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Sent notification for UpdateInventoryForInternalOrderError for {context.CorrelationId!.Value}");
+                })
                 .Finalize()
         );
         During(UpdateInventoryForStorePurchaseOrderState,
@@ -88,6 +93,11 @@ public class UpdateInventoryForStorePurchaseOrderStateMachine : MassTransitState
                 .Then(context =>
                 {
                     Console.WriteLine($"[Saga] Published ChangeErrorStatusForStorePurchaseOrder for {context.CorrelationId!.Value}");
+                })
+                .Activity(config => config.OfType<SendNotificationForUpdateInventoryForInternalOrderErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Sent notification for UpdateInventoryForInternalOrderError for {context.CorrelationId!.Value}");
                 })
                 .Finalize()
         );

@@ -58,6 +58,11 @@ public class CreateStoreSagaStateMachine : MassTransitStateMachine<CreateStoreSa
                 {
                     Console.WriteLine($"[Saga] Received RollbackBrandActivity for {context.CorrelationId!.Value}");
                 })
+                .Activity(config => config.OfType<SendNotificationForCreateStoreAccountErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Published SendNotificationForCreateStoreAccountErrorActivity for {context.CorrelationId!.Value}");
+                })
                 .TransitionTo(CreateStoreFailed)
                 .Finalize()
             );

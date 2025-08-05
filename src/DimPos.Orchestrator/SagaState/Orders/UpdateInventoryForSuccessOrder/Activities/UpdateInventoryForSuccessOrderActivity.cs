@@ -25,6 +25,7 @@ public class UpdateInventoryForSuccessOrderActivity : IStateMachineActivity<Upda
         var updateInventoryForSuccessOrderRequestModel = new UpdateInventoryForSuccessOrderRequestModel()
         {
             CorrelationId = context.Message.CorrelationId,
+            AccountId = context.Message.AccountId,
             OrderId = context.Message.OrderId,
             StoreId = context.Message.StoreId,
             Ingredients = context.Message.Ingredients

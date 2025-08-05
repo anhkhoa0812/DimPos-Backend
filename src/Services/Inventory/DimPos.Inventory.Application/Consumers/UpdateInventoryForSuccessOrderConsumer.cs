@@ -53,7 +53,7 @@ public class UpdateInventoryForSuccessOrderConsumer : IConsumer<UpdateInventoryF
                     {
                         _logger.Error("Not enough stock for ingredient {IngredientId} in order {OrderId} at store {StoreId} and quantity {Quantity}",
                             requestIngredient.IngredientId, context.Message.OrderId, context.Message.StoreId, requestIngredient.Quantity);
-                        throw new BadHttpRequestException("Lỗi cập nhật kho hàng: Không đủ nguyên liệu trong kho.");
+                        throw new BadHttpRequestException($"Lỗi cập nhật kho hàng: Nguyên liệu {requestIngredient.IngredientId} không đủ trong kho cho đơn hàng {context.Message.OrderId}.");
                     }
                     
                     inventoryStock.Quantity -= requestIngredient.Quantity;
@@ -75,7 +75,8 @@ public class UpdateInventoryForSuccessOrderConsumer : IConsumer<UpdateInventoryF
             {
                 _logger.Error("Failed to update inventory for order {OrderId} at store {StoreId}", 
                     context.Message.OrderId, context.Message.StoreId);
-                throw new Exception("Lỗi cập nhật kho hàng: Không thể cập nhật kho.");
+                throw new Exception(
+                    $"Lỗi cập nhật kho hàng: Không thể cập nhật kho. Vui lòng cập nhật kho hàng thủ công cho đơn hàng {context.Message.OrderId} sau khi đặt hàng thành công");
             }
             _logger.Information("Successfully updated inventory for order {OrderId} at store {StoreId}", 
                 context.Message.OrderId, context.Message.StoreId);
@@ -95,9 +96,10 @@ public class UpdateInventoryForSuccessOrderConsumer : IConsumer<UpdateInventoryF
             var errorModel = new UpdateInventoryForSuccessOrderErrorModel
             {
                 CorrelationId = context.Message.CorrelationId,
+                AccountId = context.Message.AccountId,
                 OrderId = context.Message.OrderId,
                 StoreId = context.Message.StoreId,
-                ErrorMessage = "Vui lòng cập nhật kho hàng thủ công sau khi đặt hàng thành công." + e.Message
+                ErrorMessage = e.Message
             };
             _logger.Error(e, "Error updating inventory for order {OrderId} at store {StoreId}: {ErrorMessage}", 
                 context.Message.OrderId, context.Message.StoreId, errorModel.ErrorMessage);

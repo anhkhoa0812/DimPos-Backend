@@ -25,6 +25,7 @@ public class UpdateInventoryForStorePurchaseOrderActivity : IStateMachineActivit
         var updateInventoryRequestModel = new UpdateInventoryForInternalOrderRequestModel()
         {
             CorrelationId = context.Message.CorrelationId,
+            AccountId = context.Message.AccountId,
             StoreId = context.Message.StoreId,
             StorePurchaseOrderId = context.Message.StorePurchaseOrderId,
             IngredientDetailsModels = context.Message.IngredientDetails

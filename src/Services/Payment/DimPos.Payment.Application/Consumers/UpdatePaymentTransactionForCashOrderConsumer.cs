@@ -36,7 +36,8 @@ public class UpdatePaymentTransactionForCashOrderConsumer : IConsumer<UpdatePaym
             );
             if (paymentTransaction == null)
             {
-                throw new BadHttpRequestException("Không tìm thấy giao dịch thanh toán hoặc giao dịch không ở trạng thái chờ xử lý");
+                throw new BadHttpRequestException($"Không tìm thấy giao dịch thanh toán hoặc giao dịch không ở trạng thái chờ xử lý cho đơn hàng {context.Message.OrderId}, " +
+                                                  $"vui lòng vào chi tiết đơn hàng để kiểm tra lại");
             }
             paymentTransaction.Status = EPaymentTransactionStatus.SUCCESS;
             _unitOfWork.GetRepository<PaymentTransactions>().UpdateAsync(paymentTransaction);
@@ -44,7 +45,8 @@ public class UpdatePaymentTransactionForCashOrderConsumer : IConsumer<UpdatePaym
             if (!isSuccess)
             {
                 _logger.Error("Cập nhật giao dịch thanh toán cho đơn hàng {OrderId} không thành công", context.Message.OrderId);
-                throw new Exception("Cập nhật giao dịch thanh toán không thành công");
+                throw new Exception($"Cập nhật giao dịch thanh toán cho đơn hàng {context.Message.OrderId} không thành công, " +
+                                    $"vui lòng vao chi tiết đơn hàng để kiểm tra lại");
             }
             var updatePaymentTransactionForCashOrderResponseModel = new UpdatePaymentTransactionForCashOrderResponseModel()
             {
@@ -64,6 +66,7 @@ public class UpdatePaymentTransactionForCashOrderConsumer : IConsumer<UpdatePaym
             var updatePaymentTransactionForCashOrderErrorModel = new UpdatePaymentTransactionForCashOrderErrorModel()
             {
                 CorrelationId = context.Message.CorrelationId,
+                AccountId = context.Message.AccountId,
                 OrderId = context.Message.OrderId,
                 ErrorMessage = e.Message
             };

@@ -26,6 +26,7 @@ public class UpdateAccountForStoreByBrandActivity : IStateMachineActivity<Update
         {
             CorrelationId = context.Message.CorrelationId,
             StoreId = context.Message.StoreId,
+            BrandAccountId = context.Message.BrandAccountId,
             AccountIds = context.Message.AccountIds,
             Status = context.Message.Status
         };

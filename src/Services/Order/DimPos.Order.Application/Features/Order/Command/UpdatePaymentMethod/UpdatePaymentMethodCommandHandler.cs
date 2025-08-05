@@ -81,7 +81,7 @@ public class UpdatePaymentMethodCommandHandler : IRequestHandler<UpdatePaymentMe
         {
             Status = StatusCodes.Status200OK,
             Message = "Cập nhật phương thức thanh toán thành công",
-            Data = updatePaymentMethodResponse.QrLink
+            Data = updatePaymentMethodResponse.QrLink 
         };
     }
 }

@@ -65,6 +65,12 @@ public class UpdatePaymentTransactionForCashOrderSagaStateMachine : MassTransitS
                     Console.WriteLine($"[Saga] Executed RollbackPendingForCashOrderActivity for {context.CorrelationId!.Value}");
                     _logger.Information("Executed RollbackPendingForCashOrderActivity for {CorrelationId}", context.CorrelationId!.Value);
                 })
+                .Activity(config => config.OfType<SendNotificationForUpdatePaymentTransactionForCashOrderErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Executed SendNotificationForUpdatePaymentTransactionForCashOrderErrorActivity for {context.CorrelationId!.Value}");
+                    _logger.Information("Executed SendNotificationForUpdatePaymentTransactionForCashOrderErrorActivity for {CorrelationId}", context.CorrelationId!.Value);
+                })
                 .Finalize()
         );
         SetCompletedWhenFinalized();

@@ -27,13 +27,12 @@ public class UpdateOrderStatusRequestConsumer : IConsumer<UpdateOrderStatusReque
     
     public async Task Consume(ConsumeContext<UpdateOrderStatusRequestModel> context)
     {
+        var order = await _unitOfWork.GetRepository<Orders>().SingleOrDefaultAsync(
+            predicate: x => x.Id == context.Message.OrderId
+                            && x.Status == EOrderStatus.PendingPayment
+        );
         try
         {
-            var order = await _unitOfWork.GetRepository<Orders>().SingleOrDefaultAsync(
-                predicate: x => x.Id == context.Message.OrderId
-                                && x.Status == EOrderStatus.PendingPayment
-            );
-        
             order.Status = context.Message.IsPaymentSuccess
                 ? EOrderStatus.Confirmed
                 : EOrderStatus.Cancelled;
@@ -42,7 +41,7 @@ public class UpdateOrderStatusRequestConsumer : IConsumer<UpdateOrderStatusReque
             var isSuccess = await _unitOfWork.CommitAsync() > 0;
             if (!isSuccess)
             {
-                throw new Exception("Lỗi khi cập nhật trạng thái đơn hàng");
+                throw new Exception($"Lỗi khi cập nhật trạng thái đơn hàng {order.Id} trong quá trình thanh toán, vui lòng thử lại sau.");
             }
 
             var updateOrderStatusResponseModel = new UpdateOrderStatusResponseModel()
@@ -65,7 +64,9 @@ public class UpdateOrderStatusRequestConsumer : IConsumer<UpdateOrderStatusReque
                 CorrelationId = context.Message.CorrelationId,
                 OrderId = context.Message.OrderId,
                 PaymentTransactionId = context.Message.PaymentTransactionId,
-                IsPaymentSuccess = context.Message.IsPaymentSuccess
+                IsPaymentSuccess = context.Message.IsPaymentSuccess,
+                AccountId = order.CreatedByAccountId,
+                Message = e.Message
             };
             await _errorTopicProducer.Produce(
                 null,

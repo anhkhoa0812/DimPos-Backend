@@ -17,6 +17,7 @@ public class GetOrderWithIdByStoreResponse
     public DateTime? PickupTime { get; set; }
     public string? Note { get; set; }
     public string SystemPaymentMethodNameSnapshot { get; set; } = string.Empty;
+    public bool IsNeedToUpdateInventory { get; set; }
     public DateTime CreatedDate { get; set; }
     public List<GetOrderItemsByOrderByIdResponse> OrderItems { get; set; } = new List<GetOrderItemsByOrderByIdResponse>();
     public List<GetAppliedOrderPromotionsByOrderIdResponse>? AppliedOrderPromotions { get; set; }

@@ -43,6 +43,12 @@ public class AssignStoreMenuCommandHandler : IRequestHandler<AssignStoreMenuComm
         {
             throw new BadHttpRequestException("Không tìm thấy brandId");
         }
+        
+        var accountId = _claimService.GetCurrentUserId;
+        if (accountId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy thông tin người dùng hiện tại");
+        }
         var brandMenu = await _unitOfWork.GetRepository<Domain.Entities.BrandMenu>().SingleOrDefaultAsync(
             predicate: x => x.BrandId == brandId && x.Id == request.BrandMenuId,
             include: x => x.Include(x => x.MenuItems)
@@ -103,6 +109,7 @@ public class AssignStoreMenuCommandHandler : IRequestHandler<AssignStoreMenuComm
             var assignNewStoreMenuRequest = new AssignNewStoreMenuModel()
             {
                 CorrelationId = Guid.CreateVersion7(),
+                BrandAccountId = accountId,
                 BrandId = brandId,
                 BrandMenuId = brandMenu.Id,
                 ProductVariantIds = productVariantIds,
@@ -125,6 +132,7 @@ public class AssignStoreMenuCommandHandler : IRequestHandler<AssignStoreMenuComm
             {
                 CorrelationId = Guid.CreateVersion7(),
                 BrandId = brandId,
+                BrandAccountId = accountId,
                 ProductVariantIds = productVariantIds,
                 StoreIds = removeStoreIds.ToList(),
                 StoreMenuAssignments = storeMenus.Select(x => new StoreMenuAssignmentsModel()
