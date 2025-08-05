@@ -16,6 +16,7 @@ public class GetOrderWithIdByStoreResponse
     public decimal CashRoundingAmount { get; set; }
     public DateTime? PickupTime { get; set; }
     public string? Note { get; set; }
+    public int? TableNumberDineIn { get; set; }
     public string SystemPaymentMethodNameSnapshot { get; set; } = string.Empty;
     public bool IsNeedToUpdateInventory { get; set; }
     public DateTime CreatedDate { get; set; }

@@ -39,7 +39,15 @@ public class CreateProductVariantCommandHandler : IRequestHandler<CreateProductV
         {
             throw new BadHttpRequestException("Không tìm thấy sản phẩm hoặc sản phẩm không có biến thể");
         }
-        
+
+        var existingVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
+            predicate: x => x.Code == request.Code ||
+                            (string.IsNullOrEmpty(x.Sku) || x.Sku == request.Sku)
+        );
+        if (existingVariant != null)
+        {
+            throw new BadHttpRequestException($"Mã: {request.Code} hoặc SKU: {request.Sku} của biến thể sản phẩm đã tồn tại");
+        }
         var productVariant = new Domain.Entities.ProductVariants
         {
             Id = Guid.NewGuid(),

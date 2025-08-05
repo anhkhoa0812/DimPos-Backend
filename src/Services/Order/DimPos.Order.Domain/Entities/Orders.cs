@@ -28,7 +28,7 @@ public class Orders : EntityAuditBase<Guid>
     public DateTime? ConfirmedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public Guid CreatedByAccountId { get; set; }
-    public string? TableNumberDineIn { get; set; }
+    public int? TableNumberDineIn { get; set; }
     public bool IsNeedToUpdateInventory { get; set; }
     
     public virtual ICollection<OrderItems> OrderItems { get; set; } = new List<OrderItems>();
