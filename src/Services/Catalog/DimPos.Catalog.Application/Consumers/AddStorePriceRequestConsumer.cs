@@ -43,7 +43,8 @@ public class AddStorePriceRequestConsumer : IConsumer<AddStorePriceRequestModel>
             foreach (var storePriceRequest in context.Message.StorePrices)
             {
                 if (!basePriceDictionary.TryGetValue(storePriceRequest.ProductVariantId, out var brandPrice))
-                    throw new BadHttpRequestException("Không tìm thấy giá của sản phẩm trong danh sách giá của thương hiệu");
+                    throw new BadHttpRequestException(
+                        "Không tìm thấy giá của sản phẩm trong danh sách giá của thương hiệu trong khi cập nhập giá cho cửa hàng");
                 
                 var newStorePrice = new StorePrice()
                 {
@@ -87,11 +88,7 @@ public class AddStorePriceRequestConsumer : IConsumer<AddStorePriceRequestModel>
             }
             else
             {
-                var storeIds = context.Message.StorePrices.Select(x => x.ProductVariantId)
-                    .Distinct()
-                    .ToList();
-                await ProduceError(_failureTopicProducer, context, storeIds);
-                _logger.Error("AddStorePriceRequestConsumer: {CorrelationId} - Failed", context.Message.CorrelationId);
+                throw new Exception("Lỗi khi cập nhật giá cho cửa hàng, vui lòng thử lại");
             }
         }
         catch (Exception e)
@@ -99,24 +96,21 @@ public class AddStorePriceRequestConsumer : IConsumer<AddStorePriceRequestModel>
             var storeIds = context.Message.StorePrices.Select(x => x.ProductVariantId)
                 .Distinct()
                 .ToList();
-            await ProduceError(_failureTopicProducer, context, storeIds);
+            var addStorePriceErrorModel = new AddStorePriceErrorModel()
+            {
+                CorrelationId = context.Message.CorrelationId,
+                BrandAccountId = context.Message.BrandAccountId,
+                BrandId = context.Message.BrandId,
+                BrandMenuId = context.Message.BrandMenuId,
+                StoreIds = storeIds,
+                Message = e.Message
+            };
+            await _failureTopicProducer.Produce(
+                key: null,
+                addStorePriceErrorModel,
+                context.CancellationToken
+            ).ConfigureAwait(false);
             _logger.Error(e, "AddStorePriceRequestConsumer: {CorrelationId} - Error", context.Message.CorrelationId);
         }
-    }
-    private static async Task ProduceError(ITopicProducer<Null, AddStorePriceErrorModel> topicProducer,
-        ConsumeContext<AddStorePriceRequestModel> context, List<Guid> storeIds)
-    {
-        var addStorePriceErrorModel = new AddStorePriceErrorModel()
-        {
-            CorrelationId = context.Message.CorrelationId,
-            BrandId = context.Message.BrandId,
-            BrandMenuId = context.Message.BrandMenuId,
-            StoreIds = storeIds
-        };
-        await topicProducer.Produce(
-            key: null,
-            addStorePriceErrorModel,
-            context.CancellationToken
-        ).ConfigureAwait(false);
     }
 }

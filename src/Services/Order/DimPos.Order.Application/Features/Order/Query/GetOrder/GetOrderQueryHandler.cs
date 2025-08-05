@@ -38,6 +38,7 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, ApiResponse>
                 CompletedAt = x.CompletedAt,
                 TableNumberDineIn = x.TableNumberDineIn,
                 PickupTime = x.PickupTime,
+                IsNeedToUpdateInventory = x.IsNeedToUpdateInventory,
                 OrderItems = x.OrderItems.Select(oi => new GetOrderItemByStoreResponse()
                 {
                     Id = oi.Id,

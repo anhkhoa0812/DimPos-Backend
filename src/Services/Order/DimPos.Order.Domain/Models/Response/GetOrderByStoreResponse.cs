@@ -14,6 +14,7 @@ public class GetOrderByStoreResponse
     public DateTime? CompletedAt { get; set; }
     public string? TableNumberDineIn { get; set; }
     public DateTime? PickupTime { get; set; }
+    public bool IsNeedToUpdateInventory { get; set; }
     public List<GetOrderItemByStoreResponse> OrderItems { get; set; } = new();
 }
 public class GetOrderItemByStoreResponse

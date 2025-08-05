@@ -56,6 +56,15 @@ public class AssignNewStoreMenuStateMachine  : MassTransitStateMachine<AssignNew
                     Console.WriteLine($"[Saga] Received AddStorePriceError for {context.CorrelationId!.Value}");
                 })
                 .Activity(config => config.OfType<AddStorePriceErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Published RollbackStoreMenuModel for {context.CorrelationId!.Value}");
+                })
+                .Activity(config => config.OfType<SendNotificationForAddStorePriceErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Published SendNotificationForAccountRequestModel for {context.CorrelationId!.Value}");
+                })
                 .TransitionTo(AddStorePriceErrorState)
                 .Finalize()
         );

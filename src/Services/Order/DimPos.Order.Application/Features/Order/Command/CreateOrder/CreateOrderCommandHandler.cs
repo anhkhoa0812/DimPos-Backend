@@ -230,6 +230,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         var createOrderResponseModel = new CreateOrderResponseModel()
         {
             CorrelationId = Guid.CreateVersion7(),
+            AccountId = accountId,
             OrderId = order.Id,
             StoreId = storeId,
             Ingredients = orderItemsFromGrpc.ProductForOrders

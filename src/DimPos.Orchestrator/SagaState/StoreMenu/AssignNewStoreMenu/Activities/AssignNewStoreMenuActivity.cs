@@ -29,6 +29,7 @@ public class AssignNewStoreMenuActivity : IStateMachineActivity<AssignNewStoreMe
         var addStorePriceModel = new AddStorePriceRequestModel()
         {
             CorrelationId = context.Message.CorrelationId,
+            BrandAccountId = context.Message.BrandAccountId,
             BrandId = context.Message.BrandId,
             StorePrices = storePrices,
             BrandMenuId = context.Message.BrandMenuId

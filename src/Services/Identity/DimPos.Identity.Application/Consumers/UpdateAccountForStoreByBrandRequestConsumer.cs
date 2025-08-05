@@ -35,7 +35,7 @@ public class UpdateAccountForStoreByBrandRequestConsumer : IConsumer<UpdateAccou
             if(accounts.Count != context.Message.AccountIds.Count)
             {
                 _logger.Warning("Some accounts not found for store update: {AccountIds}", context.Message.AccountIds);
-                throw new BadHttpRequestException("Một số tài khoản không được tìm thấy khi cập nhật cửa hàng");
+                throw new BadHttpRequestException($"Một số tài khoản không được tìm thấy khi cập nhật cửa hàng {context.Message.StoreId}");
             }
             foreach (var account in accounts)
             {
@@ -53,7 +53,7 @@ public class UpdateAccountForStoreByBrandRequestConsumer : IConsumer<UpdateAccou
             if (!isSuccess)
             {
                 _logger.Error("Failed to update accounts for store: {StoreId}", context.Message.StoreId);
-                throw new Exception("Cập nhật tài khoản cho cửa hàng không thành công");
+                throw new Exception($"Cập nhật tài khoản cho cửa hàng {context.Message.StoreId} không thành công");
             }
             await _successTopicProducer.Produce(
                 key: null,
@@ -76,7 +76,9 @@ public class UpdateAccountForStoreByBrandRequestConsumer : IConsumer<UpdateAccou
                 {
                     CorrelationId = context.Message.CorrelationId,
                     StoreId = context.Message.StoreId,
-                    Status = context.Message.Status
+                    BrandAccountId = context.Message.BrandAccountId,
+                    Status = context.Message.Status,
+                    Message = e.Message
                 },
                 context.CancellationToken);
         }

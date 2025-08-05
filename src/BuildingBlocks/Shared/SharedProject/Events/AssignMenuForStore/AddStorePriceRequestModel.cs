@@ -5,6 +5,7 @@ namespace SharedProject.Events.AssignMenuForStore;
 public class AddStorePriceRequestModel : CorrelatedBy<Guid>
 {
     public Guid CorrelationId { get; set; }
+    public Guid BrandAccountId { get; set; }
     public Guid BrandId { get; set; }
     public Guid BrandMenuId { get; set; }
     public List<StorePriceRequest> StorePrices { get; set; } = new List<StorePriceRequest>();

@@ -30,6 +30,7 @@ public class RemoveStoreMenuActivity : IStateMachineActivity<RemoveStoreMenuSaga
         var removeStorePriceModel = new RemoveStorePriceRequestModel()
         {
             CorrelationId = context.Message.CorrelationId,
+            BrandAccountId = context.Message.BrandAccountId,
             BrandId = context.Message.BrandId,
             StorePrices = storePrices,
             StoreMenuAssignments = context.Message.StoreMenuAssignments

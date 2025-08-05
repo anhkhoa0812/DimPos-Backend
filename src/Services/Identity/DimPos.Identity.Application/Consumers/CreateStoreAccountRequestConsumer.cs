@@ -38,7 +38,7 @@ public class CreateStoreAccountRequestConsumer : IConsumer<CreateStoreAccountReq
             {
                 _logger.Error("Tài khoản đã tồn tại với mã: {Code}, email: {Email}, tên đăng nhập: {Username}",
                     context.Message.Code, context.Message.Email, context.Message.Username);
-                throw new BadHttpRequestException("Tài khoản đã tồn tại");
+                throw new BadHttpRequestException($"Tài khoản vừa tạo đã tồn tại với mã: {context.Message.Code}, email: {context.Message.Email} hoặc tên đăng nhập: {context.Message.Username}");
             }
             
             var account = new Accounts()
@@ -69,26 +69,24 @@ public class CreateStoreAccountRequestConsumer : IConsumer<CreateStoreAccountReq
             }
             else
             {
-                await ProduceErrorAsync(context);
+                throw new Exception($"Tạo tài khoản của cửa hàng với Username: {context.Message.Username}, Mã: {context.Message.Code} không thành công, vui lòng thử lại.");
             }
         }
         catch (Exception e)
         {
             _logger.Error(e, "CreateStoreAccountRequestConsumer: {CorrelationId} - Failed", context.Message.CorrelationId);
-            await ProduceErrorAsync(context);
+            await _errorTopicProducer.Produce(
+                key: null,
+                value: new CreateStoreAccountErrorModel()
+                {
+                    CorrelationId = context.Message.CorrelationId,
+                    BrandAccountId = context.Message.BrandAccountId,
+                    AccountId = context.Message.AccountId,
+                    StoreId = context.Message.StoreId,
+                    ErrorMessage = e.Message
+                },
+                cancellationToken: context.CancellationToken
+            ).ConfigureAwait(false);
         }
-    }
-    private async Task ProduceErrorAsync(ConsumeContext<CreateStoreAccountRequestModel> context)
-    {
-        await _errorTopicProducer.Produce(
-            key: null,
-            value: new CreateStoreAccountErrorModel()
-            {
-                CorrelationId = context.Message.CorrelationId,
-                AccountId = context.Message.AccountId,
-                StoreId = context.Message.StoreId
-            },
-            cancellationToken: context.CancellationToken
-        ).ConfigureAwait(false);
     }
 }

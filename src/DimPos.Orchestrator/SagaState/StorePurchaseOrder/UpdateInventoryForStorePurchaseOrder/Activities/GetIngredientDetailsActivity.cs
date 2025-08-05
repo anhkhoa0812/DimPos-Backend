@@ -26,6 +26,7 @@ public class GetIngredientDetailsActivity : IStateMachineActivity<UpdateInventor
         var getIngredientDetailsRequestModel = new GetIngredientDetailsRequestModel
         {
             CorrelationId = context.Message.CorrelationId,
+            AccountId = context.Message.AccountId,
             StoreId = context.Message.StoreId,
             StorePurchaseOrderId = context.Message.StorePurchaseOrderId,
             StorePurchaseOrderItems = context.Message.StorePurchaseOrderItems,

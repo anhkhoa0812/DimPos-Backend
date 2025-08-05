@@ -92,6 +92,13 @@ public class UpdatePaymentTransactionSagaStateMachine : MassTransitStateMachine<
                         $"[Saga] Received UpdateOrderStatusError for {context.CorrelationId!.Value}");
                     _logger.Error("[Saga] Received UpdateOrderStatusError for {CorrelationId}", context.CorrelationId!.Value);
                 })
+                .Activity(config => config.OfType<SendNotificationForUpdateOrderStatusErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine(
+                        $"[Saga] Published SendNotificationForUpdateOrderStatusErrorRequest for {context.CorrelationId!.Value}");
+                    _logger.Information("[Saga] Published SendNotificationForUpdateOrderStatusErrorRequest for {CorrelationId}", context.CorrelationId!.Value);
+                })
                 .Activity(config => config.OfType<RollbackPaymentTransactionActivity>())
                 .Then(context =>
                 {

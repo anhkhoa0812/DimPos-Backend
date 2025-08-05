@@ -34,7 +34,12 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Api
         
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy Id của thương hiệu");
-        
+
+        var brandAcccountId = _claimService.GetCurrentUserId;
+        if (brandAcccountId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy Id của tài khoản thương hiệu");
+        }
         var store = StoreMapper.ToStores(request);
         store.Id = Guid.CreateVersion7();
         store.Status = EStoreStatus.Active;
@@ -56,6 +61,7 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Api
             var createStoreResponseModel = new CreateStoreResponseModel()
             {
                 StoreId = store.Id,
+                BrandAccountId = brandAcccountId,
                 AccountId = accountId,
                 Code = store.Code,
                 Email = store.Email,

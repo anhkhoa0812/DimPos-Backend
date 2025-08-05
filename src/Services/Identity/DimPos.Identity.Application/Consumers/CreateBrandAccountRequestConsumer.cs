@@ -41,7 +41,7 @@ public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountMod
             {
                 _logger.Error("Tài khoản đã tồn tại với mã: {Code}, email: {Email}, tên đăng nhập: {Username}",
                     context.Message.Code, context.Message.Email, context.Message.Username);
-                throw new BadHttpRequestException("Tài khoản đã tồn tại");
+                throw new BadHttpRequestException($"Tài khoản thương hiệu vừa tạo đã tồn tại với mã: {context.Message.Code}, email: {context.Message.Email} hoặc tên đăng nhập: {context.Message.Username}");
             }
             var account = new Accounts()
             {
@@ -71,25 +71,22 @@ public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountMod
             }
             else
             {
-                await ProduceErrorAsync(context).ConfigureAwait(false);
+                throw new Exception($"Tạo tài khoản thương hiệu không thành công với tên đăng nhập: {context.Message.Username} và mã: {context.Message.Code}");
             }
         }
         catch (Exception e)
         {
-            _logger.Error(e, "CreateBrandAccountRequestConsumer: {CorrelationId} - Error", context.Message.CorrelationId);
-            await ProduceErrorAsync(context).ConfigureAwait(false);
+            _logger.Error(e, "CreateBrandAccountRequestConsumer: {CorrelationId} - Error", context.Message.CorrelationId); 
+            await _errorTopicProducer.Produce(
+                key: null,
+                value: new CreateBrandAccountErrorModel {
+                    CorrelationId = context.Message.CorrelationId,
+                    AccountId = context.Message.AccountId,
+                    BrandId = context.Message.BrandId,
+                    ErrorMessage = e.Message
+                },
+                cancellationToken: context.CancellationToken
+            ).ConfigureAwait(false);
         }
-    }
-    private Task ProduceErrorAsync(ConsumeContext<CreateBrandAccountModel> ctx)
-    {
-        return _errorTopicProducer.Produce(
-            key: null,
-            value: new CreateBrandAccountErrorModel {
-                CorrelationId = ctx.Message.CorrelationId,
-                AccountId     = ctx.Message.AccountId,
-                BrandId       = ctx.Message.BrandId
-            },
-            cancellationToken: ctx.CancellationToken
-        );
     }
 }

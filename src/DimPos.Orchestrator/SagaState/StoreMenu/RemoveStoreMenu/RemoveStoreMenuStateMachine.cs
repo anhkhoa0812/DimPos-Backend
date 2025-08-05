@@ -53,6 +53,15 @@ public class RemoveStoreMenuStateMachine : MassTransitStateMachine<RemoveStoreMe
                     Console.WriteLine($"[Saga] Received RemoveStorePriceError for {context.CorrelationId!.Value}");
                 })
                 .Activity(config => config.OfType<RemoveStorePriceErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Published RemoveStorePriceError for {context.CorrelationId!.Value}");
+                })
+                .Activity(config => config.OfType<SendNotificationForRemoveStorePriceErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Sent notification for RemoveStorePriceError for {context.CorrelationId!.Value}");
+                })
                 .TransitionTo(RemoveStorePriceErrorState)
                 .Finalize()
         );

@@ -43,7 +43,7 @@ public class RemoveStorePriceRequestConsumer : IConsumer<RemoveStorePriceRequest
                                     productVariantIds.Contains(x.ProductVariantId)
                 );
                 if (storePrice == null)
-                    throw new BadHttpRequestException("Không tìm thấy giá của sản phẩm trong danh sách giá của cửa hàng");
+                    throw new BadHttpRequestException("Không tìm thấy giá của sản phẩm trong danh sách giá của cửa hàng trong lúc cập nhật cửa hàng áp dụng menu");
                 storePrices.AddRange(storePrice);
             }
 
@@ -63,29 +63,26 @@ public class RemoveStorePriceRequestConsumer : IConsumer<RemoveStorePriceRequest
             }
             else
             {
-                await ProduceError(_failureTopicProducer, context);
                 _logger.Error("RemoveStorePriceRequestConsumer: {CorrelationId} - Failed", context.Message.CorrelationId);
+                throw new Exception("Đã xảy ra lỗi khi xóa giá của sản phẩm trong danh sách giá của cửa hàng trong lúc cập nhật cửa hàng áp dụng menu");
             }
         }
         catch (Exception e)
         {
-            await ProduceError(_failureTopicProducer, context);
+            var removeStorePriceErrorModel = new RemoveStorePriceErrorModel()
+            {
+                CorrelationId = context.Message.CorrelationId,
+                BrandAccountId = context.Message.BrandAccountId,
+                BrandId = context.Message.BrandId,
+                StoreMenuAssignments = context.Message.StoreMenuAssignments,
+                Message = e.Message
+            };
+            await _failureTopicProducer.Produce(
+                key: null,
+                removeStorePriceErrorModel,
+                context.CancellationToken
+            ).ConfigureAwait(false);
             _logger.Error(e, "RemoveStorePriceRequestConsumer: {CorrelationId} - Failed", context.Message.CorrelationId);
         }
-    }
-    private static async Task ProduceError(ITopicProducer<Null, RemoveStorePriceErrorModel> topicProducer,
-        ConsumeContext<RemoveStorePriceRequestModel> context)
-    {
-        var removeStorePriceErrorModel = new RemoveStorePriceErrorModel()
-        {
-            CorrelationId = context.Message.CorrelationId,
-            BrandId = context.Message.BrandId,
-            StoreMenuAssignments = context.Message.StoreMenuAssignments
-        };
-        await topicProducer.Produce(
-            key: null,
-            removeStorePriceErrorModel,
-            context.CancellationToken
-        ).ConfigureAwait(false);
     }
 }

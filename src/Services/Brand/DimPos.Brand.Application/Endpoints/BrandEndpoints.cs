@@ -21,6 +21,7 @@ public class BrandEndpoints : ICarterModule
         var group = app.MapGroup(ApiEndpointConstants.Brands.BrandsEndpoint).WithTags("Brands");
         group.MapPost("", CreateBrand)
             .WithName(nameof(CreateBrand))
+            .RequireAuthorization("SystemAdminPolicy")
             .DisableAntiforgery()
             .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)

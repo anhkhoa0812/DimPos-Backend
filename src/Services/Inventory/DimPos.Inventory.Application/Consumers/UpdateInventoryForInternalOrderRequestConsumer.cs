@@ -75,7 +75,7 @@ public class UpdateInventoryForInternalOrderRequestConsumer : IConsumer<UpdateIn
             var isSuccess = await _unitOfWork.CommitAsync() > 0;
             if (!isSuccess)
             {
-                throw new Exception("Failed to update inventory for internal order.");
+                throw new Exception($"Lỗi khi cập nhật kho cho đơn hàng nội bộ {context.Message.StorePurchaseOrderId}");
             }
             _logger.Information("Successfully updated inventory for internal order: {MessageCorrelationId}", context.Message.CorrelationId);
             var updateInventoryForInternalOrderResponseModel = new UpdateInventoryForInternalOrderResponseModel()
@@ -95,8 +95,10 @@ public class UpdateInventoryForInternalOrderRequestConsumer : IConsumer<UpdateIn
             var updateInventoryForInternalOrderErrorModel = new UpdateInventoryForInternalOrderErrorModel()
             {
                 CorrelationId = context.Message.CorrelationId,
+                AccountId = context.Message.AccountId,
                 StoreId = context.Message.StoreId,
                 StorePurchaseOrderId = context.Message.StorePurchaseOrderId,
+                Message = e.Message
             };
             _logger.Error(e, $"Error updating inventory for internal order: {context.Message.CorrelationId}");
             await _errorTopicProducer.Produce(

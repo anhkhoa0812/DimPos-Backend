@@ -31,6 +31,11 @@ public class UpdateStorePurchaseOrderCommandHandler : IRequestHandler<UpdateStor
     
     public async ValueTask<ApiResponse> Handle(UpdateStorePurchaseOrderCommand request, CancellationToken cancellationToken)
     {
+        var accountId = _claimService.GetCurrentUserId;
+        if (accountId == Guid.Empty)
+        {
+            throw new BadHttpRequestException("Không tìm thấy Id của tài khoản");
+        }
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
         var storeId = _claimService.GetStoreId ?? Guid.Empty;
         var role = _claimService.GetRole;
@@ -164,6 +169,7 @@ public class UpdateStorePurchaseOrderCommandHandler : IRequestHandler<UpdateStor
             var doneByStoreResponseModel = new InternalOrderDoneByStoreResponseModel()
             {
                 CorrelationId = Guid.CreateVersion7(),
+                AccountId = accountId,
                 StoreId = storePurchaseOrder.StoreId,
                 StorePurchaseOrderId = storePurchaseOrder.Id,
                 StorePurchaseOrderItems = storePurchaseOrder.StorePurchaseOrderItems.Select(x =>

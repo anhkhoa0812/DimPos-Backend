@@ -62,6 +62,11 @@ public class CreateBrandSagaStateMachine : MassTransitStateMachine<CreateBrandSa
                 {
                     Console.WriteLine($"[Saga] Published CreateBrandAccount for {context.CorrelationId!.Value}");
                 })
+                .Activity(config => config.OfType<SendNotificationForCreateBrandAccountErrorActivity>())
+                .Then(context =>
+                {
+                    Console.WriteLine($"[Saga] Sent notification for CreateBrandAccount error for {context.CorrelationId!.Value}");
+                })
                 .TransitionTo(CreateBrandFailed)
                 .Finalize()
         );
