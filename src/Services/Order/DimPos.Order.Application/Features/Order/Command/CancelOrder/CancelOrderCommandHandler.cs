@@ -55,24 +55,23 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Api
         {
             throw new BadHttpRequestException("Không tìm thấy đơn hàng hoặc đơn hàng đã được xử lý");
         }
-        var storeDetailGrpcResponse = await _storeGrpcService.GetTaxRateAndPaymentMethodConfigAsync(new GetTaxRateAndPaymentMethodConfigRequest()
+        var getCredentialsConfigGrpcResponse = await _storeGrpcService.GetCredentialsConfigBySystemPaymentMethodIdAsync(new GetCredentialsConfigBySystemPaymentMethodIdRequest()
         {
             StoreId = storeId.ToString(),
             BrandId = order.BrandId.ToString(),
-            StorePaymentMethodConfigId = order.SystemPaymentMethodId.ToString()
+            SystemPaymentMethodId = order.SystemPaymentMethodId.ToString()
         });
-        
-        if (storeDetailGrpcResponse == null)
+        if(getCredentialsConfigGrpcResponse == null || !getCredentialsConfigGrpcResponse.IsSuccess)
         {
-            _logger.Error("Failed to retrieve store details for StoreId: {StoreId}", storeId);
-            throw new BadHttpRequestException("Không tìm thấy thông tin cửa hàng");
+            _logger.Error("Failed to get store credentials config for StoreId: {StoreId}", storeId);
+            throw new BadHttpRequestException("Không tìm thấy cấu hình thanh toán của cửa hàng");
         }
 
         var checkPaymentForCancelOrder = await _paymentGrpcService.CheckForCancelOrderAsync(
             new CheckForCancelOrderRequest()
             {
                 OrderId = order.Id.ToString(),
-                CredentialsConfig = storeDetailGrpcResponse.CredentialsConfigAtStore,
+                CredentialsConfig = getCredentialsConfigGrpcResponse.CredentialsConfigAtStore,
                 StoreId = storeId.ToString()
             }
         );

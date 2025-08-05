@@ -12,6 +12,7 @@ service StoreGrpcService {
   rpc GetBrandIdByStoreId(GetBrandIdByStoreIdRequest) returns (GetBrandIdByStoreIdResponse);
   rpc GetListStoreByStoreIds(GetListStoreByStoreIdsRequest) returns (GetListStoreByStoreIdsResponse);
   rpc GetPaymentMethodConfigForUpdatePaymentMethod(GetPaymentMethodConfigForUpdatePaymentMethodRequest) returns (GetPaymentMethodConfigForUpdatePaymentMethodResponse);
+  rpc GetCredentialsConfigBySystemPaymentMethodId(GetCredentialsConfigBySystemPaymentMethodIdRequest) returns (GetCredentialsConfigBySystemPaymentMethodIdResponse);
 }
 message GetStoresByBrandPagingRequest {
   int32 page = 1;
@@ -116,4 +117,15 @@ message GetPaymentMethodConfigForUpdatePaymentMethodResponse {
   string oldCredentialsConfigAtStore = 2;
   string newSystemPaymentMethodId = 3;
   string newCredentialsConfigAtStore = 4;
+}
+message GetCredentialsConfigBySystemPaymentMethodIdRequest {
+  string storeId = 1;
+  string brandId = 2;
+  string systemPaymentMethodId = 3;
+}
+message GetCredentialsConfigBySystemPaymentMethodIdResponse  {
+  bool isSuccess = 1;
+  string errorMessage = 2;
+  string systemPaymentMethodId = 3;
+  string credentialsConfigAtStore = 4;
 }

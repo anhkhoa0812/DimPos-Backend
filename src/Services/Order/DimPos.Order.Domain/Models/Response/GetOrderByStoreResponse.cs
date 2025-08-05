@@ -12,7 +12,7 @@ public class GetOrderByStoreResponse
     public string? Note { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? CompletedAt { get; set; }
-    public string? TableNumberDineIn { get; set; }
+    public int? TableNumberDineIn { get; set; }
     public DateTime? PickupTime { get; set; }
     public bool IsNeedToUpdateInventory { get; set; }
     public List<GetOrderItemByStoreResponse> OrderItems { get; set; } = new();

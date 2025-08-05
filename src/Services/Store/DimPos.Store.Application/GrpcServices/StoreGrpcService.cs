@@ -312,4 +312,36 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             NewCredentialsConfigAtStore = newStorePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
         };
     }
+
+    public override async Task<GetCredentialsConfigBySystemPaymentMethodIdResponse> GetCredentialsConfigBySystemPaymentMethodId(GetCredentialsConfigBySystemPaymentMethodIdRequest request,
+        ServerCallContext context)
+    {
+        var storeId = Guid.Parse(request.StoreId);
+        var systemPaymentMethodId = Guid.Parse(request.SystemPaymentMethodId);
+
+        var storePaymentMethodConfig = await _unitOfWork.GetRepository<StorePaymentMethodConfigs>()
+            .SingleOrDefaultAsync(
+                predicate: x => x.SystemPaymentMethodTypeId == systemPaymentMethodId 
+                                && x.StoreId == storeId
+            );
+        if (storePaymentMethodConfig == null)
+        {
+            return new GetCredentialsConfigBySystemPaymentMethodIdResponse()
+            {
+                IsSuccess = false,
+                ErrorMessage = "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng",
+                SystemPaymentMethodId = String.Empty,
+                CredentialsConfigAtStore = String.Empty
+            };
+        }
+        
+        return new GetCredentialsConfigBySystemPaymentMethodIdResponse()
+        {
+            IsSuccess = true,
+            ErrorMessage = String.Empty,
+            SystemPaymentMethodId = storePaymentMethodConfig.SystemPaymentMethodTypeId.ToString(),
+            CredentialsConfigAtStore = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
+        };
+        
+    }
 }

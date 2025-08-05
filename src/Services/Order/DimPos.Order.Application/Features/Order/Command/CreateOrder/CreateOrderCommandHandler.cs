@@ -55,6 +55,20 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             throw new BadHttpRequestException("Không tìm thấy cửa hàng");
         }
 
+        if (request.TableNumberDineIn != null)
+        {
+            var existingTableNumberDineInOrder = await _unitOfWork.GetRepository<Orders>().SingleOrDefaultAsync(
+                predicate: x => x.StoreId == storeId &&
+                                x.BrandId == request.BrandId &&
+                                x.TableNumberDineIn == request.TableNumberDineIn &&
+                                x.Status == EOrderStatus.PendingPayment &&
+                                x.Type == EOrderType.DineIn
+            );
+            if (existingTableNumberDineInOrder != null)
+            {
+                throw new BadHttpRequestException($"Bàn {request.TableNumberDineIn} đã có đơn hàng đang chờ thanh toán");
+            }
+        }
         var accountId = _claimService.GetCurrentUserId;
         if (accountId == Guid.Empty)
         {
@@ -69,6 +83,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             TableNumberDineIn = request.TableNumberDineIn,
             PickupTime = request.PickupTime,
             CreatedByAccountId = accountId,
+            Type = EOrderType.DineIn,
             IsNeedToUpdateInventory = false
         };
         if (request.CustomerId != null && request.CustomerId != Guid.Empty)

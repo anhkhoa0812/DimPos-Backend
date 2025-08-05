@@ -85,11 +85,12 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
             foreach (var productVariant in request.ProductVariants)
             {
                 var existingProductVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
-                    predicate: x => x.Code == productVariant.Code
+                    predicate: x => x.Code == productVariant.Code ||
+                                    (string.IsNullOrEmpty(x.Sku) || x.Sku == productVariant.Sku)
                 );
                 if (existingProductVariant != null)
                 {
-                    throw new BadHttpRequestException($"Mã {productVariant.Code} đã tồn tại");
+                    throw new BadHttpRequestException($"Mã: {productVariant.Code} hoặc Sku: {productVariant.Sku} đã tồn tại");
                 }
                 var productVariants = ProductVariantMapper.ToPoProductVariants(productVariant);
                 productVariants.Id = Guid.CreateVersion7();
@@ -127,6 +128,14 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         }
         else
         {
+            var existingProductVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
+                predicate: x => x.Code == request.Code ||
+                                (string.IsNullOrEmpty(x.Sku) || x.Sku == request.Sku)
+            );
+            if (existingProductVariant != null)
+            {
+                throw new BadHttpRequestException($"Mã: {request.Code} hoặc Sku: {request.Sku} đã tồn tại");
+            }
             if(request.Price == null)
             {
                 throw new BadHttpRequestException("Giá không được để trống");
