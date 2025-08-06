@@ -93,7 +93,6 @@ public class InternalProductsEndpoints : ICarterModule
             Name = request.Name,
             Description = request.Description,
             Price = request.Price,
-            Sku = request.Sku,
             IsActive = request.IsActive,
             DisplayOrder = request.DisplayOrder,
             ExistInternalProductImages = request.ExistInternalProductImages,

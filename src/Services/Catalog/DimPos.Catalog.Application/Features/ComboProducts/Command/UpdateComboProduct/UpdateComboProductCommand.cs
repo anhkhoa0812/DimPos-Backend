@@ -8,7 +8,6 @@ public class UpdateComboProductCommand : IRequest<ApiResponse>
     public Guid Id { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
-    public string? Sku { get; set; }
     public int? DisplayOrder { get; set; }
     public bool? IsActive { get; set; }
     public decimal? Price { get; set; }
@@ -33,7 +32,6 @@ public class UpdateComboProductRequest
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
-    public string? Sku { get; set; }
     public int? DisplayOrder { get; set; }
     public bool? IsActive { get; set; }
     public decimal? Price { get; set; }

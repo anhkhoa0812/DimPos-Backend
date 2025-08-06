@@ -95,7 +95,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 var productVariants = ProductVariantMapper.ToPoProductVariants(productVariant);
                 productVariants.Id = Guid.CreateVersion7();
                 productVariants.ProductId = product.Id;
-                productVariants.IsActive = true;
+                productVariants.IsActive = false;
                 productVariants.Price = productVariant.BrandPrice;
                 productVariants.Description = productVariant.Description;
                 product.ProductVariants.Add(productVariants);
@@ -149,7 +149,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
                 Name = request.Name,
                 ProductId = product.Id,
                 Price = request.Price ?? 0,
-                IsActive = true,
+                IsActive = false,
                 DisplayOrder = request.DisplayOrder,
                 Description = request.Description,
                 Size = null,

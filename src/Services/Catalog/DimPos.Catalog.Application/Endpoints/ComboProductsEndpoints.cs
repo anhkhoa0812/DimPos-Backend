@@ -120,7 +120,6 @@ public class ComboProductsEndpoints : ICarterModule
             Id = id,
             Name = request.Name,
             Description = request.Description,
-            Sku = request.Sku,
             DisplayOrder = request.DisplayOrder,
             IsActive = request.IsActive,
             Price = request.Price,

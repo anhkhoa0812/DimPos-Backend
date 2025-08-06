@@ -21,7 +21,5 @@ public class UpdateProductVariantsRequestValidator : AbstractValidator<UpdatePro
         RuleFor(p => p.Name)
             .MinimumLength(1).WithMessage("Tên của biến thể sản phẩm phải có ít nhất 1 ký tự")
             .MaximumLength(200).WithMessage("Tên của biến thể sản phẩm không được vượt quá 200 ký tự");
-        RuleFor(p => p.Sku)
-            .MaximumLength(255).WithMessage("SKU của biến thể sản phẩm không được vượt quá 255 ký tự");
     }
 }

@@ -16,7 +16,5 @@ public class UpdateComboProductCommandValidator : AbstractValidator<UpdateComboP
 
       RuleFor(x => x.Price)
          .GreaterThan(0).WithMessage("Giá của sản phẩm phải lớn hơn 0");
-      RuleFor(p => p.Sku)
-         .MaximumLength(255).WithMessage("Mã SKU của sản phẩm không được vượt quá 255 ký tự");
    }
 }

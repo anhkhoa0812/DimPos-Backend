@@ -43,9 +43,20 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
                             x.Product.Type == Domain.Enums.EProductType.InternalOrder,
             include: x => x.Include(p => p.Product)
                 .ThenInclude(x => x.ProductImages)
+                .Include(x => x.RecipeItems)
         );
         if (productVariant == null)
             throw new BadHttpRequestException("Không tìm thấy biến thể sản phẩm với ID đã cung cấp.");
+        
+        if (request.IsActive != null)
+        {
+            if (request.IsActive == true &&
+                (productVariant.RecipeItems == null || !productVariant.RecipeItems.Any()) )
+            {
+                throw new BadHttpRequestException("Không thể vô hiệu hóa sản phẩm nhập hàng, vui lòng thêm công thức cho sản phẩm nhập hàng");
+            }
+            productVariant.IsActive = request.IsActive.Value;
+        }
         
         var existingMainImageCount = request.ExistInternalProductImages?.Count(x => x.IsMainImage) ?? 0;
         var newMainImageCount = request.NewInternalProductImages?.Count(x => x.IsMainImage) ?? 0;
@@ -149,8 +160,6 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
             productVariant.Product.DisplayOrder = request.DisplayOrder;
         }
         
-        productVariant.IsActive = request.IsActive ?? productVariant.IsActive;
-        productVariant.Sku = request.Sku ?? productVariant.Sku;
         if (request.Price != null)
         {
             var basePrice = await _unitOfWork.GetRepository<BasePrice>().SingleOrDefaultAsync(

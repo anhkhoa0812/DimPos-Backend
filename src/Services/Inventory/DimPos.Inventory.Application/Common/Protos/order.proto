@@ -13,4 +13,10 @@ message GetIsNeedToUpdateInventoryByOrderIdRequest {
 message GetIsNeedToUpdateInventoryByOrderIdResponse {
   string orderId = 1;
   bool isNeedToUpdateInventory = 2;
+  repeated OrderItemResponse orderItems = 3;
+}
+message OrderItemResponse {
+  string id = 1;
+  string productVariantId = 2;
+  int32 quantity = 3;
 }

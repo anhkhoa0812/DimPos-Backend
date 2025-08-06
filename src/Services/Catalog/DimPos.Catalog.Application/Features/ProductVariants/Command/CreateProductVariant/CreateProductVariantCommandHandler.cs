@@ -59,7 +59,7 @@ public class CreateProductVariantCommandHandler : IRequestHandler<CreateProductV
             Price = request.Price,
             Sku = request.Sku,
             Size = request.Size,
-            IsActive = true
+            IsActive = false
         };
         await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().InsertAsync(productVariant);
         

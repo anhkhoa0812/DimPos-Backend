@@ -4,4 +4,5 @@ public class GrpcSettings
 {
     public string PaymentUrl { get; set; }
     public string IdentityUrl { get; set; }
+    public string OrderUrl { get; set; }
 }

@@ -73,7 +73,7 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
             Name = request.Name,
             Description = request.Description,
             DisplayOrder = request.DisplayOrder,
-            IsActive = true,
+            IsActive = false,
             Price = request.Price,
             Size = null,
             Sku = request.Sku,

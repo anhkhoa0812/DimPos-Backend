@@ -33,9 +33,19 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
             predicate: x => x.Id == request.ProductVariantId && x.Product.BrandId == brandId
             && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(p => p.Product)
+                .Include(x => x.RecipeItems)
         );
         if(productVariant == null)
             throw new BadHttpRequestException("Không tìm thấy biến thể sản phẩm với ID đã cung cấp.");
+        if (request.UpdateProductVariants.IsActive != null)
+        {
+            if (request.UpdateProductVariants.IsActive == true &&
+                (productVariant.RecipeItems == null || !productVariant.RecipeItems.Any()) )
+            {
+                throw new BadHttpRequestException("Không thể vô hiệu hóa biến thể sản phẩm, vui lòng thêm công thức cho biến thể sản phẩm");
+            }
+            productVariant.IsActive = request.UpdateProductVariants.IsActive.Value;
+        }
         productVariant.Name = request.UpdateProductVariants.Name ?? productVariant.Name;
         if (request.UpdateProductVariants.Price != null 
             && request.UpdateProductVariants.Price != productVariant.Price)
@@ -59,20 +69,9 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
             _unitOfWork.GetRepository<BasePrice>().UpdateAsync(brandPrice);
             productVariant.Price = (decimal)request.UpdateProductVariants.Price;
         } 
-        // if (request.UpdateProductVariants.IsActive != null)
-        // {
-        //     if (request.UpdateProductVariants.IsActive == false &&
-        //         productVariant.IsActive != request.UpdateProductVariants.IsActive &&
-        //         productVariant.Product.ProductVariants.Count <= 1)
-        //     {
-        //         throw new BadHttpRequestException("Không thể vô hiệu hóa biến thể sản phẩm");
-        //     }
-        //     productVariant.IsActive = request.UpdateProductVariants.IsActive.Value;
-        // }
         productVariant.IsActive = request.UpdateProductVariants.IsActive ?? productVariant.IsActive;
         productVariant.Size = request.UpdateProductVariants.Size ?? productVariant.Size;
         productVariant.DisplayOrder = request.UpdateProductVariants.DisplayOrder ?? productVariant.DisplayOrder;
-        productVariant.Sku = request.UpdateProductVariants.Sku ?? productVariant.Sku;
         productVariant.Description = request.UpdateProductVariants.Description ?? productVariant.Description;
         _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().UpdateAsync(productVariant);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

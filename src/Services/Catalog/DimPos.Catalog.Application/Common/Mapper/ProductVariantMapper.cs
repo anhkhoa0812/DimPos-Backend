@@ -10,5 +10,4 @@ public static partial class ProductVariantMapper
 {
     public static partial ProductVariants ToPoProductVariants(CreateProductVariant createProductVariant);
     
-    public static partial GetProductVariantsByIdResponse ToGetProductVariantsByIdResponse(ProductVariants productVariants);
 }
