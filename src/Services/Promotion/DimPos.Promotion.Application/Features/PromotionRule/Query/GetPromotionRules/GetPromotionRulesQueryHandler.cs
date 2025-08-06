@@ -53,7 +53,12 @@ public class GetPromotionRulesQueryHandler : IRequestHandler<GetPromotionRulesQu
                     MaxDiscountAmountForPercentage = x.RuleActions.MaxDiscountAmountForPercentage
                 }
             },
-            predicate: x => x.BrandId == brandId
+            predicate: x => x.BrandId == brandId && 
+                            (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)),
+            page: request.Page,
+            size: request.Size,
+            sortBy: request.SortBy ?? "CreatedDate",
+            isAsc: request.IsAsc
         );
         return new ApiResponse
         {

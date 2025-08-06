@@ -100,7 +100,7 @@ public class ProductsEndpoints : ICarterModule
 
     public async Task<IResult> GetProducts(IMediator mediator, [FromQuery] int page = 1, 
         [FromQuery] int size = 10, [FromQuery] string? sortBy = nameof(Products.DisplayOrder), [FromQuery] bool isAsc = true, 
-        [FromQuery] string? name = null, [FromQuery] bool? isHasVariants = null)
+        [FromQuery] string? name = null, [FromQuery] bool? isHasVariants = null, [FromQuery] string? code = null)
     {
         var query = new GetAllProductsQueries()
         {
@@ -109,7 +109,8 @@ public class ProductsEndpoints : ICarterModule
             SortBy = sortBy,
             IsAsc = isAsc,
             Name = name,
-            IsHasVariants = isHasVariants
+            IsHasVariants = isHasVariants,
+            Code = code
         };
         var result = await mediator.Send(query);
         return Results.Json(result);

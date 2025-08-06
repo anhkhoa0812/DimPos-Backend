@@ -85,7 +85,12 @@ public class UpdateStorePurchaseOrderCommandHandler : IRequestHandler<UpdateStor
                     }
                     storePurchaseOrderItem.ApprovedQuantityByBrand =
                         requestStorePurchaseOrderItem.ApprovedQuantityByBrand;
+                    storePurchaseOrderItem.TotalPriceOfOrderItems =
+                        storePurchaseOrderItem.ApprovedQuantityByBrand.Value *
+                        storePurchaseOrderItem.ProductVariantPriceSnapshot;
                 }
+                storePurchaseOrder.EstimatedTotalValue = storePurchaseOrder.StorePurchaseOrderItems
+                    .Sum(x => x.TotalPriceOfOrderItems);
                 storePurchaseOrder.Status = EStorePurchaseOrderStatus.BrandConfirmed;
                 storePurchaseOrder.ConfirmedByBrandAt = TimeUtil.GetCurrentSEATime();
                 break;

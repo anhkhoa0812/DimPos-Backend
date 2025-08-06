@@ -53,7 +53,7 @@ public class UpdateInternalProductCommandHandler : IRequestHandler<UpdateInterna
             if (request.IsActive == true &&
                 (productVariant.RecipeItems == null || !productVariant.RecipeItems.Any()) )
             {
-                throw new BadHttpRequestException("Không thể vô hiệu hóa sản phẩm nhập hàng, vui lòng thêm công thức cho sản phẩm nhập hàng");
+                throw new BadHttpRequestException("Không thể kích hoạt sản phẩm nhập hàng, vui lòng thêm công thức cho sản phẩm nhập hàng");
             }
             productVariant.IsActive = request.IsActive.Value;
         }

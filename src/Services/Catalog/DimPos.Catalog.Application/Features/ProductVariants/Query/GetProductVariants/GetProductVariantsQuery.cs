@@ -11,4 +11,5 @@ public class GetProductVariantsQuery : IRequest<ApiResponse>
     public bool IsAsc { get; set; }
     public string? Name { get; set; }
     public string? Sku { get; set; }
+    public string? Code { get; set; }
 }

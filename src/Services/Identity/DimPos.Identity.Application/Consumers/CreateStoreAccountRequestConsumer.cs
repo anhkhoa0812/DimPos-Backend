@@ -32,7 +32,9 @@ public class CreateStoreAccountRequestConsumer : IConsumer<CreateStoreAccountReq
                 predicate: x => x.Name == ERoleName.StoreAdmin
             );
             var existingAccount = await _unitOfWork.GetRepository<Accounts>().SingleOrDefaultAsync(
-                predicate: x => x.Code == context.Message.Code || x.Email == context.Message.Email || x.Username == context.Message.Username
+                predicate: x => x.Code == context.Message.Code 
+                                || (string.IsNullOrEmpty(context.Message.Email) || x.Email == context.Message.Email)
+                                || x.Username == context.Message.Username
             );
             if (existingAccount != null)
             {

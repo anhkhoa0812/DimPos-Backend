@@ -40,6 +40,16 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Api
         {
             throw new BadHttpRequestException("Không tìm thấy Id của tài khoản thương hiệu");
         }
+
+        var existingStore = await _unitOfWork.GetRepository<Domain.Entities.Store>().SingleOrDefaultAsync(
+            predicate: x => x.Code == request.Code ||
+                            (string.IsNullOrEmpty(request.Email) || x.Email == request.Email) ||
+                            (string.IsNullOrEmpty(request.Phone) || x.Phone == request.Phone)
+        );
+        if (existingStore != null)
+        {
+            throw new BadHttpRequestException("Cửa hàng đã tồn tại với mã, email hoặc số điện thoại này");
+        }
         var store = StoreMapper.ToStores(request);
         store.Id = Guid.CreateVersion7();
         store.Status = EStoreStatus.Active;

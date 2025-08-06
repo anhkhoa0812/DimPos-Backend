@@ -62,10 +62,11 @@ public class GetAllProductsQueriesHandler : IRequestHandler<GetAllProductsQuerie
                             x.Type == EProductType.CustomerOrder &&
                             !x.IsCombo &&
                            (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)) &&
-                           (request.IsHasVariants == null || x.IsHasVariants == request.IsHasVariants),
+                           (request.IsHasVariants == null || x.IsHasVariants == request.IsHasVariants) && 
+                           (string.IsNullOrEmpty(request.Code) || x.Code.Contains(request.Code)),
             page: request.Page,
             size: request.Size,
-            sortBy: request.SortBy,
+            sortBy: request.SortBy ?? "DisplayOrder",
             isAsc: request.IsAsc
         );
         return new ApiResponse

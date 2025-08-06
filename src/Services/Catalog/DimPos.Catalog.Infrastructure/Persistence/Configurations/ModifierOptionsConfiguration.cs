@@ -10,6 +10,7 @@ public class ModifierOptionsConfiguration : IEntityTypeConfiguration<ModifierOpt
     {
         builder.HasKey(mo => mo.Id);
         builder.Property(mo => mo.Name)
+            .IsRequired()
             .HasMaxLength(200);
         builder.Property(mo => mo.Description)
             .HasMaxLength(1000);

@@ -123,7 +123,7 @@ public class PromotionRuleEndpoints : ICarterModule
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }
-    public async Task<IResult> GetPromotionRules(IMediator mediator, [FromQuery] int size = 10,
+    public async Task<IResult> GetPromotionRules(IMediator mediator, [FromQuery] int size = 30,
         [FromQuery] int page = 1, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, 
         [FromQuery] string? name = null)
     {

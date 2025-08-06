@@ -245,7 +245,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                         modifierGroup.ModifierOptions?.Select(x => new ModifierOptionResponse()
                         {
                             Id = x.Id.ToString(),
-                            Name = x.Name ,
+                            Name = x.Name,
                             Description = x.Description ?? String.Empty,
                             IsActive = x.IsActive,
                             PriceDelta = x.PriceDelta != null ? (float)x.PriceDelta.Value : 0,

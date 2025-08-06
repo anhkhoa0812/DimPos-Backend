@@ -42,7 +42,8 @@ public class GetCategoriesByBrandQueryHandler : IRequestHandler<GetCategoriesByB
                 Status = x.Status
             },
             predicate: x => x.BrandId == brandId 
-            && (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)),
+            && (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name))
+            && (request.Type == null || x.Type == request.Type),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy,

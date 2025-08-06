@@ -15,13 +15,13 @@ public class CreateCategoriesCommandValidator : AbstractValidator<CreateCategori
         
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Tên của danh mục không được để trống")
+            .NotNull().WithMessage("Tên của danh mục không được để trống")
             .MinimumLength(1).WithMessage("Tên của danh mục không được ít hơn 1 ký tự")
             .MaximumLength(200).WithMessage("Tên của danh mục không được quá 200 ký tự");
         RuleFor(x => x.Description)
             .MaximumLength(1000).WithMessage("Mô tả của danh mục không được quá 1000 ký tự");
         
         RuleFor(x => x.Type)
-            .NotEmpty().WithMessage("Loại danh mục không được để trống")
             .IsInEnum().WithMessage("Loại danh mục không hợp lệ");
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Trạng thái của danh mục không hợp lệ");
