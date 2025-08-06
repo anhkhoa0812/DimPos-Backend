@@ -5,6 +5,7 @@ using DimPos.Catalog.Application.Features.Categories.Command.UpdateCategories;
 using DimPos.Catalog.Application.Features.Categories.Query.GetCategoriesByBrand;
 using DimPos.Catalog.Application.Features.Categories.Query.GetCategoryById;
 using DimPos.Catalog.Domain.Constants;
+using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Infrastructure.Filter.FilterModel;
 using Mediator;
@@ -62,7 +63,7 @@ public class CategoriesEndpoints : ICarterModule
     }
 
     public async Task<IResult> GetCategoriesByBrand(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int size = 30,
-        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, [FromQuery] string? name = null)
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, [FromQuery] string? name = null, [FromQuery] ECategoryType? type = null)
     {
         var query = new GetCategoriesByBrandQuery()
         {
@@ -70,7 +71,8 @@ public class CategoriesEndpoints : ICarterModule
             Page = page,
             SortBy = sortBy,
             IsAsc = isAsc,
-            Name = name
+            Name = name,
+            Type = type
         };
         var apiResponse = await mediator.Send(query);
         return Results.Json(apiResponse);

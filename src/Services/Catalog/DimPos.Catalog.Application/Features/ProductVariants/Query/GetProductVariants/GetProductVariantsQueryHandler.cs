@@ -50,7 +50,8 @@ public class GetProductVariantsQueryHandler : IRequestHandler<GetProductVariants
                             x.Product.Type == EProductType.CustomerOrder &&
                             !x.Product.IsCombo &&
                             (request.Name == null || x.Name.Contains(request.Name)) && 
-                            (request.Sku == null || x.Sku.Contains(request.Sku)),
+                            (request.Sku == null || x.Sku.Contains(request.Sku)) && 
+                            (string.IsNullOrEmpty(request.Code) || x.Code.Contains(request.Code)),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy ?? "DisplayOrder",

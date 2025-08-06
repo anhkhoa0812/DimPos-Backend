@@ -28,6 +28,8 @@ public class CreateModifierOptionsValidator : AbstractValidator<CreateModifierOp
     public CreateModifierOptionsValidator()
     {
         RuleFor(x => x.Name)
+            .NotNull().WithMessage("Tên của tùy chọn không được để trống.")
+            .NotEmpty().WithMessage("Tên của tùy chọn không được để trống.")
             .MaximumLength(200).WithMessage("Tên của tùy chọn không được nhiều hơn 200 ký tự.");
         RuleFor(x => x.IsActive)
             .NotEmpty().WithMessage("Trạng thái của tùy chọn không được để trống.");

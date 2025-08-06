@@ -79,7 +79,9 @@ public class ProductVariantsEndpoint : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
-    public async Task<IResult> GetProductVariants(IMediator mediator, [FromQuery] int page = 1, [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, [FromQuery] string? name = null, [FromQuery] string? sku = null)
+    public async Task<IResult> GetProductVariants(IMediator mediator, [FromQuery] int page = 1, 
+        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, 
+        [FromQuery] string? name = null, [FromQuery] string? sku = null, [FromQuery] string? code = null)
     {
         var query = new GetProductVariantsQuery()
         {
@@ -88,7 +90,8 @@ public class ProductVariantsEndpoint : ICarterModule
             SortBy = sortBy,
             IsAsc = isAsc,
             Name = name,
-            Sku = sku
+            Sku = sku,
+            Code = code
         };
         var result = await mediator.Send(query);
         return Results.Ok(result);

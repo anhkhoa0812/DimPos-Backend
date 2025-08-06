@@ -4,7 +4,7 @@ namespace DimPos.Catalog.Domain.Entities;
 
 public class ModifierOptions : EntityAuditBase<Guid>
 {
-    public string? Name { get; set; }
+    public string Name { get; set; } = String.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; }
     public decimal? PriceDelta { get; set; }

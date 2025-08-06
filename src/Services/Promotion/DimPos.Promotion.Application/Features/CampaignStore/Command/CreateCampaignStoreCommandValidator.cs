@@ -7,7 +7,9 @@ public class CreateCampaignStoreCommandValidator : AbstractValidator<CreateCampa
     public CreateCampaignStoreCommandValidator()
     {
         RuleFor(x => x.CampaignId)
-            .NotEmpty().WithMessage("Id của chiến dịch không được để trống.");
+            .NotEmpty().WithMessage("Id của chiến dịch không được để trống.")
+            .NotNull().WithMessage("Id của chiến dịch không được để trống.")
+            .NotEqual(Guid.Empty).WithMessage("Id của chiến dịch không được là Guid.Empty.");
 
         RuleFor(x => x.StoreIds)
             .NotEmpty().WithMessage("Danh sách Id cửa hàng không được để trống.")

@@ -45,11 +45,12 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
         }
         
         var exisingProductVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
-            predicate: x => x.Code == request.Code
+            predicate: x => x.Code == request.Code || 
+                           (string.IsNullOrEmpty(x.Sku) || x.Sku == request.Sku)
         );
         if (exisingProductVariant != null)
         {
-            throw new BadHttpRequestException("Mã sản phẩm đã tồn tại");
+            throw new BadHttpRequestException("Mã sản phẩm hoặc SKU đã tồn tại");
         }
         _logger.Information($"BEGIN: {nameof(CreateInternalProductCommandHandler)} - {TimeUtil.GetCurrentSEATime()}");
         var product = new Domain.Entities.Products()

@@ -42,7 +42,7 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
             if (request.UpdateProductVariants.IsActive == true &&
                 (productVariant.RecipeItems == null || !productVariant.RecipeItems.Any()) )
             {
-                throw new BadHttpRequestException("Không thể vô hiệu hóa biến thể sản phẩm, vui lòng thêm công thức cho biến thể sản phẩm");
+                throw new BadHttpRequestException("Không thể kích hoạt biến thể sản phẩm, vui lòng thêm công thức cho biến thể sản phẩm");
             }
             productVariant.IsActive = request.UpdateProductVariants.IsActive.Value;
         }
