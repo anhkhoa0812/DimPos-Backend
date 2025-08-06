@@ -17,6 +17,5 @@ public class UpdateProductVariantsRequest
     public bool? IsActive { get; set; }
     public string? Size { get; set; }
     public int? DisplayOrder { get; set; }
-    public string? Sku { get; set; }
     public string? Description { get; set; }
 }

@@ -20,4 +20,5 @@ public sealed record Topics
     public string UpdateInventoryForCancelOrderRequest { get; set; } = default!;
     public string UpdateInventoryForCancelOrderResponse { get; set; } = default!;
     public string UpdateInventoryForCancelOrderError { get; set; } = default!;
+    public string ChangeIsNeedToUpdateInventoryForOrderRequest { get; set; } = default!;
 }

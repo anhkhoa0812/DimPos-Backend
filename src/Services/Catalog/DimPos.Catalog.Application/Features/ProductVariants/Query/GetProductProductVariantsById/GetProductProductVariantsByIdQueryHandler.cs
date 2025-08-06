@@ -37,15 +37,43 @@ public class GetProductProductVariantsByIdQueryHandler : IRequestHandler<GetProd
             && x.Product.Type == EProductType.CustomerOrder
             && !x.Product.IsCombo,
             include: x => x.Include(x => x.Product)
+                .Include(x => x.RecipeItems).ThenInclude(x => x.Ingredient)
         );
         if (productVariant == null)
             throw new BadHttpRequestException("Không tìm thấy biến thể sản phẩm với ID đã cung cấp.");
-        var response = ProductVariantMapper.ToGetProductVariantsByIdResponse(productVariant);
-        if (response != null)
+        var response = new GetProductVariantsByIdResponse()
         {
-            if (productVariant.Product.CategoryId != null)
-                response.CategoryId = productVariant.Product.CategoryId.Value;
-        }
+            Id = productVariant.Id,
+            Name = productVariant.Name,
+            IsActive = productVariant.IsActive,
+            Price = productVariant.Price,
+            ProductId = productVariant.ProductId,
+            Sku = productVariant.Sku,
+            Code = productVariant.Code,
+            Size = productVariant.Size,
+            Description = productVariant.Description,
+            CategoryId = productVariant.Product.CategoryId.Value,
+            RecipeItems = productVariant.RecipeItems?.Select(x => new RecipeItemsForGetProductVariantsByIdResponse()
+            {
+                Id = x.Id,
+                Quantity = x.Quantity,
+                CreatedByAccountId = x.CreatedByAccountId,
+                CreatedDate = x.CreatedDate,
+                LastModifiedDate = x.LastModifiedDate,
+                Ingredient = new IngredientForGetProductVariantsByIdResponse()
+                {
+                    Id = x.Ingredient.Id,
+                    Name = x.Ingredient.Name,
+                    Code = x.Ingredient.Code,
+                    Description = x.Ingredient.Description,
+                    IsActive = x.Ingredient.IsActive,
+                    Sku = x.Ingredient.Sku,
+                    MeasureUnit = x.Ingredient.MeasureUnit,
+                    CreatedDate = x.Ingredient.CreatedDate,
+                    LastModifiedDate = x.LastModifiedDate
+                }
+            }).ToList()
+        };
         _logger.Information($"END: {nameof(GetProductProductVariantsByIdQueryHandler)}: {request.ProductVariantId}");
 
         return new ApiResponse

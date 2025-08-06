@@ -90,7 +90,31 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         {
             
         }
-
+        
+        var storeDetailGrpcResponse = await _storeGrpcService.GetTaxRateAndPaymentMethodConfigAsync(new GetTaxRateAndPaymentMethodConfigRequest()
+        {
+            StoreId = storeId.ToString(),
+            BrandId = request.BrandId.ToString(),
+            StorePaymentMethodConfigId = request.StorePaymentMethodConfigId.ToString()
+        });
+        if (storeDetailGrpcResponse.IsSuccess == false)
+        {
+            throw new BadHttpRequestException(storeDetailGrpcResponse.ErrorMessage);
+        }
+        order.FinancialShiftId = Guid.Parse(storeDetailGrpcResponse.FinancialShiftId);
+        if (storeDetailGrpcResponse.Rate != 0)
+        {
+            order.AppliedTax = new AppliedTaxes()
+            {
+                Id = Guid.CreateVersion7(),
+                OrderId = order.Id,
+                TaxRateId = Guid.Parse(storeDetailGrpcResponse.TaxRateId),
+                TaxNameSnapshot = storeDetailGrpcResponse.TaxRateName,
+                TaxRateSnapshot = (decimal)storeDetailGrpcResponse.Rate,
+            };
+        }
+        
+        
         var orderItemsFromGrpc = await _catalogGrpcService.GetProductForOrderAsync(new GetProductForOrderRequest()
         {
             StoreId = storeId.ToString(),
@@ -157,24 +181,6 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         }).ToList();
         order.OrderItems = orderItems;
         order.SubTotalAmount = order.OrderItems.Sum(x => x.TotalPriceBeforeItemDiscount);
-
-        var storeDetailGrpcResponse = await _storeGrpcService.GetTaxRateAndPaymentMethodConfigAsync(new GetTaxRateAndPaymentMethodConfigRequest()
-        {
-            StoreId = storeId.ToString(),
-            BrandId = request.BrandId.ToString(),
-            StorePaymentMethodConfigId = request.StorePaymentMethodConfigId.ToString()
-        });
-        if (storeDetailGrpcResponse.Rate != 0)
-        {
-            order.AppliedTax = new AppliedTaxes()
-            {
-                Id = Guid.CreateVersion7(),
-                OrderId = order.Id,
-                TaxRateId = Guid.Parse(storeDetailGrpcResponse.TaxRateId),
-                TaxNameSnapshot = storeDetailGrpcResponse.TaxRateName,
-                TaxRateSnapshot = (decimal)storeDetailGrpcResponse.Rate,
-            };
-        }
         
         if (request.PromotionRuleIds != null && request.PromotionRuleIds.Any())
         {

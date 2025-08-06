@@ -42,7 +42,7 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
         );
         if (exisingProduct != null)
         {
-            throw new BadHttpRequestException("Mã sản phẩm đã tồn tại");
+            throw new BadHttpRequestException("Mã combo sản phẩm đã tồn tại");
         }
 
         if (request.ItemProductVariants.Count < 2)

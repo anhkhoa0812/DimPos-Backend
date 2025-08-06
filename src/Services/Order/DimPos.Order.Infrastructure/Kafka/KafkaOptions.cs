@@ -20,4 +20,5 @@ public sealed record Topics
     public string ConfirmForCashOrderResponse { get; set; } = default!;
     public string RollbackPendingForCashOrderRequest { get; set; } = default!;
     public string CancelOrderResponse { get; set; } = default!;
+    public string ChangeIsNeedToUpdateInventoryForOrderRequest { get; set; } = default!;
 }

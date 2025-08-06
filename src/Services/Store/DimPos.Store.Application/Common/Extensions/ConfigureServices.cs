@@ -1,4 +1,5 @@
 using DimPos.Identity.Application.Common.Protos;
+using DimPos.Order.Application.Common.Protos;
 using DimPos.Payment.Application.Common.Protos;
 using DimPos.Store.Application.Common.Behaviours;
 using DimPos.Store.Application.Common.Utils;
@@ -77,6 +78,10 @@ public static class ConfigureServices
         services.AddGrpcClient<IdentityGrpcService.IdentityGrpcServiceClient>(x =>
         {
             x.Address = new Uri(settings.IdentityUrl);
+        });
+        services.AddGrpcClient<OrderGrpcService.OrderGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.OrderUrl);
         });
         return services;
     }

@@ -518,6 +518,40 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         return response;
 
     }
+
+    public override async Task<GetRecipeItemsByOrderItemsResponse> GetRecipeItemsByOrderItems(GetRecipeItemsByOrderItemsRequest request, ServerCallContext context)
+    {
+        var productVariantIds = request.OrderItems.Select(x => Guid.Parse(x.ProductVariantId)).ToList();
+        var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
+            predicate: x => productVariantIds.Contains(x.Id)
+                            && x.RecipeItems != null && x.RecipeItems.Any(),
+            include: x => x.Include(x => x.RecipeItems)
+                .ThenInclude(ri => ri.Ingredient)
+        );
+        var response = new GetRecipeItemsByOrderItemsResponse();
+        foreach (var orderItem in request.OrderItems)
+        {
+            var id = Guid.Parse(orderItem.ProductVariantId);
+            var productVariant = productVariants.First(x => x.Id == id);
+            if (productVariant.RecipeItems != null)
+                response.RecipeItems.Add(productVariant.RecipeItems.Select(x => new RecipeItemsForOrderResponse()
+                    {
+                        RecipeItemId = x.Id.ToString(),
+                        Quantity = orderItem.Quantity * (float) x.Quantity,
+                        Ingredient = new IngredientForOrderResponse()
+                        {
+                            Id = x.Ingredient.Id.ToString(),
+                            Name = x.Ingredient.Name,
+                            Sku = x.Ingredient.Sku ?? String.Empty,
+                            Code = x.Ingredient.Code ?? String.Empty,
+                            MeasureUnit = x.Ingredient.MeasureUnit ?? String.Empty,
+                            Description = x.Ingredient.Description ?? String.Empty
+                        }
+                    })
+                );
+        }
+        return response;
+    }
     // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     // {
     //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();

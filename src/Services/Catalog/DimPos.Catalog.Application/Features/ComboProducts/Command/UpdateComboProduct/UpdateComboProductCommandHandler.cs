@@ -154,7 +154,6 @@ public class UpdateComboProductCommandHandler : IRequestHandler<UpdateComboProdu
         }
         
         productVariant.IsActive = request.IsActive ?? productVariant.IsActive;
-        productVariant.Sku = request.Sku ?? productVariant.Sku;
         if (request.Price != null)
         {
             var basePrice = await _unitOfWork.GetRepository<BasePrice>().SingleOrDefaultAsync(

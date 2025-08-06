@@ -12,6 +12,7 @@ service CatalogGrpcService {
   rpc GetProductForOrder (GetProductForOrderRequest) returns (GetProductForOrderResponse);
   rpc GetProductVariantForInternalOrder (GetProductVariantForInternalOrderRequest) returns (GetProductVariantForInternalOrderResponse);
   rpc GetIngredientsByIngredientIds (GetIngredientsByIngredientIdsRequest) returns (GetIngredientsByIngredientIdsResponse);
+  rpc GetRecipeItemsByOrderItems (GetRecipeItemsByOrderItemsRequest)returns (GetRecipeItemsByOrderItemsResponse);
 }
 message GetProductVariantsByBrandRequest {
   int32 page = 1;
@@ -254,4 +255,14 @@ message IngredientForGetIngredientsResponse {
   string name = 4;
   string measureUnit = 5;
   string description = 6;
+}
+message GetRecipeItemsByOrderItemsRequest {
+  repeated OrderItemForGetRecipeItemsByOrderItemsRequest orderItems = 1;
+}
+message OrderItemForGetRecipeItemsByOrderItemsRequest {
+  string productVariantId = 2;
+  int32 quantity = 3;
+}
+message GetRecipeItemsByOrderItemsResponse {
+  repeated RecipeItemsForOrderResponse recipeItems = 1;
 }

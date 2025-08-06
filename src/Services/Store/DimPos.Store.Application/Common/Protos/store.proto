@@ -81,11 +81,14 @@ message GetTaxRateAndPaymentMethodConfigRequest {
   string storePaymentMethodConfigId = 3;
 }
 message GetTaxRateAndPaymentMethodConfigResponse {
-  string taxRateId = 1;
-  string taxRateName = 2;
-  float rate = 3;
-  string systemPaymentMethodId = 4;
-  string credentialsConfigAtStore = 5;
+  bool isSuccess = 1;
+  string taxRateId = 2;
+  string taxRateName = 3;
+  float rate = 4;
+  string systemPaymentMethodId = 5;
+  string credentialsConfigAtStore = 6;
+  string financialShiftId = 7;
+  string errorMessage = 8;
 }
 message GetCredentialsConfigByMerchantIdRequest {
   int64 merchantId = 1;

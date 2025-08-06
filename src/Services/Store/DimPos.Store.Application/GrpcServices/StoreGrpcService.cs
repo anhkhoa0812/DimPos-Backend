@@ -1,6 +1,7 @@
 using System.Text.Json;
 using DimPos.Store.Application.Common.Protos;
 using DimPos.Store.Domain.Entities;
+using DimPos.Store.Domain.Enums;
 using DimPos.Store.Domain.Models.MPos;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
@@ -157,14 +158,78 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             predicate: x => x.Id == Guid.Parse(request.StoreId) && x.BrandId == Guid.Parse(request.BrandId),
             include: x => x.Include(x => x.TaxRates)
                 .Include(x => x.StorePaymentMethodConfigs)
+                .Include(x => x.FinancialShiftConfigs)
+                .ThenInclude(x => x.FinancialShifts)
         );
+        
         if (store == null)
         {
             throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cửa hàng"));
         }
+        
+        var activeFinancialShiftConfig = store.FinancialShiftConfigs?
+            .FirstOrDefault(x => x.IsActive);
+        if (activeFinancialShiftConfig == null)
+        {
+            return new GetTaxRateAndPaymentMethodConfigResponse()
+            {
+                IsSuccess = false,
+                ErrorMessage = "Không tìm thấy cấu hình ca tài chính cho cửa hàng",
+                TaxRateId = String.Empty,
+                TaxRateName = String.Empty,
+                Rate = 0,
+                FinancialShiftId = String.Empty,
+                CredentialsConfigAtStore = String.Empty,
+                SystemPaymentMethodId = String.Empty
+            };
+        }
+
+        var financialShift =
+            activeFinancialShiftConfig.FinancialShifts?.FirstOrDefault(x => x.Status == EFinancialShiftStatus.Open);
+        if (financialShift == null)
+        {
+            return new GetTaxRateAndPaymentMethodConfigResponse()
+            {
+                IsSuccess = false,
+                ErrorMessage = "Không tìm thấy ca tài chính đang mở cho cửa hàng",
+                TaxRateId = String.Empty,
+                TaxRateName = String.Empty,
+                Rate = 0,
+                FinancialShiftId = String.Empty,
+                CredentialsConfigAtStore = String.Empty,
+                SystemPaymentMethodId = String.Empty
+            };
+        }
+        
         if(store.StorePaymentMethodConfigs == null || !store.StorePaymentMethodConfigs.Any())
         {
-            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng"));
+            return new GetTaxRateAndPaymentMethodConfigResponse()
+            {
+                IsSuccess = false,
+                ErrorMessage = "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng",
+                TaxRateId = String.Empty,
+                TaxRateName = String.Empty,
+                Rate = 0,
+                FinancialShiftId = String.Empty,
+                CredentialsConfigAtStore = String.Empty,
+                SystemPaymentMethodId = String.Empty
+            };
+        }
+        var nowTimeOnly = TimeOnly.FromDateTime(TimeUtil.GetCurrentSEATime());
+        if(nowTimeOnly < activeFinancialShiftConfig.OpeningTime 
+           || nowTimeOnly > activeFinancialShiftConfig.ClosingTime)
+        {
+            return new GetTaxRateAndPaymentMethodConfigResponse()
+            {
+                IsSuccess = false,
+                ErrorMessage = "Ca tài chính hiện tại không hợp lệ, vui lòng kiểm tra lại thời gian mở ca và đóng ca",
+                TaxRateId = String.Empty,
+                TaxRateName = String.Empty,
+                Rate = 0,
+                FinancialShiftId = String.Empty,
+                CredentialsConfigAtStore = String.Empty,
+                SystemPaymentMethodId = String.Empty
+            };
         }
         
         var storePaymentMethodConfig = store.StorePaymentMethodConfigs.FirstOrDefault(
@@ -174,28 +239,44 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
         );
         if (storePaymentMethodConfig == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng"));
+            return new GetTaxRateAndPaymentMethodConfigResponse()
+            {
+                IsSuccess = false,
+                ErrorMessage = "Không tìm thấy cấu hình phương thức thanh toán cho cửa hàng",
+                TaxRateId = String.Empty,
+                TaxRateName = String.Empty,
+                Rate = 0,
+                FinancialShiftId = financialShift.Id.ToString(),
+                CredentialsConfigAtStore = String.Empty,
+                SystemPaymentMethodId = String.Empty
+            };
         }
         var taxRate = store.TaxRates.FirstOrDefault(x => x.IsActive);
         if (taxRate == null)
         {
             return new GetTaxRateAndPaymentMethodConfigResponse()
             {
+                IsSuccess = true,
+                ErrorMessage = String.Empty,
                 TaxRateId = String.Empty,
                 TaxRateName = String.Empty,
                 Rate = 0,
                 SystemPaymentMethodId = storePaymentMethodConfig.SystemPaymentMethodTypeId.ToString(),
-                CredentialsConfigAtStore = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
+                CredentialsConfigAtStore = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty,
+                FinancialShiftId = financialShift.Id.ToString()
             };
         }
 
         return new GetTaxRateAndPaymentMethodConfigResponse()
         {
+            IsSuccess = true,
+            ErrorMessage = String.Empty,
             TaxRateId = taxRate.Id.ToString(),
             TaxRateName = taxRate.Name,
             Rate = (float)(taxRate.Rate),
             SystemPaymentMethodId = storePaymentMethodConfig.SystemPaymentMethodTypeId.ToString(),
-            CredentialsConfigAtStore = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
+            CredentialsConfigAtStore = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty,
+            FinancialShiftId = financialShift.Id.ToString()
         };
 
     }

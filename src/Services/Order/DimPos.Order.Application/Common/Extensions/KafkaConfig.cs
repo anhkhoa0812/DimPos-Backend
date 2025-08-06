@@ -3,6 +3,7 @@ using DimPos.Order.Application.Consumers;
 using DimPos.Order.Infrastructure.Kafka;
 using MassTransit;
 using SharedProject.Events.Order.CancelOrder;
+using SharedProject.Events.Order.ChangeIsNeedToUpdateInventoryForOrder;
 using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
 using SharedProject.Events.Order.UpdatePaymentTransactionForCashOrder;
 using SharedProject.Events.Payment.UpdatePaymentTransaction;
@@ -40,6 +41,7 @@ public static class KafkaConfig
                 configureRider.AddConsumer<UpdateOrderStatusRequestConsumer>();
                 configureRider.AddConsumer<UpdateOrderNeedToChangeInventoryConsumer>();
                 configureRider.AddConsumer<RollbackPendingForCashOrderConsumer>();
+                configureRider.AddConsumer<ChangeIsNeedToUpdateInventoryForOrderConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, ChangeErrorStatusForStorePurchaseOrderRequestModel>(
@@ -82,6 +84,17 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<RollbackPendingForCashOrderConsumer>(riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    kafkaConfig.TopicEndpoint<Null, ChangeIsNeedToUpdateInventoryForOrderRequestModel>(
+                        topicName: kafkaOptions!.Topics.ChangeIsNeedToUpdateInventoryForOrderRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<ChangeIsNeedToUpdateInventoryForOrderConsumer>(riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);
                             topicConfig.CreateIfMissing();

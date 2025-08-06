@@ -1,5 +1,6 @@
 using Carter;
 using DimPos.Store.Application.Common.Utils;
+using DimPos.Store.Application.Features.FinancialShift.Command.CloseFinancialShift;
 using DimPos.Store.Application.Features.FinancialShift.Command.OpenFinancialShift;
 using DimPos.Store.Application.Features.FinancialShift.Query.GetFinancialShiftById;
 using DimPos.Store.Application.Features.FinancialShift.Query.GetFinancialShifts;
@@ -22,6 +23,15 @@ public class FinancialShiftEndpoints : ICarterModule
             .WithName(nameof(OpenFinancialShift))
             .RequireAuthorization("StaffPolicy")
             .Produces<ApiResponse>(StatusCodes.Status201Created)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("/close", CloseFinancialShift)
+            .DisableAntiforgery()
+            .WithName(nameof(CloseFinancialShift))
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -79,6 +89,13 @@ public class FinancialShiftEndpoints : ICarterModule
         };
         var apiResponse = await mediator.Send(query);
         
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> CloseFinancialShift(IMediator mediator)
+    {
+        var command = new CloseFinancialShiftCommand();
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }
