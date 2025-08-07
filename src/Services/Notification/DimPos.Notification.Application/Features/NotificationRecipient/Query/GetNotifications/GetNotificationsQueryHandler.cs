@@ -84,7 +84,7 @@ public class GetNotificationsQueryHandler : IRequestHandler<GetNotificationsQuer
             selector: x => x.Id
         );
         await _notificationHub.Clients.Group($"Account_{accountId}")
-            .SendAsync("ReceiveNotification", unreadNotificationCount.Count, cancellationToken: cancellationToken);
+            .SendAsync("ReceiveUnreadNotifications", unreadNotificationCount.Count, cancellationToken: cancellationToken);
         
         return new ApiResponse()
         {

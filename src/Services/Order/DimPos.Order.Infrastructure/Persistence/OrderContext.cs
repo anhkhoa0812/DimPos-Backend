@@ -15,6 +15,7 @@ public class OrderContext : DbContext
     public virtual DbSet<Orders> Orders { get; set; } = null!;
     public virtual DbSet<OrderItems> OrderItems { get; set; } = null!;
     public virtual DbSet<AppliedOrderPromotions> AppliedOrderPromotions { get; set; } = null!;
+    public virtual DbSet<OrderItemSelectedOptions> OrderItemSelectedOptions { get; set; } = null!;
     public virtual DbSet<AppliedTaxes> AppliedTaxes { get; set; } = null!;
     public virtual DbSet<StorePurchaseOrders> StorePurchaseOrders { get; set; } = null!;
     public virtual DbSet<StorePurchaseOrderItems> StorePurchaseOrderItems { get; set; } = null!;

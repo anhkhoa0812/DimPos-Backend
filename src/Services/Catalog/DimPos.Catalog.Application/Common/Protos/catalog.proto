@@ -193,6 +193,7 @@ message ModifierOptionForOrderResponse {
   string modifierGroupId = 2;
   string modifierGroupName = 3;
   string modifierOptionName = 4;
+  float deltaPrice = 5;
 }
 message RecipeItemsForOrderResponse {
   string recipeItemId = 1;

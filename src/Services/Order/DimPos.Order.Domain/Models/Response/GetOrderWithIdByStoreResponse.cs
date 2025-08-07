@@ -33,6 +33,17 @@ public class GetOrderItemsByOrderByIdResponse
     public decimal UnitPriceSnapshot { get; set; }
     public decimal TotalPriceBeforeItemDiscount { get; set; }
     public string? Note { get; set; }
+    public List<GetOrderItemSelectedOptionsByOrderIdResponse>? OrderItemSelectedOptions { get; set; } = new List<GetOrderItemSelectedOptionsByOrderIdResponse>();
+}
+
+public class GetOrderItemSelectedOptionsByOrderIdResponse
+{
+    public Guid Id { get; set; }
+    public Guid ModifierGroupId { get; set; }
+    public Guid ModifierOptionId { get; set; }
+    public string ModifierGroupSnapshot { get; set; } = string.Empty;
+    public string ModifierOptionSnapshot { get; set; } = string.Empty;
+    public decimal PriceDeltaOptionSnapshot { get; set; }
 }
 public class GetAppliedOrderPromotionsByOrderIdResponse
 {

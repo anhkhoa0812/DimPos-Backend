@@ -135,24 +135,36 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == Guid.Parse(request.BrandId) 
                 && pmg.ModifierGroup.IsActive))
                 .ThenInclude(pmg => pmg.ModifierGroup)
-                .ThenInclude(mg => mg.ModifierOptions.Where(mo => mo.IsActive))
+                .ThenInclude(mg => mg.ModifierOptions.Where(mo => mo.IsActive)),
+            orderBy: x => x.OrderBy(p => p.DisplayOrder)
         );
-        var orderedProducts = products
-            .OrderBy(p => p.DisplayOrder)
-            .ThenBy(p => p.ProductVariants.OrderBy(pv => pv.DisplayOrder))
-            .ToList();
+        if (products.Any(p => p.IsCombo))
+        {
+            listCategory.Categories.Add(new CategoryResponse()
+            {
+                Id = Guid.CreateVersion7().ToString(),
+                Code = "COMBO",
+                Name = "Combo",
+                ChildCategories = new ListChildCategoryResponse(),
+                Description = "Danh mục dành cho Combo",
+                DisplayOrder = 0
+            });
+        }
+        
         var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
             predicate: x => x.StoreId == Guid.Parse(request.StoreId)
                            && variantIds.Contains(x.ProductVariantId)
         );
+        var comboCategory = listCategory.Categories
+            .FirstOrDefault(c => c.Code == "COMBO") ?? null;
         var listProduct = new ListProductResponse()
         {
             Products =
             {
-                orderedProducts.Select(p => MapProduct(p, storePrices.ToList())).ToList() 
+                products.Select(p => MapProduct(p, storePrices.ToList(), comboCategory)).ToList() 
             }
         };
-        var productForModifierGroups = orderedProducts
+        var productForModifierGroups = products
             .Where(p => p.ProductModifierGroups
                 .Any(pmg => pmg.ModifierGroup.IsActive 
                             && pmg.ModifierGroup.ModifierOptions.Any(mo => mo.IsActive)))
@@ -168,7 +180,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         };
         return response;
     }
-    private ProductResponse MapProduct(Products product, List<StorePrice> storePrices)
+    private ProductResponse MapProduct(Products product, List<StorePrice> storePrices, CategoryResponse? comboCategory = null)
     {
         if (!product.IsHasVariants)
         {
@@ -182,7 +194,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     .SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? String.Empty,
                 Description = product.Description ?? String.Empty,
                 Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == variant.Id).OverridePrice,
-                CategoryId = product.CategoryId.ToString(),
+                CategoryId = product.IsCombo ? comboCategory?.Id : product.CategoryId.ToString(),
                 ProductVariants = null
             };
             return productItem;
@@ -203,7 +215,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 {
                     ProductVariants =
                     {
-                        product.ProductVariants?.Select(pv => new ProductVariantResponse()
+                        product.ProductVariants?.OrderBy(pv => pv.DisplayOrder).Select(pv => new ProductVariantResponse()
                         {
                             Id = pv.Id.ToString(),
                             Code = pv.Code,
@@ -387,7 +399,8 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                         Id = modifierOption.Id.ToString(),
                         ModifierGroupId = modifierOption.Id.ToString(),
                         ModifierGroupName = modifierOption.ModifierGroup.Name ?? String.Empty,
-                        ModifierOptionName = modifierOption.Name ?? String.Empty
+                        ModifierOptionName = modifierOption.Name ?? String.Empty,
+                        DeltaPrice = (float) modifierOption.PriceDelta
                     });
                 }
             }

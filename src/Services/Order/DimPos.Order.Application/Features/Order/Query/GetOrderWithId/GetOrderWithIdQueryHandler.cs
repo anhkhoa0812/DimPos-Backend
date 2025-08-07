@@ -31,6 +31,7 @@ public class GetOrderWithIdQueryHandler : IRequestHandler<GetOrderWithIdQuery, A
                             && (storeId == Guid.Empty || x.StoreId == storeId) 
                             && (brandId == Guid.Empty || x.BrandId == brandId),
             include: x => x.Include(x => x.OrderItems)
+                .ThenInclude(x => x.OrderItemSelectedOptions)
                 .Include(x => x.AppliedOrderPromotions)
                 .Include(x => x.AppliedTax)
         );
@@ -64,7 +65,16 @@ public class GetOrderWithIdQueryHandler : IRequestHandler<GetOrderWithIdQuery, A
                 Quantity = oi.Quantity,
                 UnitPriceSnapshot = oi.UnitPriceSnapshot,
                 TotalPriceBeforeItemDiscount = oi.TotalPriceBeforeItemDiscount,
-                Note = oi.Note
+                Note = oi.Note,
+                OrderItemSelectedOptions = oi.OrderItemSelectedOptions?.Select(x => new GetOrderItemSelectedOptionsByOrderIdResponse()
+                {
+                    Id = x.Id,
+                    ModifierGroupId = x.ModifierGroupId,
+                    ModifierOptionId = x.ModifierOptionId,
+                    ModifierGroupSnapshot = x.ModifierGroupSnapshot,
+                    ModifierOptionSnapshot = x.ModifierOptionSnapshot,
+                    PriceDeltaOptionSnapshot = x.PriceDeltaOptionSnapshot
+                }).ToList()
             }).ToList(),
             AppliedOrderPromotions = order.AppliedOrderPromotions?.Select(aop =>
                 new GetAppliedOrderPromotionsByOrderIdResponse()

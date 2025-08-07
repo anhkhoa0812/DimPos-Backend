@@ -14,5 +14,5 @@ public class OrderItems : EntityAuditBase<Guid>
     public string? Note { get; set; }
     
     public virtual Orders Order { get; set; }
-    public virtual ICollection<AppliedOrderPromotions>? AppliedOrderPromotions { get; set; } = new List<AppliedOrderPromotions>();
+    public virtual ICollection<OrderItemSelectedOptions>? OrderItemSelectedOptions { get; set; } = new List<OrderItemSelectedOptions>();
 }

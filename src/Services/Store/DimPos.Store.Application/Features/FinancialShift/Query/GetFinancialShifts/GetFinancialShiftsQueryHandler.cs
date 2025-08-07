@@ -58,7 +58,7 @@ public class GetFinancialShiftsQueryHandler : IRequestHandler<GetFinancialShifts
         );
         var accountIds = new List<string>();
         accountIds.AddRange(financialShifts.Items
-            .Select(x => x.OpenedByAccountId.ToString()).ToList());
+            .Select(x => x.OpenedByAccountId.ToString()).Distinct().ToList());
         if(financialShifts.Items.Select(x => x.ClosedByAccountId).Any())
         {
             foreach (var closedAccountId in financialShifts.Items.Select(x => x.ClosedByAccountId))

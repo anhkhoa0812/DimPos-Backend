@@ -87,8 +87,6 @@ public class IngredientsEndpoints : ICarterModule
         var command = new UpdateIngredientCommand()
         {
             IngredientId = id,
-            Code = request.Code,
-            Sku = request.Sku,
             Name = request.Name,
             MeasureUnit = request.MeasureUnit,
             Description = request.Description,

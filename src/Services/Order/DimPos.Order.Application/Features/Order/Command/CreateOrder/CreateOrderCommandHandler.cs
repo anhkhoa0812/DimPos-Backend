@@ -177,7 +177,16 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             ProductVariantNameSnapshot = x.ProductVariantName,
             UnitPriceSnapshot = (decimal)x.UnitPrice,
             OrderId = order.Id,
-            TotalPriceBeforeItemDiscount = x.Quantity * (decimal)x.UnitPrice,
+            TotalPriceBeforeItemDiscount = x.Quantity * ((decimal)x.UnitPrice + x.ModifierOptions.Sum(mo => (decimal)mo.DeltaPrice)),
+            OrderItemSelectedOptions = x.ModifierOptions.Select(x => new OrderItemSelectedOptions()
+            {
+                Id = Guid.CreateVersion7(),
+                ModifierOptionId = Guid.Parse(x.Id),
+                ModifierGroupId = Guid.Parse(x.ModifierGroupId),
+                ModifierOptionSnapshot = x.ModifierOptionName,
+                ModifierGroupSnapshot = x.ModifierGroupName,
+                PriceDeltaOptionSnapshot = (decimal) x.DeltaPrice
+            }).ToList()
         }).ToList();
         order.OrderItems = orderItems;
         order.SubTotalAmount = order.OrderItems.Sum(x => x.TotalPriceBeforeItemDiscount);

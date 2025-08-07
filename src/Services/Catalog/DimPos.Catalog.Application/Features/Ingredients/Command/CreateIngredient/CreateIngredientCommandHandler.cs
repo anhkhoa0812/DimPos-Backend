@@ -28,11 +28,11 @@ public class CreateIngredientCommandHandler : IRequestHandler<CreateIngredientCo
         if (request.Code != null)
         {
             var existingIngredient = await _unitOfWork.GetRepository<Domain.Entities.Ingredients>().SingleOrDefaultAsync(
-                predicate: i => i.Code == request.Code
+                predicate: i => i.Code == request.Code || (string.IsNullOrEmpty(request.Sku) || i.Sku == request.Sku)
             );
             if (existingIngredient != null)
             {
-                throw new BadHttpRequestException("Mã thành phần đã tồn tại");
+                throw new BadHttpRequestException("Mã hoặc SKU của thành phần đã tồn tại");
             }
         }
         var ingredient = new Domain.Entities.Ingredients()
