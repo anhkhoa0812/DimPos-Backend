@@ -38,7 +38,7 @@ public class InternalProductsEndpoints : ICarterModule
         group.MapGet("/{id:guid}", GetInternalProductById)
             .WithName(nameof(GetInternalProductById))
             .RequireAuthorization("BrandPolicy")
-            .Produces<ApiResponse<GetInternalProductResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<GetInternalProductByIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)

@@ -37,11 +37,13 @@ public class GetInternalProductByIdQueryHandler : IRequestHandler<GetInternalPro
                             && x.Product.Type == EProductType.InternalOrder,
             include: x => x.Include(x => x.Product)
                 .ThenInclude(x => x.ProductImages)
+                .Include(x => x.RecipeItems)
+                .ThenInclude(x => x.Ingredient)
         );
         if( productVariant == null)
             throw new BadHttpRequestException("Không tìm thấy biến thể sản phẩm với ID đã cung cấp.");
 
-        var response = new GetInternalProductResponse()
+        var response = new GetInternalProductByIdResponse()
         {
             Id = productVariant.Id,
             Code = productVariant.Code,
@@ -51,17 +53,36 @@ public class GetInternalProductByIdQueryHandler : IRequestHandler<GetInternalPro
             DisplayOrder = productVariant.DisplayOrder,
             Price = productVariant.Price,
             Sku = productVariant.Sku,
-            ProductImages = productVariant.Product.ProductImages != null ?
-                productVariant.Product.ProductImages.Select(pi => new ProductImageForGetInternalProductResponse()
+            ProductImages = productVariant.Product.ProductImages != null
+                ? productVariant.Product.ProductImages.Select(pi => new ProductImageForGetInternalProductByIdResponse()
                 {
                     Id = pi.Id,
                     IsMainImage = pi.IsMainImage,
                     ImageUrl = pi.ImageUrl,
                     AltText = pi.AltText
-                }).ToList() 
-                : new List<ProductImageForGetInternalProductResponse>()
+                }).ToList()
+                : new List<ProductImageForGetInternalProductByIdResponse>(),
+            RecipeItems = productVariant.RecipeItems?.Select(x => new RecipeItemsForGetInternalProductByIdResponse()
+            {
+                Id = x.Id,
+                Quantity = x.Quantity,
+                CreatedByAccountId = x.CreatedByAccountId,
+                CreatedDate = x.CreatedDate,
+                LastModifiedDate = x.LastModifiedDate,
+                Ingredient = new IngredientForGetInternalProductByIdResponse()
+                {
+                    Id = x.Ingredient.Id,
+                    Name = x.Ingredient.Name,
+                    Code = x.Ingredient.Code,
+                    Description = x.Ingredient.Description,
+                    IsActive = x.Ingredient.IsActive,
+                    Sku = x.Ingredient.Sku,
+                    MeasureUnit = x.Ingredient.MeasureUnit,
+                    CreatedDate = x.Ingredient.CreatedDate,
+                    LastModifiedDate = x.LastModifiedDate
+                }
+            }).ToList(),
         };
-
         return new ApiResponse()
         {
             Status = StatusCodes.Status200OK,

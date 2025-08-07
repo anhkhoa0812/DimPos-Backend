@@ -17,4 +17,5 @@ public class CartModifierGroupItemRequest
     public Guid ModifierOptionId { get; set; }
     public string ModifierGroupNameSnapshot { get; set; } = string.Empty;
     public string ModifierOptionSnapshot { get; set; } = string.Empty;
+    public decimal PriceDeltaSnapshot { get; set; }
 }

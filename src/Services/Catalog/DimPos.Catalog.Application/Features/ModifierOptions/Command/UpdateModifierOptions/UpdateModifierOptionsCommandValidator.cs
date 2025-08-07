@@ -16,6 +16,7 @@ public class UpdateModifierOptionsRequestValidator : AbstractValidator<UpdateMod
     public UpdateModifierOptionsRequestValidator()
     {
         RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Tên của tùy chọn không được để trống.")
             .MaximumLength(200).WithMessage("Tên của tùy chọn không được nhiều hơn 200 ký tự.");
         RuleFor(x => x.Description)
             .MaximumLength(1000).WithMessage("Mô tả của tùy chọn không được nhiều hơn 1000 ký tự.");

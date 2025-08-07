@@ -1,4 +1,5 @@
 using DimPos.Notification.Application.Services.Interface;
+using DimPos.Notification.Application.SignalR;
 using DimPos.Notification.Domain.Entities;
 using DimPos.Notification.Domain.Models.Common;
 using DimPos.Notification.Domain.Models.Response;
@@ -7,6 +8,7 @@ using DimPos.Notification.Infrastructure.Persistence;
 using DimPos.Notification.Infrastructure.Repositories.Interface;
 using DimPos.Notification.Infrastructure.Utils;
 using Mediator;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Notification.Application.Features.NotificationRecipient.Query.GetNotifications;
@@ -16,13 +18,15 @@ public class GetNotificationsQueryHandler : IRequestHandler<GetNotificationsQuer
     private readonly IUnitOfWork<NotificationContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
+    private readonly IHubContext<NotificationHub> _notificationHub;
 
     public GetNotificationsQueryHandler(IUnitOfWork<NotificationContext> unitOfWork, ILogger logger,
-        IClaimService claimService)
+        IClaimService claimService, IHubContext<NotificationHub> notificationHub)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
+        _notificationHub = notificationHub ?? throw new ArgumentNullException(nameof(notificationHub));
     }
     
     public async ValueTask<ApiResponse> Handle(GetNotificationsQuery request, CancellationToken cancellationToken)
@@ -74,8 +78,14 @@ public class GetNotificationsQueryHandler : IRequestHandler<GetNotificationsQuer
                 throw new Exception($"Cập nhật đã đọc cho thông báo không thành công");
             }
         }
-        
 
+        var unreadNotificationCount = await _unitOfWork.GetRepository<NotificationRecipients>().GetListAsync(
+            predicate: x => x.AccountId == accountId && !x.IsRead,
+            selector: x => x.Id
+        );
+        await _notificationHub.Clients.Group($"Account_{accountId}")
+            .SendAsync("ReceiveNotification", unreadNotificationCount.Count, cancellationToken: cancellationToken);
+        
         return new ApiResponse()
         {
             Status = StatusCodes.Status200OK,

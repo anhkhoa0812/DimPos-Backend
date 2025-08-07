@@ -132,9 +132,10 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             include: x => x.Include(x => x.ProductImages)
                 .Include(x => x.ProductVariants.Where(pv =>
                     variantIds.Contains(pv.Id) && pv.IsActive))
-                .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == Guid.Parse(request.BrandId)))
+                .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == Guid.Parse(request.BrandId) 
+                && pmg.ModifierGroup.IsActive))
                 .ThenInclude(pmg => pmg.ModifierGroup)
-                .ThenInclude(mg => mg.ModifierOptions)
+                .ThenInclude(mg => mg.ModifierOptions.Where(mo => mo.IsActive))
         );
         var orderedProducts = products
             .OrderBy(p => p.DisplayOrder)
@@ -152,9 +153,10 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             }
         };
         var productForModifierGroups = orderedProducts
-            .Where(p => p.ProductModifierGroups.Any(pmg => pmg.ModifierGroup.IsActive)
-                        && p.ProductModifierGroups.Any(pmg =>
-                            pmg.ModifierGroup.ModifierOptions.Any(x => x.IsActive))).ToList();
+            .Where(p => p.ProductModifierGroups
+                .Any(pmg => pmg.ModifierGroup.IsActive 
+                            && pmg.ModifierGroup.ModifierOptions.Any(mo => mo.IsActive)))
+            .ToList();
         var listModifierOptions = MapModifierOptions(
             productForModifierGroups.SelectMany(x => x.ProductModifierGroups).ToList()
         );;
@@ -248,7 +250,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             Name = x.Name,
                             Description = x.Description ?? String.Empty,
                             IsActive = x.IsActive,
-                            PriceDelta = x.PriceDelta != null ? (float)x.PriceDelta.Value : 0,
+                            PriceDelta = (float)x.PriceDelta,
                             ModifierGroupId = modifierGroup.Id.ToString()
                         })
                     }

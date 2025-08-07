@@ -25,5 +25,20 @@ public class UpdateModifierGroupsRequestValidator : AbstractValidator<UpdateModi
 
         RuleFor(x => x.DisplayOrder)
             .GreaterThanOrEqualTo(0).WithMessage("Thứ tự hiển thị phải lớn hơn hoặc bằng 0.");
+        RuleForEach(x => x.ModifierOptions).SetValidator(new UpdateModifierOptionsValidator());
+    }
+}
+
+public class UpdateModifierOptionsValidator : AbstractValidator<UpdateModifierOptions>
+{
+    public UpdateModifierOptionsValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Tên của tùy chọn không được để trống.")
+            .MaximumLength(200).WithMessage("Tên của tùy chọn không được nhiều hơn 200 ký tự.");
+        RuleFor(x => x.Description)
+            .MaximumLength(1000).WithMessage("Mô tả của tùy chọn không được nhiều hơn 1000 ký tự.");
+        RuleFor(x => x.PriceDelta)
+            .GreaterThanOrEqualTo(0).WithMessage("Giá trị thay đổi phải lớn hơn hoặc bằng 0.");
     }
 }
