@@ -10,9 +10,6 @@ public class UpdateIngredientCommandValidator : AbstractValidator<UpdateIngredie
             .NotEmpty().WithMessage("Id của thành phần không được để trống.")
             .NotNull().WithMessage("Id của thành phần không được để trống.")
             .NotEqual(Guid.Empty).WithMessage("Id của thành phần không được để trống.");
-        RuleFor(x => x.Code)
-            .MaximumLength(50)
-            .WithMessage("Mã thành phần không được vượt quá 50 ký tự.");
         
         RuleFor(x => x.Name)
             .MaximumLength(200).WithMessage("Tên thành phần không được vượt quá 200 ký tự.");

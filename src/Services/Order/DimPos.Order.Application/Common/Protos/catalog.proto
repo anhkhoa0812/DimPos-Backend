@@ -11,6 +11,8 @@ service CatalogGrpcService {
   rpc GetProductVariantListByIdsForStoreMenu (GetProductVariantListByIdsForStoreMenuRequest) returns (GetProductVariantListByIdsForStoreMenuResponse);
   rpc GetProductForOrder (GetProductForOrderRequest) returns (GetProductForOrderResponse);
   rpc GetProductVariantForInternalOrder (GetProductVariantForInternalOrderRequest) returns (GetProductVariantForInternalOrderResponse);
+  rpc GetIngredientsByIngredientIds (GetIngredientsByIngredientIdsRequest) returns (GetIngredientsByIngredientIdsResponse);
+  rpc GetRecipeItemsByOrderItems (GetRecipeItemsByOrderItemsRequest)returns (GetRecipeItemsByOrderItemsResponse);
 }
 message GetProductVariantsByBrandRequest {
   int32 page = 1;
@@ -141,10 +143,10 @@ message ListModifierOptionResponse {
 }
 message ModifierOptionResponse {
   string id = 1;
-  optional string name = 2;
+  string name = 2;
   optional string description = 4;
   bool isActive = 5;
-  optional float priceDelta = 6;
+  float priceDelta = 6;
   string modifierGroupId = 7;
 }
 message ListProductVariant {
@@ -191,6 +193,7 @@ message ModifierOptionForOrderResponse {
   string modifierGroupId = 2;
   string modifierGroupName = 3;
   string modifierOptionName = 4;
+  float deltaPrice = 5;
 }
 message RecipeItemsForOrderResponse {
   string recipeItemId = 1;
@@ -239,4 +242,28 @@ message GetProductVariantListByIdsForStoreMenuRequest {
 }
 message GetProductVariantListByIdsForStoreMenuResponse {
   repeated ProductVariant productVariants = 1;
+}
+message GetIngredientsByIngredientIdsRequest {
+  repeated string ingredientIds = 1;
+}
+message GetIngredientsByIngredientIdsResponse {
+  repeated IngredientForGetIngredientsResponse ingredients = 1;
+}
+message IngredientForGetIngredientsResponse {
+  string id = 1;
+  string code = 2;
+  string sku = 3;
+  string name = 4;
+  string measureUnit = 5;
+  string description = 6;
+}
+message GetRecipeItemsByOrderItemsRequest {
+  repeated OrderItemForGetRecipeItemsByOrderItemsRequest orderItems = 1;
+}
+message OrderItemForGetRecipeItemsByOrderItemsRequest {
+  string productVariantId = 2;
+  int32 quantity = 3;
+}
+message GetRecipeItemsByOrderItemsResponse {
+  repeated RecipeItemsForOrderResponse recipeItems = 1;
 }

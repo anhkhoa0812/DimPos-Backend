@@ -6,8 +6,6 @@ namespace DimPos.Catalog.Application.Features.Ingredients.Command.UpdateIngredie
 public class UpdateIngredientCommand : IRequest<ApiResponse>
 {
     public Guid IngredientId { get; set; }
-    public string? Code { get; set; }
-    public string? Sku { get; set; }
     public string? Name { get; set; }
     public string? MeasureUnit { get; set; }
     public string? Description { get; set; }
@@ -16,8 +14,6 @@ public class UpdateIngredientCommand : IRequest<ApiResponse>
 
 public class UpdateIngredientRequest
 {
-    public string? Code { get; set; }
-    public string? Sku { get; set; }
     public string? Name { get; set; }
     public string? MeasureUnit { get; set; }
     public string? Description { get; set; }

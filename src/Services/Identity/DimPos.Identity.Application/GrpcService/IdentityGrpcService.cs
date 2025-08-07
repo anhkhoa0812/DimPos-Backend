@@ -26,7 +26,7 @@ public class IdentityGrpcService : Common.Protos.IdentityGrpcService.IdentityGrp
         );
         if(accountIds.Count != staffs.Count)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy thông tin nhân viên"));
+            throw new RpcException(new Status(StatusCode.NotFound, $"Không tìm thấy thông tin nhân viên với {accountIds.Count} và {staffs.Count} tài khoản"));
         }
         
         var response = new GetStaffDetailResponse()
