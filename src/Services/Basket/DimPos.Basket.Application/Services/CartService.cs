@@ -79,16 +79,23 @@ public class CartService : ICartService
                 NotesForItem = request.NotesForItem, 
                 UnitPriceAtAdditionSnapshot = request.UnitPriceAtAdditionSnapshot, 
                 Quantity = request.Quantity, 
-                ItemSubtotalAmount = request.UnitPriceAtAdditionSnapshot * request.Quantity, 
+                ItemSubtotalAmount = (request.UnitPriceAtAdditionSnapshot) * request.Quantity,
+                TotalPriceDeltaOptionSnapshot = 0,
                 AddedAt = TimeUtil.GetCurrentSEATime(),
                 ModifierGroupItems = request.ModifierGroupItems?.Select(x => new ModifierGroupItem() 
                 { 
                     ModifierGroupId = x.ModifierGroupId, 
                     ModifierOptionId = x.ModifierOptionId, 
                     ModifierGroupNameSnapshot = x.ModifierGroupNameSnapshot, 
-                    ModifierOptionSnapshot = x.ModifierOptionSnapshot 
+                    ModifierOptionSnapshot = x.ModifierOptionSnapshot,
+                    PriceDeltaSnapshot = x.PriceDeltaSnapshot
                 }).ToList() 
             }; 
+            if(request.ModifierGroupItems != null && request.ModifierGroupItems.Any())
+            {
+                cartItem.TotalPriceDeltaOptionSnapshot =  request.ModifierGroupItems.Sum(x => x.PriceDeltaSnapshot) * request.Quantity;
+                cartItem.ItemSubtotalAmount += cartItem.TotalPriceDeltaOptionSnapshot;
+            }
             var cartItemJson = JsonSerializer.Serialize(cartItem); 
             
             var promotionSortedSetKey = GetCartPromotionSortedSetKey(staffAccountId, cartId);
@@ -112,6 +119,7 @@ public class CartService : ICartService
                                 {
                                     throw new BadHttpRequestException("Giá trị giảm giá phần trăm không hợp lệ");
                                 }
+
                                 cart.SubtotalAmount += cartItem.ItemSubtotalAmount;
                                 existingPromotion.DiscountValueCalculated = cart.SubtotalAmount * (percentageDiscount / 100);
                                 if (existingPromotion.MaxDiscountAmountForPercentage != null &&
@@ -757,6 +765,24 @@ public class CartService : ICartService
                 cart.SubtotalAmount -= (previousQuantity * cartItem.UnitPriceAtAdditionSnapshot) 
                                         - (cartItem.Quantity * cartItem.UnitPriceAtAdditionSnapshot);
                 cart.TotalQuantityOfItems += (cartItem.Quantity - previousQuantity);
+                
+                if (request.ModifierGroupItems != null && request.ModifierGroupItems.Any())
+                {
+                    var modifierGroupItems = request.ModifierGroupItems.Select(x => new ModifierGroupItem()
+                    {
+                        ModifierGroupId = x.ModifierGroupId,
+                        ModifierOptionId = x.ModifierOptionId,
+                        ModifierGroupNameSnapshot = x.ModifierGroupNameSnapshot,
+                        ModifierOptionSnapshot = x.ModifierOptionSnapshot,
+                        PriceDeltaSnapshot = x.PriceDeltaSnapshot
+                    }).ToList();
+                    var previousTotalPriceDeltaSnapshot = cartItem.TotalPriceDeltaOptionSnapshot;
+                    cartItem.TotalPriceDeltaOptionSnapshot = modifierGroupItems.Sum(x => x.PriceDeltaSnapshot) * cartItem.Quantity;
+                    cartItem.ItemSubtotalAmount += cartItem.TotalPriceDeltaOptionSnapshot;
+                    cartItem.ModifierGroupItems = modifierGroupItems;
+                    
+                    cart.SubtotalAmount += cartItem.TotalPriceDeltaOptionSnapshot - previousTotalPriceDeltaSnapshot;
+                }
                 var promotionSortedSetKey = GetCartPromotionSortedSetKey(accountId, cartId);
                 var promotionHashKey = GetCartPromotionHashKey(accountId, cartId);
                 var promotionIdSortedSetExists = await _redisService.GetSortedSetAsync(promotionSortedSetKey);
@@ -842,19 +868,7 @@ public class CartService : ICartService
                                     (cart.SubtotalAmount - cart.OrderLevelDiscountAmount - cart.TotalItemDiscountAmount);
             await _redisService.SetHashAsync(cartHashKey, cart.Id.ToString(), JsonSerializer.Serialize(cart));
         }
-
-        if (request.ModifierGroupItems != null && request.ModifierGroupItems.Any())
-        {
-            var modifierGroupItems = request.ModifierGroupItems.Select(x => new ModifierGroupItem()
-            {
-                ModifierGroupId = x.ModifierGroupId,
-                ModifierOptionId = x.ModifierOptionId,
-                ModifierGroupNameSnapshot = x.ModifierGroupNameSnapshot,
-                ModifierOptionSnapshot = x.ModifierOptionSnapshot
-            }).ToList();
-            cartItem.ModifierGroupItems = modifierGroupItems;
-            await _redisService.SetHashAsync(cartItemHashKey, cartItem.Id.ToString(), JsonSerializer.Serialize(cartItem));
-        }
+        
         return new ApiResponse
         {
             Status = StatusCodes.Status200OK,

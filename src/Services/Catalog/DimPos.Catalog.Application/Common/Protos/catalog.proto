@@ -143,10 +143,10 @@ message ListModifierOptionResponse {
 }
 message ModifierOptionResponse {
   string id = 1;
-  optional string name = 2;
+  string name = 2;
   optional string description = 4;
   bool isActive = 5;
-  optional float priceDelta = 6;
+  float priceDelta = 6;
   string modifierGroupId = 7;
 }
 message ListProductVariant {

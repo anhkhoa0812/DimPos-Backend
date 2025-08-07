@@ -14,5 +14,9 @@ public class CreateModifierOptionCommandValidator : AbstractValidator<CreateModi
             .NotEmpty().WithMessage("Trạng thái của tùy chọn không được để trống.");
         RuleFor(x => x.Description)
             .MaximumLength(1000).WithMessage("Mô tả của tùy chọn không được nhiều hơn 1000 ký tự.");
+        RuleFor(x => x.PriceDelta)
+            .NotEmpty().WithMessage("Giá trị thay đổi của tùy chọn không được để trống.")
+            .NotNull().WithMessage("Giá trị thay đổi của tùy chọn không được để trống.")
+            .GreaterThanOrEqualTo(0).WithMessage("Giá trị thay đổi của tùy chọn phải lớn hơn hoặc bằng 0.");
     }
 }

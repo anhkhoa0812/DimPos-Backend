@@ -4,6 +4,7 @@ using DimPos.Store.Application.Features.FinancialShift.Command.CloseFinancialShi
 using DimPos.Store.Application.Features.FinancialShift.Command.OpenFinancialShift;
 using DimPos.Store.Application.Features.FinancialShift.Query.GetFinancialShiftById;
 using DimPos.Store.Application.Features.FinancialShift.Query.GetFinancialShifts;
+using DimPos.Store.Application.Features.FinancialShift.Query.GetOpeningFinancialShift;
 using DimPos.Store.Domain.Constants;
 using DimPos.Store.Domain.Models.Common;
 using DimPos.Store.Domain.Models.Response;
@@ -52,6 +53,14 @@ public class FinancialShiftEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/opening", GetOpeningFinancialShift)
+            .WithName(nameof(GetOpeningFinancialShift))
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse<GetOpeningFinancialShiftResponse?>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> OpenFinancialShift(IMediator mediator, [FromBody] OpenFinancialShiftCommand command,
@@ -96,6 +105,14 @@ public class FinancialShiftEndpoints : ICarterModule
     {
         var command = new CloseFinancialShiftCommand();
         var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> GetOpeningFinancialShift(IMediator mediator)
+    {
+        var query = new GetOpeningFinancialShiftQuery() { };
+        
+        var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }
 }

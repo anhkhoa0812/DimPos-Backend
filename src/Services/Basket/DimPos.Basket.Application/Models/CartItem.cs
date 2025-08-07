@@ -11,6 +11,7 @@ public class CartItem
      public int Quantity { get; set; }
      public decimal UnitPriceAtAdditionSnapshot { get; set; }
      public decimal ItemSubtotalAmount { get; set; }
+     public decimal TotalPriceDeltaOptionSnapshot { get; set; }
      public string? NotesForItem { get; set; }
      public DateTime AddedAt { get; set; }
      public List<ModifierGroupItem>? ModifierGroupItems { get; set; }
@@ -22,4 +23,5 @@ public class ModifierGroupItem
      public Guid ModifierOptionId { get; set; }
      public string ModifierGroupNameSnapshot { get; set; } = string.Empty;
      public string ModifierOptionSnapshot { get; set; } = string.Empty;
+     public decimal PriceDeltaSnapshot { get; set; }
 }
