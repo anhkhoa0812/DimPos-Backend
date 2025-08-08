@@ -40,10 +40,11 @@ public class GetIngredientsByBrandQueryHandler : IRequestHandler<GetIngredientsB
                 IsActive = x.IsActive
             },
             predicate: x => x.BrandId == brandId 
-            && (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)),
+            && (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name))
+            && (string.IsNullOrEmpty(request.Code) || x.Code.Contains(request.Code)),
             page: request.Page,
             size: request.Size,
-            sortBy: request.SortBy,
+            sortBy: request.SortBy ?? "CreatedDate",
             isAsc: request.IsAsc
         );
         _logger.Information("END: GetIngredientsByBrandQueryHandler.Handle");

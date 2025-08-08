@@ -43,6 +43,8 @@ public class GetStoresByMenuQueryHandler : IRequestHandler<GetStoresByMenuQuery,
             Size = request.Size,
             SortBy = request.SortBy ?? String.Empty,
             IsAsc = request.IsAsc,
+            Name = request.Name ?? String.Empty,
+            Code = request.Code ?? String.Empty
         });
         var response = new List<StoreByBrandResponse>();
         foreach (var store in storeGrpcResponse.Stores)
@@ -50,6 +52,7 @@ public class GetStoresByMenuQueryHandler : IRequestHandler<GetStoresByMenuQuery,
             var storeResponse = new StoreByBrandResponse()
             {
                 Id = Guid.Parse(store.Id),
+                Code = store.Code,
                 Name = store.Name,
                 Description = store.Description,
                 Address = store.Address,

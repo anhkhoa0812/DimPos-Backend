@@ -125,13 +125,14 @@ message ListModifierGroupResponse {
 }
 message ModifierGroupResponse {
   string id = 1;
-  optional string description = 2;
-  SelectedTypeModifier selectedType = 3;
-  optional int32 displayOrder = 4;
-  bool isActive = 5;
-  string brandId = 6;
-  repeated string productVariantId = 7;
-  optional ListModifierOptionResponse modifierOptions = 8;
+  string name = 2;
+  optional string description = 3;
+  SelectedTypeModifier selectedType = 4;
+  optional int32 displayOrder = 5;
+  bool isActive = 6;
+  string brandId = 7;
+  repeated string productVariantId = 8;
+  optional ListModifierOptionResponse modifierOptions = 9;
 }
 
 enum SelectedTypeModifier {

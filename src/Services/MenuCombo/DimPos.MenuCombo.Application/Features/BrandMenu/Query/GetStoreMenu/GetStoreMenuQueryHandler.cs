@@ -153,6 +153,7 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
         return new ModifierGroupsResponses()
         {
             Id = Guid.Parse(modifierGroup.Id),
+            Name = modifierGroup.Name,
             Description = modifierGroup.Description,
             DisplayOrder = modifierGroup.DisplayOrder,
             IsActive = modifierGroup.IsActive,

@@ -243,6 +243,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             var modifierGroupResponse = new ModifierGroupResponse()
             {
                 Id = modifierGroup.Id.ToString(),
+                Name = modifierGroup.Name,
                 DisplayOrder = modifierGroup.DisplayOrder ?? 0,
                 Description = modifierGroup.Description ?? String.Empty,
                 SelectedType = (SelectedTypeModifier) modifierGroup.SelectedType,

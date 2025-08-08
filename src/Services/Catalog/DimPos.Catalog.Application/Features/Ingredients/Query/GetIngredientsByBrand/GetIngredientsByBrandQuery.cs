@@ -10,4 +10,5 @@ public class GetIngredientsByBrandQuery : IRequest<ApiResponse>
     public string? SortBy { get; set; }
     public bool IsAsc { get; set; }
     public string? Name { get; set; }
+    public string? Code { get; set; }
 }

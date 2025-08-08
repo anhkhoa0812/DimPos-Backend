@@ -61,7 +61,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 predicate: x => x.StoreId == storeId &&
                                 x.BrandId == request.BrandId &&
                                 x.TableNumberDineIn == request.TableNumberDineIn &&
-                                x.Status == EOrderStatus.PendingPayment &&
+                                (x.Status == EOrderStatus.PendingPayment || x.Status == EOrderStatus.Confirmed) &&
                                 x.Type == EOrderType.DineIn
             );
             if (existingTableNumberDineInOrder != null)

@@ -57,6 +57,7 @@ public class GetOrderWithIdQueryHandler : IRequestHandler<GetOrderWithIdQuery, A
             SystemPaymentMethodNameSnapshot = order.SystemPaymentMethodNameSnapshot,
             IsNeedToUpdateInventory = order.IsNeedToUpdateInventory,
             CreatedDate = order.CreatedDate,
+            TableNumberDineIn = order.TableNumberDineIn,
             OrderItems = order.OrderItems.Select(oi => new GetOrderItemsByOrderByIdResponse()
             {
                 Id = oi.Id,

@@ -128,7 +128,7 @@ public class BrandMenuEndpoints : ICarterModule
     }
     public async Task<IResult> GetStoresByMenu(IMediator mediator, [FromRoute] Guid brandMenuId, [FromQuery] int page = 1,
         [FromQuery] int size = 30,
-        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,  [FromQuery] string? name = null, [FromQuery] string? code = null)
     {
         var command = new GetStoresByMenuQuery()
         {
@@ -136,7 +136,9 @@ public class BrandMenuEndpoints : ICarterModule
             Size = size,
             SortBy = sortBy,
             IsAsc = isAsc,
-            BrandMenuId = brandMenuId
+            BrandMenuId = brandMenuId,
+            Name = name,
+            Code = code
         };
         var apiResponse = await mediator.Send(command);
         return Results.Json(apiResponse);

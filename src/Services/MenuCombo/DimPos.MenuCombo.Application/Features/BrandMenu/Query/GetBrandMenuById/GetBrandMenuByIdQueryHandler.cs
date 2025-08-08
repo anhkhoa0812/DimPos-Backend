@@ -98,6 +98,7 @@ public class GetBrandMenuByIdQueryHandler : IRequestHandler<GetBrandMenuByIdQuer
             Stores = storesGrpcResponse.Stores.Select(store => new BrandMenuByIdResponseWithStore()
             {
                 Id = Guid.Parse(store.Id),
+                Code = store.Code,
                 Name = store.Name,
                 Description = store.Description,
                 Address = store.Address,

@@ -55,6 +55,7 @@ public record ProductVariantResponse
 public record ModifierGroupsResponses
 {
     public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public ESelectedTypeModifier SelectedType { get; set; }
     public int? DisplayOrder { get; set; }
