@@ -7,13 +7,21 @@ service StoreGrpcService {
   rpc GetStoreIdByAccountId (GetStoreIdByAccountIdRequest) returns (GetStoreIdByAccountIdResponse);
   rpc GetStoresByBrandId (GetStoresByBrandIdRequest) returns (GetStoresByBrandIdResponse);
   rpc GetTaxRateByStoreId (GetTaxRateForStoreMenuRequest) returns (GetTaxRateForStoreMenuResponse);
+  rpc GetTaxRateAndPaymentMethodConfig(GetTaxRateAndPaymentMethodConfigRequest) returns (GetTaxRateAndPaymentMethodConfigResponse);
+  rpc GetCredentialsConfigByMerchantId(GetCredentialsConfigByMerchantIdRequest) returns (GetCredentialsConfigByMerchantIdResponse);
+  rpc GetBrandIdByStoreId(GetBrandIdByStoreIdRequest) returns (GetBrandIdByStoreIdResponse);
+  rpc GetListStoreByStoreIds(GetListStoreByStoreIdsRequest) returns (GetListStoreByStoreIdsResponse);
+  rpc GetPaymentMethodConfigForUpdatePaymentMethod(GetPaymentMethodConfigForUpdatePaymentMethodRequest) returns (GetPaymentMethodConfigForUpdatePaymentMethodResponse);
+  rpc GetCredentialsConfigBySystemPaymentMethodId(GetCredentialsConfigBySystemPaymentMethodIdRequest) returns (GetCredentialsConfigBySystemPaymentMethodIdResponse);
 }
 message GetStoresByBrandPagingRequest {
   int32 page = 1;
   int32 size = 2;
   optional string sortBy = 3;
   bool isAsc = 4;
-  string brandId = 6;
+  optional string name = 5;
+  optional string code = 6;
+  string brandId = 7;
 }
 message GetStoresByBrandPagingResponse {
   int32 total = 1;
@@ -23,14 +31,15 @@ message GetStoresByBrandPagingResponse {
 
 message StoreResponse {
   string id = 1;
-  string name = 2;
-  string phone = 3;
-  string email = 4;
-  string description = 5;
-  string address = 6;
-  string latitude = 7;
-  string longitude = 8;
-  StoreStatus status = 9;
+  string code = 2;
+  string name = 3;
+  string phone = 4;
+  string email = 5;
+  string description = 6;
+  string address = 7;
+  string latitude = 8;
+  string longitude = 9;
+  StoreStatus status = 10;
 }
 enum StoreStatus {
   Active = 0;
@@ -68,4 +77,61 @@ message GetTaxRateForStoreMenuResponse {
   string id = 1;
   string name = 2;
   float rate = 3;
+}
+message GetTaxRateAndPaymentMethodConfigRequest {
+  string storeId = 1;
+  string brandId = 2;
+  string storePaymentMethodConfigId = 3;
+}
+message GetTaxRateAndPaymentMethodConfigResponse {
+  bool isSuccess = 1;
+  string taxRateId = 2;
+  string taxRateName = 3;
+  float rate = 4;
+  string systemPaymentMethodId = 5;
+  string credentialsConfigAtStore = 6;
+  string financialShiftId = 7;
+  string errorMessage = 8;
+}
+message GetCredentialsConfigByMerchantIdRequest {
+  int64 merchantId = 1;
+}
+message GetCredentialsConfigByMerchantIdResponse {
+  string credentialsConfig = 1;
+  string storeId = 2;
+}
+message GetBrandIdByStoreIdRequest {
+  string storeId = 1;
+}
+message GetBrandIdByStoreIdResponse {
+  string brandId = 1;
+}
+message GetListStoreByStoreIdsRequest {
+  repeated string storeIds = 1;
+}
+message GetListStoreByStoreIdsResponse {
+  repeated StoreResponse stores = 1;
+}
+message GetPaymentMethodConfigForUpdatePaymentMethodRequest {
+  string storeId = 1;
+  string brandId = 2;
+  string oldStorePaymentMethodConfigId = 3;
+  string newStorePaymentMethodConfigId = 4;
+}
+message GetPaymentMethodConfigForUpdatePaymentMethodResponse {
+  string oldSystemPaymentMethodId = 1;
+  string oldCredentialsConfigAtStore = 2;
+  string newSystemPaymentMethodId = 3;
+  string newCredentialsConfigAtStore = 4;
+}
+message GetCredentialsConfigBySystemPaymentMethodIdRequest {
+  string storeId = 1;
+  string brandId = 2;
+  string systemPaymentMethodId = 3;
+}
+message GetCredentialsConfigBySystemPaymentMethodIdResponse  {
+  bool isSuccess = 1;
+  string errorMessage = 2;
+  string systemPaymentMethodId = 3;
+  string credentialsConfigAtStore = 4;
 }

@@ -24,7 +24,9 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
     public override async Task<GetStoresByBrandPagingResponse> GetStoresByBrandPaging(GetStoresByBrandPagingRequest request, ServerCallContext context)
     {
         var storesPagingByBrand = await _unitOfWork.GetRepository<Domain.Entities.Store>().GetPagingListAsync(
-            predicate: x => x.BrandId == Guid.Parse(request.BrandId),
+            predicate: x => x.BrandId == Guid.Parse(request.BrandId) &&
+                           (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)) && 
+                           (string.IsNullOrEmpty(request.Code) || x.Address.Contains(request.Code)),
             page: request.Page,
             size: request.Size,
             isAsc: request.IsAsc,
@@ -47,7 +49,8 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
                     Phone = store.Phone ?? String.Empty,
                     Latitude = store.Latitude ?? String.Empty,
                     Longitude = store.Longitude ?? String.Empty,
-                    Status = (StoreStatus) store.Status
+                    Status = (StoreStatus) store.Status,
+                    Code = store.Code ?? String.Empty
                 };
                 response.Stores.Add(storeResponse);
             }
@@ -122,7 +125,8 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
                 Phone = store.Phone ?? String.Empty,
                 Latitude = store.Latitude ?? String.Empty,
                 Longitude = store.Longitude ?? String.Empty,
-                Status = (StoreStatus) store.Status
+                Status = (StoreStatus) store.Status,
+                Code = store.Code ?? String.Empty
             };
             response.Stores.Add(storeResponse);
         }

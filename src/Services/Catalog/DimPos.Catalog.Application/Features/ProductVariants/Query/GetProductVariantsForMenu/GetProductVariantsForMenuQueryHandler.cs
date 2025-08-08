@@ -47,7 +47,10 @@ public class GetProductVariantsForMenuQueryHandler : IRequestHandler<GetProductV
                 Sku = x.Sku
             },
             predicate: x => x.Product.BrandId == brandId &&
-                            x.Product.Type == EProductType.CustomerOrder,
+                            x.Product.Type == EProductType.CustomerOrder && 
+                            (string.IsNullOrEmpty(request.Code) || x.Code.Contains(request.Code)) && 
+                            (string.IsNullOrEmpty(request.Sku) || x.Name.Contains(request.Sku)) && 
+                            (request.IsCombo == null || x.Product.IsCombo == request.IsCombo),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy ?? "DisplayOrder",

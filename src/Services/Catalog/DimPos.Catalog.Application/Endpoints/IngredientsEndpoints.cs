@@ -67,7 +67,7 @@ public class IngredientsEndpoints : ICarterModule
 
     public async Task<IResult> GetIngredientsByBrand(IMediator mediator, [FromQuery] int page = 1,
         [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,
-        [FromQuery] string? name = null)
+        [FromQuery] string? name = null, [FromQuery] string? code = null)
     {
         var query = new GetIngredientsByBrandQuery()
         {
@@ -75,7 +75,8 @@ public class IngredientsEndpoints : ICarterModule
             Size = size,
             SortBy = sortBy,
             IsAsc = isAsc,
-            Name = name
+            Name = name,
+            Code = code
         };
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
