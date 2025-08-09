@@ -34,7 +34,7 @@ public class GetCampaignsQueryHandler : IRequestHandler<GetCampaignsQuery, ApiRe
                 Description = x.Description,
                 StartDate = x.StartDate,
                 EndDate = x.EndDate,
-                Status = x.Status,
+                IsActive = x.IsActive,
                 Channel = x.Channel,
                 Priority = x.Priority,
                 MaxTotalUsageLimit = x.MaxTotalUsageLimit,

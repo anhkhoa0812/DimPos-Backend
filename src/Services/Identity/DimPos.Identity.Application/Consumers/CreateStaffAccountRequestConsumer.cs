@@ -43,14 +43,14 @@ public class CreateStaffAccountRequestConsumer : IConsumer<CreateStaffAccountReq
             }
 
             var existingAccount = await _unitOfWork.GetRepository<Accounts>().SingleOrDefaultAsync(
-                predicate: x => x.Username == context.Message.Username
-                            || (string.IsNullOrEmpty(context.Message.Email) || x.Email == context.Message.Email)
-                            || x.Code == context.Message.Code
+                predicate: x => x.Code == context.Message.Code 
+                                || (!string.IsNullOrEmpty(context.Message.Email) && x.Email == context.Message.Email)
+                                || x.Username == context.Message.Username
             );
             if (existingAccount != null)
             {
                 _logger.Error($"Account already exists with Code: {context.Message.Code}, Email: {context.Message.Email}, Username: {context.Message.Username}");
-                throw new BadHttpRequestException($"Tên đăng nhập, Email hoặc Mã nhân viên đã tồn tại với tài khoản : {context.Message.Username} và StoreId: {context.Message.StoreId}");
+                throw new BadHttpRequestException($"Tên đăng nhập, Email hoặc Mã nhân viên đã tồn tại với tài khoản : {context.Message.Username} và StoreId: {context.Message.StoreId} và Id: {existingAccount.Id}");
             }
             var account = new Accounts()
             {

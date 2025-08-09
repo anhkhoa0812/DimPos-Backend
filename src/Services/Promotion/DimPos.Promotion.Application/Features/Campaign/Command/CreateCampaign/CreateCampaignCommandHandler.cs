@@ -36,12 +36,12 @@ public class CreateCampaignCommandHandler : IRequestHandler<CreateCampaignComman
             Description = request.Description,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
-            Channel = request.Channel,
+            Channel = ECampaignChannel.Pos,
             Priority = request.Priority,
             MaxTotalUsageLimit = request.MaxTotalUsageLimit,
             MaxUsagePerCustomerLimit = request.MaxUsagePerCustomerLimit,
             BrandId = brandId,
-            Status = ECampaignsStatus.Active
+            IsActive = true
         };
         if (request.PromotionRuleIds != null && request.PromotionRuleIds.Any())
         {

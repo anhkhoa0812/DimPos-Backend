@@ -24,4 +24,6 @@ public class ModifierGroupItem
      public string ModifierGroupNameSnapshot { get; set; } = string.Empty;
      public string ModifierOptionSnapshot { get; set; } = string.Empty;
      public decimal PriceDeltaSnapshot { get; set; }
+     public Guid? RelatedComboProductVariantItemId { get; set; }
+     public string? RelatedComboProductVariantItemName { get; set; }
 }

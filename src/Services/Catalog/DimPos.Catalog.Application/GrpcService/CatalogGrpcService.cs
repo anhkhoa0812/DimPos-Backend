@@ -331,6 +331,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             && x.IsActive == true
                             && x.Product.BrandId == brandId && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
+                .ThenInclude(x => x.ProductComboItems)
                 .Include(x => x.Product.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
                 .ThenInclude(pmg => pmg.ModifierGroup)
                 .ThenInclude(mg => mg.ModifierOptions)
@@ -384,6 +385,33 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                         }).ToList() : new List<RecipeItemsForOrderResponse>()
                 }
             };
+            if (productVariant.Product.IsCombo)
+            {
+                var comboItemProductVariantIds = productVariant.Product.ProductComboItems?.Select(x => x.ItemProductVariantId).ToList();
+                if (comboItemProductVariantIds != null && comboItemProductVariantIds.Any())
+                {
+                    var comboRecipeItems = await _unitOfWork.GetRepository<RecipeItems>().GetListAsync(
+                        predicate: x => comboItemProductVariantIds.Contains(x.Id),
+                        include: x => x.Include(x => x.Ingredient)
+                    );
+                    productForOrderResponse.RecipeItems.AddRange(
+                        comboRecipeItems.Select(x => new RecipeItemsForOrderResponse()
+                        {
+                            RecipeItemId = x.Id.ToString(),
+                            Quantity = (float) x.Quantity,
+                            Ingredient = new IngredientForOrderResponse()
+                            {
+                                Id = x.Ingredient.Id.ToString(),
+                                Name = x.Ingredient.Name,
+                                Sku = x.Ingredient.Sku ?? String.Empty,
+                                Code = x.Ingredient.Code ?? String.Empty,
+                                MeasureUnit = x.Ingredient.MeasureUnit ?? String.Empty,
+                                Description = x.Ingredient.Description ?? String.Empty
+                            }
+                        })
+                    );
+                }
+            }
             foreach (var modifierOptionId in productForOrder.ModifierOptionIds)
             {
                 if (productVariant.Product.ProductModifierGroups != null)

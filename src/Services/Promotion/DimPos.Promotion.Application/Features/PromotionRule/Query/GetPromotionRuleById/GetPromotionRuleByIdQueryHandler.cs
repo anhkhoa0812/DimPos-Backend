@@ -47,6 +47,7 @@ public class GetPromotionRuleByIdQueryHandler : IRequestHandler<GetPromotionRule
             Description = promotionRule.Description,
             ShortDescription = promotionRule.ShortDescription,
             Priority = promotionRule.Priority,
+            IsActive = promotionRule.IsActive,
             RuleActions = new RuleActionsResponse()
             {
                 Id = promotionRule.RuleActions.Id,
@@ -70,7 +71,7 @@ public class GetPromotionRuleByIdQueryHandler : IRequestHandler<GetPromotionRule
                 Priority = crl.Campaign.Priority,
                 StartDate = crl.Campaign.StartDate,
                 EndDate = crl.Campaign.EndDate,
-                Status = crl.Campaign.Status,
+                IsActive = crl.Campaign.IsActive,
                 Channel = crl.Campaign.Channel,
                 MaxTotalUsageLimit = crl.Campaign.MaxTotalUsageLimit,
                 MaxUsagePerCustomerLimit = crl.Campaign.MaxUsagePerCustomerLimit

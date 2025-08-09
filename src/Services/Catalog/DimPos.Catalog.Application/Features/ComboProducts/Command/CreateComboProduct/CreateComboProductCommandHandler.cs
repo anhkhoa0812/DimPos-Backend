@@ -62,6 +62,15 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
             IsHasVariants = false,
             BrandId = brandId,
         };
+        var existingProductVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>()
+            .SingleOrDefaultAsync(
+                predicate: x => x.Code == request.Code
+                                && (string.IsNullOrEmpty(request.Sku) || x.Sku == request.Sku)
+            );
+        if (existingProductVariant != null)
+        {
+            throw new BadHttpRequestException("Mã sản phẩm hoặc SKU đã tồn tại");
+        }
         var productVariant = new Domain.Entities.ProductVariants()
         {
             Id = Guid.CreateVersion7(),

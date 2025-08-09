@@ -144,14 +144,17 @@ public class StoreEndpoints : ICarterModule
     }
 
     public async Task<IResult> GetStoresByBrand(IMediator mediator, [FromQuery] int page = 1,
-        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+        [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,
+        [FromQuery] string? name = null, [FromQuery] string? code = null)
     {
         var query = new GetStoresByBrandQuery()
         {
             Page = page,
             Size = size,
             SortBy = sortBy,
-            IsAsc = isAsc
+            IsAsc = isAsc,
+            Code = code,
+            Name = name
         };
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);

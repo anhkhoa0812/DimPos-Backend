@@ -26,13 +26,9 @@ public class CampaignsConfiguration : IEntityTypeConfiguration<Campaigns>
 
         builder.Property(c => c.EndDate)
             .IsRequired();
-        
-        builder.Property(c => c.Status)
-            .IsRequired()
-            .HasConversion(
-                v => v.ToString(),
-                v => (ECampaignsStatus)Enum.Parse(typeof(ECampaignsStatus), v)
-            );
+
+        builder.Property(c => c.IsActive)
+            .IsRequired();
         builder.Property(c => c.Channel)
             .IsRequired()
             .HasConversion(

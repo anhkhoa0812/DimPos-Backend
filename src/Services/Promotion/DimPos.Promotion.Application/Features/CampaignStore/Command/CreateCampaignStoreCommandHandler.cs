@@ -57,7 +57,6 @@ public class CreateCampaignStoreCommandHandler : IRequestHandler<CreateCampaignS
                 Id = Guid.CreateVersion7(),
                 CampaignId = request.CampaignId,
                 StoreId = storeId,
-                IsActiveAtStore = true
             };
             newCampaignStores.Add(campaignStore);
         }
