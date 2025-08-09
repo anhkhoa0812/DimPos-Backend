@@ -33,13 +33,16 @@ public class AddRuleConditionCommandHandler : IRequestHandler<AddRuleConditionCo
         
         _logger.Information("BEGIN: AddRuleConditionCommandHandler.Handle - PromotionRuleId: {PromotionRuleId}, ConditionType: {ConditionType}, Operator: {Operator}, Value: {Value}", 
             request.PromotionRuleId, request.ConditionType, request.Operator, request.Value);
-        
-        var existingRuleCondition = await _unitOfWork.GetRepository<RuleConditions>().GetListAsync(
-            predicate: x => x.PromotionRule.Id == request.PromotionRuleId &&
-                            x.PromotionRule.BrandId == brandId,
-            include: x => x.Include(y => y.PromotionRule)
+        var promotionRule = await _unitOfWork.GetRepository<PromotionRules>().SingleOrDefaultAsync(
+            predicate: x => x.Id == request.PromotionRuleId && x.BrandId == brandId,
+            include: x => x.Include(x => x.RuleConditions)
         );
-        if (existingRuleCondition.Any(x => x.ConditionType == request.ConditionType))
+        if (promotionRule == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy quy tắc khuyến mãi với ID đã cung cấp.");
+        }
+        
+        if (promotionRule.RuleConditions.Any(x => x.ConditionType == request.ConditionType))
         {
             throw new BadHttpRequestException("Điều kiện đã tồn tại trong quy tắc khuyến mãi.");
         }
@@ -115,7 +118,7 @@ public class AddRuleConditionCommandHandler : IRequestHandler<AddRuleConditionCo
             ConditionType = request.ConditionType,
             Operator = request.Operator,
             Value = request.Value,
-            PromotionRuleId = request.PromotionRuleId, 
+            PromotionRuleId = promotionRule.Id, 
         };
         await _unitOfWork.GetRepository<RuleConditions>().InsertAsync(ruleCondition);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

@@ -4,6 +4,7 @@ using DimPos.Order.Domain.Enums;
 using DimPos.Order.Domain.Models.Common;
 using DimPos.Order.Infrastructure.Persistence;
 using DimPos.Order.Infrastructure.Repositories.Interface;
+using DimPos.Order.Infrastructure.Utils;
 using DimPos.Payment.Application.Common.Protos;
 using Mediator;
 
@@ -53,7 +54,7 @@ public class UpdateCompleteOrderCommandHandler : IRequestHandler<UpdateCompleteO
         }
         
         order.Status = EOrderStatus.Completed;
-        
+        order.CompletedAt = TimeUtil.GetCurrentSEATime();
         _unitOfWork.GetRepository<Orders>().UpdateAsync(order);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         if (!isSuccess)

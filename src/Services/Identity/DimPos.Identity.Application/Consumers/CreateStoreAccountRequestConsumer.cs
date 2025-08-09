@@ -33,7 +33,7 @@ public class CreateStoreAccountRequestConsumer : IConsumer<CreateStoreAccountReq
             );
             var existingAccount = await _unitOfWork.GetRepository<Accounts>().SingleOrDefaultAsync(
                 predicate: x => x.Code == context.Message.Code 
-                                || (string.IsNullOrEmpty(context.Message.Email) || x.Email == context.Message.Email)
+                                || (!string.IsNullOrEmpty(context.Message.Email) && x.Email == context.Message.Email)
                                 || x.Username == context.Message.Username
             );
             if (existingAccount != null)

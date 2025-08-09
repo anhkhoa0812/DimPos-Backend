@@ -6,6 +6,7 @@ using DimPos.Promotion.Domain.Models.Common;
 using DimPos.Promotion.Infrastructure.Persistence;
 using DimPos.Promotion.Infrastructure.Repositories.Interface;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Promotion.Application.Features.RuleAction.Command.UpdateRuleAction;
 
@@ -31,7 +32,8 @@ public class UpdateRuleActionCommandHandler : IRequestHandler<UpdateRuleActionCo
         var ruleAction = await _unitOfWork.GetRepository<RuleActions>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.RuleActionId
             && x.PromotionRuleId == request.PromotionRuleId 
-            && x.PromotionRule.BrandId == brandId
+            && x.PromotionRule.BrandId == brandId,
+            include: x => x.Include(x => x.PromotionRule)
         );
         if (ruleAction == null)
             throw new BadHttpRequestException("Không tìm thấy hành động quy tắc khuyến mãi với ID đã cung cấp.");

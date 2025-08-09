@@ -49,7 +49,7 @@ public class GetProductVariantsForMenuQueryHandler : IRequestHandler<GetProductV
             predicate: x => x.Product.BrandId == brandId &&
                             x.Product.Type == EProductType.CustomerOrder && 
                             (string.IsNullOrEmpty(request.Code) || x.Code.Contains(request.Code)) && 
-                            (string.IsNullOrEmpty(request.Sku) || x.Name.Contains(request.Sku)) && 
+                            (string.IsNullOrEmpty(request.Sku) || x.Sku.Contains(request.Sku)) && 
                             (request.IsCombo == null || x.Product.IsCombo == request.IsCombo),
             page: request.Page,
             size: request.Size,

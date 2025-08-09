@@ -1,9 +1,12 @@
 using Carter;
 using DimPos.Promotion.Application.Common.Utils;
 using DimPos.Promotion.Application.Features.Campaign.Command.CreateCampaign;
+using DimPos.Promotion.Application.Features.Campaign.Command.UpdateCampaign;
 using DimPos.Promotion.Application.Features.Campaign.Query.GetCampaignById;
 using DimPos.Promotion.Application.Features.Campaign.Query.GetCampaigns;
 using DimPos.Promotion.Application.Features.CampaignStore.Command;
+using DimPos.Promotion.Application.Features.CampaignStore.Command.UpdateCampaignStore;
+using DimPos.Promotion.Application.Features.PromotionRule.Command.AssignPromotionRules;
 using DimPos.Promotion.Domain.Constants;
 using DimPos.Promotion.Domain.Models.Campaigns;
 using DimPos.Promotion.Domain.Models.Common;
@@ -35,6 +38,15 @@ public class CampaignEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{id:guid}/campaign-stores", UpdateCampaignStore)
+            .DisableAntiforgery()
+            .RequireAuthorization("BrandPolicy")
+            .WithName(nameof(UpdateCampaignStore))
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("", GetCampaigns)
             .RequireAuthorization("BrandPolicy")
             .WithName(nameof(GetCampaigns))
@@ -47,6 +59,24 @@ public class CampaignEndpoints : ICarterModule
             .RequireAuthorization("BrandPolicy")
             .WithName(nameof(GetCampaignById))
             .Produces<ApiResponse<GetCampaignByIdResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("{id:guid}", UpdateCampaign)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateCampaign))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPut("{id:guid}/promotion-rules", AssignPromotionRuleToCampaign)
+            .DisableAntiforgery()
+            .WithName(nameof(AssignPromotionRuleToCampaign))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -101,6 +131,52 @@ public class CampaignEndpoints : ICarterModule
             CampaignId = id
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> UpdateCampaign(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] UpdateCampaignRequest request, ValidationUtil<UpdateCampaignCommand> validationUtil)
+    {
+        var command = new UpdateCampaignCommand
+        {
+            CampaignId = id,
+            Name = request.Name,
+            Description = request.Description,
+            Priority = request.Priority,
+            IsActive = request.IsActive,
+            StartDate = request.StartDate,
+            EndDate = request.EndDate
+        };
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> UpdateCampaignStore(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] UpdateCampaignStoreRequest request)
+    {
+        var command = new UpdateCampaignStoreCommand
+        {
+            CampaignId = id,
+            StoreIds = request.StoreIds
+        };
+        
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> AssignPromotionRuleToCampaign(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] AssignPromotionRulesRequest request)
+    {
+        var command = new AssignPromotionRulesCommand()
+        {
+            CampaignId = id,
+            PromotionRuleIds = request.PromotionRuleIds
+        };
+        
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }

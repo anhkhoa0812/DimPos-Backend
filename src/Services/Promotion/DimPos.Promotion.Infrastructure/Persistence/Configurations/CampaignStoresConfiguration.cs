@@ -14,8 +14,6 @@ public class CampaignStoresConfiguration : IEntityTypeConfiguration<CampaignStor
             .IsRequired();
         builder.Property(cs => cs.StoreId)
             .IsRequired();
-        builder.Property(cs => cs.IsActiveAtStore)
-            .IsRequired();
         
         builder.HasOne(cs => cs.Campaign)
             .WithMany(c => c.CampaignStores)

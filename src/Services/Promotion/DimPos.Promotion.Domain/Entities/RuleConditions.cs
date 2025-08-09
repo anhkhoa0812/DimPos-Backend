@@ -10,5 +10,5 @@ public class RuleConditions : EntityBase<Guid>
     public EOperator Operator { get; set; }
     public string Value { get; set; } = string.Empty;
     
-    public virtual PromotionRules PromotionRule { get; set; } = new PromotionRules();
+    public virtual PromotionRules PromotionRule { get; set; }
 }

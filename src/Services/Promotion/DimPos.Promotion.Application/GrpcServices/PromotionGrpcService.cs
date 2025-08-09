@@ -27,7 +27,7 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
         _logger.Information($"BEGIN: {nameof(GetPromotionForOrder)} - {TimeUtil.GetCurrentSEATime()}");
         
         var promotionRules = await _unitOfWork.GetRepository<PromotionRules>().GetListAsync(
-            predicate: x => x.CampaignRuleLinks.Any(x => x.Campaign.Status == ECampaignsStatus.Active
+            predicate: x => x.CampaignRuleLinks.Any(x => x.Campaign.IsActive
                                                          && x.Campaign.CampaignStores.Any(cs => cs.StoreId == Guid.Parse(request.StoreId)))
                             && x.BrandId == Guid.Parse(request.BrandId),
             include: x => x.Include(pr => pr.CampaignRuleLinks)

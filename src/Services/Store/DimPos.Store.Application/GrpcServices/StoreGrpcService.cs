@@ -26,7 +26,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
         var storesPagingByBrand = await _unitOfWork.GetRepository<Domain.Entities.Store>().GetPagingListAsync(
             predicate: x => x.BrandId == Guid.Parse(request.BrandId) &&
                            (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)) && 
-                           (string.IsNullOrEmpty(request.Code) || x.Address.Contains(request.Code)),
+                           (string.IsNullOrEmpty(request.Code) || x.Code.Contains(request.Code)),
             page: request.Page,
             size: request.Size,
             isAsc: request.IsAsc,

@@ -25,11 +25,9 @@ public class CreateCampaignCommandValidator : AbstractValidator<CreateCampaignCo
             .NotNull().WithMessage("Ngày kết thúc không được để trống.")
             .GreaterThan(x => x.StartDate).WithMessage("Ngày kết thúc phải lớn hơn ngày bắt đầu.");
         
-        RuleFor(x => x.Channel)
-            .IsInEnum().WithMessage("Kênh chiến dịch không hợp lệ.");
         RuleFor(x => x.Priority)
-            .NotEmpty().WithMessage("Ưu tiên chiến dịch không được để trống.")
-            .NotNull().WithMessage("Ưu tiên chiến dịch không được để trống.");
+            .NotNull().WithMessage("Ưu tiên chiến dịch không được để trống.")
+            .GreaterThanOrEqualTo(0).WithMessage("Ưu tiên chiến dịch phải lớn hơn hoặc bằng 0.");
         
         RuleFor(x => x.MaxTotalUsageLimit)
             .GreaterThanOrEqualTo(0).WithMessage("Giới hạn sử dụng tối đa phải lớn hơn hoặc bằng 0.")

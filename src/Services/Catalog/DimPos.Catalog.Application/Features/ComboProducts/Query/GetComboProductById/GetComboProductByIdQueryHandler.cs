@@ -71,7 +71,7 @@ public class GetComboProductByIdQueryHandler : IRequestHandler<GetComboProductBy
                 {
                     Id = productComboItem.Id,
                     Quantity = productComboItem.Quantity,
-                    DisplayOrder = productVariantItem.DisplayOrder,
+                    DisplayOrder = productComboItem.DisplayOrder,
                     ProductVariant = new ProductVariantForComboProductItemResponse()
                     {
                         Id = productVariantItem.Id,

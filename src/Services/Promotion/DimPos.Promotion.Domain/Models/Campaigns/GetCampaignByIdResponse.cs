@@ -9,13 +9,13 @@ public class GetCampaignByIdResponse
     public string? Description { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public ECampaignsStatus Status { get; set; }
+    public bool IsActive { get; set; }
     public ECampaignChannel Channel { get; set; }
     public int Priority { get; set; }
     public int? MaxTotalUsageLimit { get; set; }
     public int? MaxUsagePerCustomerLimit { get; set; }
     public List<PromotionRulesByGetCampaignByIdResponse>? PromotionRules { get; set; }
-    public List<Guid>? StoreIds { get; set; }
+    public List<StoreByGetCampaignByIdResponse>? Stores { get; set; } = new List<StoreByGetCampaignByIdResponse>();
 }
 public class PromotionRulesByGetCampaignByIdResponse
 {
@@ -25,4 +25,16 @@ public class PromotionRulesByGetCampaignByIdResponse
     public string? Description { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public int Priority { get; set; }
+}
+public class StoreByGetCampaignByIdResponse
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = String.Empty;
+    public string Name { get; set; } = String.Empty;
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? Description { get; set; }
+    public string Address { get; set; } = String.Empty;
+    public string? Latitude { get; set; }
+    public string? Longitude { get; set; }
 }

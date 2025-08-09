@@ -50,7 +50,9 @@ public class GetStoresByBrandQueryHandler : IRequestHandler<GetStoresByBrandQuer
                 CreatedDate = x.CreatedDate,
                 LastModifiedDate = x.LastModifiedDate
             },
-            predicate:  x => x.BrandId == brandId,
+            predicate: x => x.BrandId == brandId &&
+                            (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)) &&
+                            (string.IsNullOrEmpty(request.Code) || x.Code.Contains(request.Code)),
             page: request.Page,
             size: request.Size,
             sortBy: request.SortBy,
