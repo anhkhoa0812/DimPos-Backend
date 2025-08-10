@@ -7,4 +7,5 @@ public class GrpcSettings
     public string PromotionUrl { get; set; }
     public string PaymentUrl { get; set; }
     public string InventoryUrl { get; set; }
+    public string IdentityUrl { get; set; }
 }
