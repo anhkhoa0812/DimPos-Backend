@@ -1,3 +1,4 @@
+using DimPos.Order.Domain.Enums;
 using DimPos.Order.Domain.Models.Common;
 using Mediator;
 
@@ -9,6 +10,7 @@ public class CreateOrderCommand : IRequest<ApiResponse>
     public Guid? CustomerId { get; set; }
     public DateTime? PickupTime { get; set; }
     public string? Note { get; set; }
+    public EOrderType Type { get; set; }
     public int? TableNumberDineIn { get; set; }
     public Guid StorePaymentMethodConfigId { get; set; }
     public List<CreateOrderItemRequest> OrderItems { get; set; }

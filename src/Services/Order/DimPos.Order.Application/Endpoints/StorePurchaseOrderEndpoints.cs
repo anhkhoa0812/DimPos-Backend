@@ -104,7 +104,8 @@ public class StorePurchaseOrderEndpoints : ICarterModule
             Status = request.Status,
             CancellationReasonByBrand = request.CancellationReasonByBrand,
             CancellationRequestReasonByStore = request.CancellationRequestReasonByStore,
-            StorePurchaseOrderItemRequests = request.StorePurchaseOrderItemRequests
+            StorePurchaseOrderItemRequests = request.StorePurchaseOrderItemRequests,
+            NoteFromBrand = request.NoteFromBrand
         };
         var validationResult = await validationUtil.ValidateAsync(command);
         if (!validationResult.IsValid)

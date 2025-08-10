@@ -29,11 +29,14 @@ public class GetStoreMenuByIdQueryHandler : IRequestHandler<GetStoreMenuByIdQuer
     public async ValueTask<ApiResponse> Handle(GetStoreMenuByIdQuery request, CancellationToken cancellationToken)
     {
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
-        if(brandId == Guid.Empty)
-            throw new BadHttpRequestException("Không tìm thấy id của thương hiệu");
+        var storeId = _claimService.GetStoreId ?? Guid.Empty;
+        // if(brandId == Guid.Empty)
+        //     throw new BadHttpRequestException("Không tìm thấy id của thương hiệu");
         
         var storeMenuAssignment = await _unitOfWork.GetRepository<Domain.Entities.StoreMenuAssignments>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.StoreMenuId && x.BrandMenu.BrandId == brandId,
+            predicate: x => x.Id == request.StoreMenuId 
+                            && (brandId == Guid.Empty || x.BrandMenu.BrandId == brandId) 
+                            && (storeId == Guid.Empty || x.StoreId == storeId),
             include: x => x.Include(x => x.StoreMenuItemAvailability)
                 .ThenInclude(x => x.BrandMenuItem)
                 .Include(x => x.BrandMenu)
@@ -65,7 +68,7 @@ public class GetStoreMenuByIdQueryHandler : IRequestHandler<GetStoreMenuByIdQuer
             var productVariantsGrpcResponse = await _catalogGrpcService.GetProductVariantListByIdsForStoreMenuAsync(
                 new GetProductVariantListByIdsForStoreMenuRequest()
                 {
-                    BrandId = brandId.ToString(),
+                    BrandId = brandId != Guid.Empty ? brandId.ToString() : storeMenuAssignment.BrandMenu.BrandId.ToString(),
                     ProductVariantIds = { listProductVariantIds.Select(x => x.ToString()) }
                 }
             );
@@ -81,7 +84,7 @@ public class GetStoreMenuByIdQueryHandler : IRequestHandler<GetStoreMenuByIdQuer
                         IsActiveAtStore = storeMenuItem.IsActiveAtStore,
                         CreatedDate = storeMenuItem.CreatedDate,
                         LastModifiedDate = storeMenuItem.LastModifiedDate,
-                        ProductVariant = new ProductVariantResponse()
+                        ProductVariant = new ProductVariantForGetStoreMenuById()
                         {
                             Id = Guid.Parse(productVariant.Id),
                             Name = productVariant.Name,
@@ -91,7 +94,14 @@ public class GetStoreMenuByIdQueryHandler : IRequestHandler<GetStoreMenuByIdQuer
                             IsActive = productVariant.IsActive,
                             Size = productVariant.Size,
                             DisplayOrder = productVariant.DisplayOrder,
-                            Sku = productVariant.Sku
+                            Sku = productVariant.Sku,
+                            ProductImages = productVariant.ProductImages.Select(x => new ProductImageForGetStoreMenuById()
+                            {
+                                Id = Guid.Parse(x.Id),
+                                ImageUrl = x.ImageUrl,
+                                IsMainImage = x.IsMainImage,
+                                AltText = x.AltText
+                            }).ToList()
                         }
                     });
                 }

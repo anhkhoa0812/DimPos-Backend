@@ -242,7 +242,7 @@ message GetProductVariantListByIdsForStoreMenuRequest {
   repeated string productVariantIds = 2;
 }
 message GetProductVariantListByIdsForStoreMenuResponse {
-  repeated ProductVariant productVariants = 1;
+  repeated ProductVariantWithImages productVariants = 1;
 }
 message GetIngredientsByIngredientIdsRequest {
   repeated string ingredientIds = 1;

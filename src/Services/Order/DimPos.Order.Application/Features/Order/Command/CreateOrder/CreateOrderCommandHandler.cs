@@ -83,7 +83,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             TableNumberDineIn = request.TableNumberDineIn,
             PickupTime = request.PickupTime,
             CreatedByAccountId = accountId,
-            Type = EOrderType.DineIn,
+            Type = request.Type,
             IsNeedToUpdateInventory = false
         };
         if (request.CustomerId != null && request.CustomerId != Guid.Empty)

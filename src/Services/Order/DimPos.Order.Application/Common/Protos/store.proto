@@ -19,7 +19,9 @@ message GetStoresByBrandPagingRequest {
   int32 size = 2;
   optional string sortBy = 3;
   bool isAsc = 4;
-  string brandId = 6;
+  optional string name = 5;
+  optional string code = 6;
+  string brandId = 7;
 }
 message GetStoresByBrandPagingResponse {
   int32 total = 1;
@@ -29,14 +31,15 @@ message GetStoresByBrandPagingResponse {
 
 message StoreResponse {
   string id = 1;
-  string name = 2;
-  string phone = 3;
-  string email = 4;
-  string description = 5;
-  string address = 6;
-  string latitude = 7;
-  string longitude = 8;
-  StoreStatus status = 9;
+  string code = 2;
+  string name = 3;
+  string phone = 4;
+  string email = 5;
+  string description = 6;
+  string address = 7;
+  string latitude = 8;
+  string longitude = 9;
+  StoreStatus status = 10;
 }
 enum StoreStatus {
   Active = 0;

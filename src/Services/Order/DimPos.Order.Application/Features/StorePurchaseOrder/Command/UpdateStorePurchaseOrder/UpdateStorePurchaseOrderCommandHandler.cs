@@ -92,6 +92,7 @@ public class UpdateStorePurchaseOrderCommandHandler : IRequestHandler<UpdateStor
                 storePurchaseOrder.EstimatedTotalValue = storePurchaseOrder.StorePurchaseOrderItems
                     .Sum(x => x.TotalPriceOfOrderItems);
                 storePurchaseOrder.Status = EStorePurchaseOrderStatus.BrandConfirmed;
+                storePurchaseOrder.NoteFromBrand = request.NoteFromBrand;
                 storePurchaseOrder.ConfirmedByBrandAt = TimeUtil.GetCurrentSEATime();
                 break;
             case EStorePurchaseOrderStatus.CancelledByStore:
