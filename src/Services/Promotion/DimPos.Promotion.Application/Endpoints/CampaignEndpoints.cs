@@ -4,6 +4,7 @@ using DimPos.Promotion.Application.Features.Campaign.Command.CreateCampaign;
 using DimPos.Promotion.Application.Features.Campaign.Command.UpdateCampaign;
 using DimPos.Promotion.Application.Features.Campaign.Query.GetCampaignById;
 using DimPos.Promotion.Application.Features.Campaign.Query.GetCampaigns;
+using DimPos.Promotion.Application.Features.Campaign.Query.GetCampaignsByStore;
 using DimPos.Promotion.Application.Features.CampaignStore.Command;
 using DimPos.Promotion.Application.Features.CampaignStore.Command.UpdateCampaignStore;
 using DimPos.Promotion.Application.Features.PromotionRule.Command.AssignPromotionRules;
@@ -56,7 +57,7 @@ public class CampaignEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("{id:guid}", GetCampaignById)
-            .RequireAuthorization("BrandPolicy")
+            .RequireAuthorization("BrandAndStoreAdminPolicy")
             .WithName(nameof(GetCampaignById))
             .Produces<ApiResponse<GetCampaignByIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
@@ -77,6 +78,14 @@ public class CampaignEndpoints : ICarterModule
             .WithName(nameof(AssignPromotionRuleToCampaign))
             .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("stores", GetCampaignsByStore)
+            .WithName(nameof(GetCampaignsByStore))
+            .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse<IPaginate<GetCampaignsResponse>>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -177,6 +186,20 @@ public class CampaignEndpoints : ICarterModule
         };
         
         var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> GetCampaignsByStore(IMediator mediator, [FromQuery] int page, [FromQuery] int size,
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var query = new GetCampaignsByStoreQuery()
+        {
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc
+        };
+        var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }
 }

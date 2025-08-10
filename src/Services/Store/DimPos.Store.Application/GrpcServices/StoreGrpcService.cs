@@ -342,6 +342,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             var storeResponse = new StoreResponse()
             {
                 Id = store.Id.ToString(),
+                Code = store.Code,
                 Name = store.Name,
                 Description = store.Description ?? String.Empty,
                 Address = store.Address,

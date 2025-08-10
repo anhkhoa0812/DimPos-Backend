@@ -28,14 +28,19 @@ public class GetCampaignByIdQueryHandler : IRequestHandler<GetCampaignByIdQuery,
     public async ValueTask<ApiResponse> Handle(GetCampaignByIdQuery request, CancellationToken cancellationToken)
     {
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
-        if(brandId == Guid.Empty)
-            throw new BadHttpRequestException("Không tìm thấy Id thương hiệu");
+        var storeId = _claimService.GetStoreId ?? Guid.Empty;
 
         var campaign = await _unitOfWork.GetRepository<Campaigns>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.CampaignId && x.BrandId == brandId,
+            predicate: x => x.Id == request.CampaignId && 
+                            (brandId == Guid.Empty || x.BrandId == brandId) && 
+                            (storeId == Guid.Empty || x.CampaignStores.Any(cs => cs.StoreId == storeId)),
             include: x => x.Include(x => x.CampaignStores)
                 .Include(x => x.CampaignRuleLinks)
                 .ThenInclude(x => x.PromotionRule)
+                .ThenInclude(x => x.RuleActions)
+                .Include(x => x.CampaignRuleLinks)
+                .ThenInclude(x => x.PromotionRule)
+                .ThenInclude(x => x.RuleConditions)
         );
         if (campaign == null)
         {
@@ -70,7 +75,22 @@ public class GetCampaignByIdQueryHandler : IRequestHandler<GetCampaignByIdQuery,
                 Description = pr.PromotionRule.Description,
                 ShortDescription = pr.PromotionRule.ShortDescription,
                 IsActive = pr.PromotionRule.IsActive,
-                Priority = pr.PromotionRule.Priority
+                Priority = pr.PromotionRule.Priority,
+                RuleActions = new RuleActionsResponse()
+                {
+                    Id = pr.PromotionRule.RuleActions.Id,
+                    ActionType = pr.PromotionRule.RuleActions.ActionType,
+                    Value = pr.PromotionRule.RuleActions.Value,
+                    TargetCriteriaForItemAction = pr.PromotionRule.RuleActions.TargetCriteriaForItemAction,
+                    MaxDiscountAmountForPercentage = pr.PromotionRule.RuleActions.MaxDiscountAmountForPercentage
+                },
+                RuleConditions = pr.PromotionRule.RuleConditions.Select(rc => new RuleConditionsResponse()
+                {
+                    Id = rc.Id,
+                    ConditionType = rc.ConditionType,
+                    Value = rc.Value,
+                    Operator = rc.Operator
+                }).ToList(),
             }).ToList(),
             Stores = storeResponse.Stores.Any() ? storeResponse.Stores.Select(store => new StoreByGetCampaignByIdResponse()
             {

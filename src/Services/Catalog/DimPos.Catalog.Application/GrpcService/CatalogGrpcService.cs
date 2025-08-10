@@ -503,6 +503,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             && x.Product.BrandId == brandId 
                             && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
+                .ThenInclude(x => x.ProductImages)
         );
         var response = new GetProductVariantListByIdsForStoreMenuResponse();
         foreach (var productVariant in productVariants)
@@ -516,7 +517,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 overridePrice = (float)storePrice.OverridePrice;
             }
             
-            response.ProductVariants.Add(new ProductVariant()
+            response.ProductVariants.Add(new ProductVariantWithImages()
             {
                 Id = productVariant.Id.ToString(),
                 Code = productVariant.Code,
@@ -526,7 +527,18 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 Price = overridePrice,
                 IsActive = productVariant.IsActive,
                 Size = productVariant.Size ?? String.Empty,
-                Sku = productVariant.Sku ?? String.Empty
+                Sku = productVariant.Sku ?? String.Empty,
+                ProductImages =
+                {
+                    productVariant.Product.ProductImages != null ?
+                        productVariant.Product.ProductImages.Select(pi => new ProductImage()
+                        {
+                            Id = pi.Id.ToString(),
+                            ImageUrl = pi.ImageUrl,
+                            IsMainImage = pi.IsMainImage,
+                            AltText = pi.AltText ?? String.Empty,
+                        }).ToList() : new List<ProductImage>()
+                }
             });
         }
         return response;
