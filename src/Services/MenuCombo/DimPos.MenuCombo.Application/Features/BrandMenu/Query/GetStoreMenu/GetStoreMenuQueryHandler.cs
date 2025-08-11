@@ -145,6 +145,24 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
                 Size = pv.Size,
                 DisplayOrder = pv.DisplayOrder,
                 Sku = pv.Sku
+            }).ToList(),
+            ComboItems = product.ComboItems?.ComboItems.Select(ci => new ComboItemsResponse()
+            {
+                Id = Guid.Parse(ci.Id),
+                DisplayOrder = ci.DisplayOrder,
+                Quantity = ci.Quantity,
+                ProductVariant = new ProductVariantResponse()
+                {
+                    Id = Guid.Parse(ci.ProductVariant.Id),
+                    Code = ci.ProductVariant.Code,
+                    Name = ci.ProductVariant.Name,
+                    Description = ci.ProductVariant.Description,
+                    Price = (decimal) ci.ProductVariant.Price,
+                    IsActive = ci.ProductVariant.IsActive,
+                    Size = ci.ProductVariant.Size,
+                    DisplayOrder = ci.ProductVariant.DisplayOrder,
+                    Sku = ci.ProductVariant.Sku
+                }
             }).ToList()
         };
     }

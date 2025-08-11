@@ -119,6 +119,7 @@ message ProductResponse {
   float price = 6;
   string categoryId = 7;
   optional ListProductVariant productVariants = 8;
+  optional ListComboItemResponse comboItems = 9;
 }
 message ListModifierGroupResponse {
   repeated ModifierGroupResponse modifierGroups = 1;
@@ -163,6 +164,15 @@ message ProductVariantResponse {
   string size = 8;
   int32 displayOrder = 9;
   string sku = 10;
+}
+message ListComboItemResponse {
+  repeated ComboItemResponse comboItems = 1;
+}
+message ComboItemResponse {
+  string id = 1;
+  int32 quantity = 2;
+  int32 displayOrder = 3;
+  ProductVariantResponse productVariant = 4;
 }
 message GetProductForOrderRequest {
   string storeId = 1;

@@ -38,6 +38,7 @@ public record ProductsResponse
     public decimal Price { get; set; }
     public Guid CategoryId { get; set; }
     public List<ProductVariantResponse>? ProductVariants { get; set; }
+    public List<ComboItemsResponse>? ComboItems { get; set; }
 }
 
 public record ProductVariantResponse
@@ -72,4 +73,11 @@ public record ModifierOptionsResponses
     public bool IsActive { get; set; }
     public decimal PriceDelta { get; set; }
     public Guid ModifierGroupId { get; set; }
+}
+public record ComboItemsResponse
+{
+    public Guid Id { get; set; }
+    public int DisplayOrder { get; set; }
+    public int Quantity { get; set; }
+    public ProductVariantResponse ProductVariant { get; set; } = null!;
 }
