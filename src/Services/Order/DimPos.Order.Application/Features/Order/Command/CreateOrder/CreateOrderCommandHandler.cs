@@ -195,7 +195,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 ModifierGroupSnapshot = x.ModifierGroupName,
                 PriceDeltaOptionSnapshot = (decimal) x.DeltaPrice,
                 RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId != String.Empty ?
-                    Guid.Parse(x.RelatedComboProductVariantItemId) : null
+                    Guid.Parse(x.RelatedComboProductVariantItemId) : null,
+                RelatedComboProductVariantItemName = x.RelatedComboProductVariantItemName != String.Empty ? 
+                    x.RelatedComboProductVariantItemName : null
             }).ToList()
         }).ToList();
         order.OrderItems = orderItems;
