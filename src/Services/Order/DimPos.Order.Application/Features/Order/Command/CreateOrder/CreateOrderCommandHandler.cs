@@ -126,13 +126,21 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                     Id = x.ProductVariantId.ToString(),
                     Quantity = x.Quantity,
                     Note = x.Note ?? string.Empty,
-                    ModifierOptionIds =
+                    ModifierOptions =
                     {
-                        x.ModifierOptionIds?.Select(m => m.ToString()) ?? new  List<string>()
+                        x.OrderItemSelectedOptions?.Select(x => new ModifierOptionForOrderRequest()
+                        {
+                            ModifierOptionId = x.ModifierOptionId.ToString(),
+                            RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId.ToString()
+                        }).ToList() ?? new List<ModifierOptionForOrderRequest>()
                     }
                 })
             }
         });
+        if (!orderItemsFromGrpc.IsSuccess)
+        {
+            throw new BadHttpRequestException(orderItemsFromGrpc.ErrorMessage);
+        }
         var checkInventoryResponse = await _inventoryGrpcService.CheckInventoryForOrderAsync(new CheckInventoryForOrderRequest()
         {
             StoreId = storeId.ToString(),
@@ -185,7 +193,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 ModifierGroupId = Guid.Parse(x.ModifierGroupId),
                 ModifierOptionSnapshot = x.ModifierOptionName,
                 ModifierGroupSnapshot = x.ModifierGroupName,
-                PriceDeltaOptionSnapshot = (decimal) x.DeltaPrice
+                PriceDeltaOptionSnapshot = (decimal) x.DeltaPrice,
+                RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId != String.Empty ?
+                    Guid.Parse(x.RelatedComboProductVariantItemId) : null
             }).ToList()
         }).ToList();
         order.OrderItems = orderItems;

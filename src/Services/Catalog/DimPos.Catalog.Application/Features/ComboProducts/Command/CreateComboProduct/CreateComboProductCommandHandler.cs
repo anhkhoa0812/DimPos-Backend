@@ -161,12 +161,15 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
         
         var itemProductVariantIds = request.ItemProductVariants.Select(x => x.ProductVariantId).ToList();
         var itemProductVariants = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().GetListAsync(
-            predicate: x => itemProductVariantIds.Contains(x.Id)
-            && x.Product.Type == EProductType.CustomerOrder
+            predicate: x => itemProductVariantIds.Contains(x.Id) 
+                            && x.Product.Type == EProductType.CustomerOrder
+                            && x.Product.BrandId == brandId
+                            && !x.Product.IsCombo
+                            && x.IsActive
         );
         if(request.ItemProductVariants.Count != itemProductVariants.Count)
         {
-            throw new BadHttpRequestException("Một hoặc nhiều sản phẩm không tồn tại");
+            throw new BadHttpRequestException("Một hoặc nhiều sản phẩm không tồn tại hoặc không hoạt động");
         }
         foreach (var itemProductVariant in itemProductVariants)
         {

@@ -4,6 +4,7 @@ using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Infrastructure.Persistence;
 using DimPos.Catalog.Infrastructure.Repositories.Interface;
 using DimPos.Catalog.Infrastructure.Utils;
+using Google.Protobuf.Collections;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 
@@ -380,13 +381,18 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             && x.Product.BrandId == brandId && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
                 .ThenInclude(x => x.ProductComboItems)
+                .ThenInclude(x => x.ItemProductVariant)
+                .ThenInclude(x => x.Product)
+                .ThenInclude(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
+                .ThenInclude(pmg => pmg.ModifierGroup)
+                .ThenInclude(mg => mg.ModifierOptions)
                 .Include(x => x.Product.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
                 .ThenInclude(pmg => pmg.ModifierGroup)
                 .ThenInclude(mg => mg.ModifierOptions)
                 .Include(x => x.RecipeItems)
                 .ThenInclude(ri => ri.Ingredient)
             );
-            
+        var response = new GetProductForOrderResponse();
         var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
             predicate: x => x.StoreId == storeId
                             && productVariantIds.Contains(x.ProductVariantId)
@@ -394,13 +400,17 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var storePriceMap = storePrices.ToDictionary(x => x.ProductVariantId);
         var missingVariants = productVariantIds.Except(productVariants.Select(v => v.Id)).ToList();
         if (missingVariants.Any())
-            throw new RpcException(new Status(StatusCode.NotFound,
-                $"Không tìm thấy Product Variants: {string.Join(',', missingVariants)}"));
+        {
+            response.IsSuccess = false;
+            response.ErrorMessage = $"Không tìm thấy những biến thể sản phẩm: {string.Join(',', missingVariants)}";
+            return response;
+        }
         var missingPrices = productVariantIds.Except(storePriceMap.Keys).ToList();
         if (missingPrices.Any())
-            throw new RpcException(new Status(StatusCode.NotFound,
-                $"Không tìm thấy giá của Product Variant: {string.Join(',', missingPrices)}"));
-        var response = new GetProductForOrderResponse();
+        {
+            response.IsSuccess = false;
+            response.ErrorMessage = $"Không tìm thấy giá của những biến thể sản phẩm: {string.Join(',', missingPrices)}";
+        }
         foreach (var productForOrder in request.ProductForOrders)
         {
             var id = Guid.Parse(productForOrder.Id);
@@ -460,16 +470,18 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     );
                 }
             }
-            foreach (var modifierOptionId in productForOrder.ModifierOptionIds)
+            foreach (var modifierOptionRequest in productForOrder.ModifierOptions)
             {
-                if (productVariant.Product.ProductModifierGroups != null)
+                if (!productVariant.Product.IsCombo)
                 {
-                    var modifierOption = productVariant.Product.ProductModifierGroups
+                    var modifierOption = productVariant.Product.ProductModifierGroups?
                         .SelectMany(pmg => pmg.ModifierGroup.ModifierOptions)
-                        .FirstOrDefault(x => x.Id == Guid.Parse(modifierOptionId));
+                        .FirstOrDefault(x => x.Id == Guid.Parse(modifierOptionRequest.ModifierOptionId));
                     if (modifierOption == null)
                     {
-                        throw new RpcException(new Status(StatusCode.NotFound, $"Modifier option with ID {modifierOptionId} not found."));
+                        response.IsSuccess = false;
+                        response.ErrorMessage = $"Không tìm thấy tuỳ chọn với Id: {modifierOptionRequest.ModifierOptionId} cho biến thể sản phẩm: {productVariant.Name}.";
+                        return response;
                     }
                     productForOrderResponse.ModifierOptions.Add(new ModifierOptionForOrderResponse()
                     {
@@ -477,12 +489,46 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                         ModifierGroupId = modifierOption.Id.ToString(),
                         ModifierGroupName = modifierOption.ModifierGroup.Name ?? String.Empty,
                         ModifierOptionName = modifierOption.Name ?? String.Empty,
-                        DeltaPrice = (float) modifierOption.PriceDelta
+                        DeltaPrice = (float) modifierOption.PriceDelta,
+                        RelatedComboProductVariantItemId = String.Empty,
+                        RelatedComboProductVariantItemName = String.Empty
+                    });
+                }
+                else
+                {
+                    var existingProductComboItem = productVariant.Product.ProductComboItems.Select(x => x.ItemProductVariant)
+                        .FirstOrDefault(x => x.Id == Guid.Parse(modifierOptionRequest.RelatedComboProductVariantItemId));
+                    if (existingProductComboItem == null)
+                    {
+                        response.IsSuccess = false;
+                        response.ErrorMessage = $"Không tìm thấy biến thể sản phẩm trong combo với Id: {modifierOptionRequest.RelatedComboProductVariantItemId}.";
+                        return response;
+                    }
+                    var existingModifierOption = existingProductComboItem.Product.ProductModifierGroups
+                        .SelectMany(pmg => pmg.ModifierGroup.ModifierOptions)
+                        .FirstOrDefault(x => x.Id == Guid.Parse(modifierOptionRequest.ModifierOptionId));
+                    if (existingModifierOption == null)
+                    {
+                        response.IsSuccess = false;
+                        response.ErrorMessage = $"Không tìm thấy tuỳ chọn với Id: {modifierOptionRequest.ModifierOptionId} cho biến thể sản phẩm trong combo: {existingProductComboItem.Name}.";
+                        return response;
+                    }
+                    productForOrderResponse.ModifierOptions.Add(new ModifierOptionForOrderResponse()
+                    {
+                        Id = existingModifierOption.Id.ToString(),
+                        ModifierGroupId = existingModifierOption.ModifierGroup.Id.ToString(),
+                        ModifierGroupName = existingModifierOption.ModifierGroup.Name ?? String.Empty,
+                        ModifierOptionName = existingModifierOption.Name ?? String.Empty,
+                        DeltaPrice = (float) existingModifierOption.PriceDelta,
+                        RelatedComboProductVariantItemId = existingProductComboItem.Id.ToString(),
+                        RelatedComboProductVariantItemName = existingProductComboItem.Name ?? String.Empty
                     });
                 }
             }
             response.ProductForOrders.Add(productForOrderResponse);
         }
+        response.IsSuccess = true;
+        response.ErrorMessage = String.Empty;
         return response;
     }
 

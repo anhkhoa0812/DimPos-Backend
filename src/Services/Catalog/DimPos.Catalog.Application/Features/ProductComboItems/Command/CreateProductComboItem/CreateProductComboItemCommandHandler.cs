@@ -50,6 +50,17 @@ public class CreateProductComboItemCommandHandler : IRequestHandler<CreateProduc
             throw new BadHttpRequestException("Không tìm thấy sản phẩm combo");
         }
 
+        var productVariantItem = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>()
+            .SingleOrDefaultAsync(
+                predicate: x => x.Id == request.ProductVariantItemId
+                                && x.IsActive && x.Product.Type == EProductType.CustomerOrder
+                                && !x.Product.IsCombo
+            );
+        if (productVariantItem == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy sản phẩm item với biến thể đã cung cấp hoặc sản phẩm item không hoạt động");
+        }
+        
         if (productVariant.Product.ProductComboItems != null 
             && productVariant.Product.ProductComboItems.Select(x => x.ItemProductVariantId).Distinct()
                 .Contains(request.ProductVariantItemId))
@@ -61,7 +72,7 @@ public class CreateProductComboItemCommandHandler : IRequestHandler<CreateProduc
         {
             Id = Guid.CreateVersion7(),
             ProductId = productVariant.Product.Id,
-            ItemProductVariantId = requestedProductVariant.Id,
+            ItemProductVariantId = productVariantItem.Id,
             Quantity = request.Quantity,
             DisplayOrder = request.DisplayOrder,
         };

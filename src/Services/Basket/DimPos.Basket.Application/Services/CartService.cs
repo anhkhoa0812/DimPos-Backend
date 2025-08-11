@@ -88,7 +88,9 @@ public class CartService : ICartService
                     ModifierOptionId = x.ModifierOptionId, 
                     ModifierGroupNameSnapshot = x.ModifierGroupNameSnapshot, 
                     ModifierOptionSnapshot = x.ModifierOptionSnapshot,
-                    PriceDeltaSnapshot = x.PriceDeltaSnapshot
+                    PriceDeltaSnapshot = x.PriceDeltaSnapshot,
+                    RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId,
+                    RelatedComboProductVariantItemName = x.RelatedComboProductVariantItemName
                 }).ToList() 
             }; 
             if(request.ModifierGroupItems != null && request.ModifierGroupItems.Any())
@@ -774,7 +776,9 @@ public class CartService : ICartService
                         ModifierOptionId = x.ModifierOptionId,
                         ModifierGroupNameSnapshot = x.ModifierGroupNameSnapshot,
                         ModifierOptionSnapshot = x.ModifierOptionSnapshot,
-                        PriceDeltaSnapshot = x.PriceDeltaSnapshot
+                        PriceDeltaSnapshot = x.PriceDeltaSnapshot,
+                        RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId,
+                        RelatedComboProductVariantItemName = x.RelatedComboProductVariantItemName
                     }).ToList();
                     var previousTotalPriceDeltaSnapshot = cartItem.TotalPriceDeltaOptionSnapshot;
                     cartItem.TotalPriceDeltaOptionSnapshot = modifierGroupItems.Sum(x => x.PriceDeltaSnapshot) * cartItem.Quantity;

@@ -91,7 +91,8 @@ public class ProductVariantsEndpoint : ICarterModule
 
     public async Task<IResult> GetProductVariants(IMediator mediator, [FromQuery] int page = 1, 
         [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true, 
-        [FromQuery] string? name = null, [FromQuery] string? sku = null, [FromQuery] string? code = null)
+        [FromQuery] string? name = null, [FromQuery] string? sku = null, [FromQuery] string? code = null,
+        [FromQuery] bool? isActive = null)
     {
         var query = new GetProductVariantsQuery()
         {
@@ -101,7 +102,8 @@ public class ProductVariantsEndpoint : ICarterModule
             IsAsc = isAsc,
             Name = name,
             Sku = sku,
-            Code = code
+            Code = code,
+            IsActive = isActive
         };
         var result = await mediator.Send(query);
         return Results.Ok(result);

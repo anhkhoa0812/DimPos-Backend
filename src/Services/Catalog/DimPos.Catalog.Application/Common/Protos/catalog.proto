@@ -183,11 +183,16 @@ message ProductForOrderRequest {
   string id = 1;
   string note = 2;
   int32 quantity = 3;
-  repeated string modifierOptionIds = 4;
+  repeated ModifierOptionForOrderRequest modifierOptions = 4;
 }
-
+message ModifierOptionForOrderRequest {
+  string modifierOptionId = 1;
+  string relatedComboProductVariantItemId = 2;
+}
 message GetProductForOrderResponse {
-  repeated ProductForOrderResponse productForOrders = 1;
+  bool isSuccess = 1;
+  string errorMessage = 2;
+  repeated ProductForOrderResponse productForOrders = 3;
 }
 message ProductForOrderResponse {
   string id = 1;
@@ -205,6 +210,8 @@ message ModifierOptionForOrderResponse {
   string modifierGroupName = 3;
   string modifierOptionName = 4;
   float deltaPrice = 5;
+  string relatedComboProductVariantItemId = 6;
+  string relatedComboProductVariantItemName = 7;
 }
 message RecipeItemsForOrderResponse {
   string recipeItemId = 1;
