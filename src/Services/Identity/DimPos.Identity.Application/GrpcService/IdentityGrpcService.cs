@@ -45,4 +45,31 @@ public class IdentityGrpcService : Common.Protos.IdentityGrpcService.IdentityGrp
         };
         return response;
     }
+
+    public override async Task<GetAccountDetailResponse> GetAccountDetail(GetAccountDetailRequest request, ServerCallContext context)
+    {
+        var accountId = Guid.Parse(request.AccountId);
+        var account = await _unitOfWork.GetRepository<Accounts>().SingleOrDefaultAsync(
+            predicate: x => x.Id == accountId
+        );
+        if (account == null)
+        {
+            return new GetAccountDetailResponse()
+            {
+                Id = String.Empty,
+                Code = String.Empty,
+                Username = String.Empty,
+                Email = String.Empty,
+                Status = AccountStatus.Locked
+            };
+        }
+        return new GetAccountDetailResponse()
+        {
+            Id = account.Id.ToString(),
+            Code = account.Code,
+            Username = account.Username,
+            Email = account.Email ?? String.Empty,
+            Status = (AccountStatus) account.Status
+        };
+    }
 }

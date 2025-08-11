@@ -44,31 +44,31 @@ public class UpdateInventoryForInternalOrderRequestConsumer : IConsumer<UpdateIn
                         IngredientId = ingredientDetailsModel.IngredientId,
                         ReOrderLevel = 0,
                         Quantity = ingredientDetailsModel.Quantity,
-                        InventoryTransactions = new List<InventoryTransactions>()
-                        {
-                            new InventoryTransactions()
-                            {
-                                Id = Guid.CreateVersion7(),
-                                Note = "",
-                                Type = EInventoryTransactionType.ReceiptFromInternalPo,
-                                QuantityChange = ingredientDetailsModel.Quantity,
-                                RelatedStorePurchaseOrderItemId = context.Message.StorePurchaseOrderId,
-                            }
-                        }
                     };
-                    await _unitOfWork.GetRepository<InventoryStock>().InsertAsync(newInventoryStock);
-                }
-                else
-                {
-                    inventoryStock.Quantity += ingredientDetailsModel.Quantity;
-                    inventoryStock.InventoryTransactions.Add(new InventoryTransactions()
+                    newInventoryStock.InventoryTransactions.Add(new InventoryTransactions()
                     {
                         Id = Guid.CreateVersion7(),
                         Note = "",
                         Type = EInventoryTransactionType.ReceiptFromInternalPo,
                         QuantityChange = ingredientDetailsModel.Quantity,
                         RelatedStorePurchaseOrderItemId = context.Message.StorePurchaseOrderId,
+                        InventoryStockId = newInventoryStock.Id
                     });
+                    await _unitOfWork.GetRepository<InventoryStock>().InsertAsync(newInventoryStock);
+                }
+                else
+                {
+                    inventoryStock.Quantity += ingredientDetailsModel.Quantity;
+                    var newInventoryTransaction = new InventoryTransactions()
+                    {
+                        Id = Guid.CreateVersion7(),
+                        Note = "",
+                        Type = EInventoryTransactionType.ReceiptFromInternalPo,
+                        QuantityChange = ingredientDetailsModel.Quantity,
+                        RelatedStorePurchaseOrderItemId = context.Message.StorePurchaseOrderId,
+                        InventoryStockId = inventoryStock.Id
+                    };
+                    await _unitOfWork.GetRepository<InventoryTransactions>().InsertAsync(newInventoryTransaction);
                     _unitOfWork.GetRepository<InventoryStock>().UpdateAsync(inventoryStock);
                 }
             }

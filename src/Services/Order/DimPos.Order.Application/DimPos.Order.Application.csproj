@@ -66,5 +66,11 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Protobuf>
     </ItemGroup>
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\identity.proto" GrpcServices="Client">
+            <Link>Common\Protos\identity.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
     
 </Project>

@@ -20,6 +20,7 @@ public class GetStorePurchaseOrderResponse
     public DateTime? LastModifiedDate { get; set; }
     public StoreForPurchaseOrderResponse Store { get; set; } = new StoreForPurchaseOrderResponse();
     public List<GetStorePurchaseOrderItemByOrderResponse> StorePurchaseOrderItems { get; set; } = new List<GetStorePurchaseOrderItemByOrderResponse>();
+    public AccountForPurchaseOrderResponse CreatedByAccount { get; set; } = new AccountForPurchaseOrderResponse();
 }
 public class GetStorePurchaseOrderItemByOrderResponse {
     public Guid Id { get; set; }
@@ -40,4 +41,19 @@ public class StoreForPurchaseOrderResponse
     public string Address { get; set; } = String.Empty;
     public string? Latitude { get; set; }
     public string? Longitude { get; set; }
+}
+
+public class AccountForPurchaseOrderResponse
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public AccountStatus Status { get; set; }
+}
+public enum AccountStatus
+{
+    Active,
+    Inactive,
+    Locked
 }

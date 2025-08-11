@@ -93,6 +93,8 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
 
     public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     {
+        var brandId = Guid.Parse(request.BrandId);
+
         var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
         var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
             predicate: x => x.BrandId == Guid.Parse(request.BrandId) && x.Type == ECategoryType.Parent,
@@ -132,8 +134,15 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             include: x => x.Include(x => x.ProductImages)
                 .Include(x => x.ProductVariants.Where(pv =>
                     variantIds.Contains(pv.Id) && pv.IsActive))
-                .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == Guid.Parse(request.BrandId) 
+                .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == brandId
                 && pmg.ModifierGroup.IsActive))
+                .ThenInclude(pmg => pmg.ModifierGroup)
+                .ThenInclude(mg => mg.ModifierOptions.Where(mo => mo.IsActive))
+                .Include(x => x.ProductComboItems)
+                .ThenInclude(x => x.ItemProductVariant)
+                .ThenInclude(x => x.Product)
+                .ThenInclude(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == brandId
+                                                                   && pmg.ModifierGroup.IsActive))
                 .ThenInclude(pmg => pmg.ModifierGroup)
                 .ThenInclude(mg => mg.ModifierOptions.Where(mo => mo.IsActive)),
             orderBy: x => x.OrderBy(p => p.DisplayOrder)
@@ -164,14 +173,28 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 products.Select(p => MapProduct(p, storePrices.ToList(), comboCategory)).ToList() 
             }
         };
-        var productForModifierGroups = products
-            .Where(p => p.ProductModifierGroups
-                .Any(pmg => pmg.ModifierGroup.IsActive 
-                            && pmg.ModifierGroup.ModifierOptions.Any(mo => mo.IsActive)))
+        
+        var allProductModifierGroups = products
+            .Where(p => p.ProductModifierGroups.Any(pmg => pmg.ModifierGroup.IsActive
+                                                           && pmg.ModifierGroup.ModifierOptions.Any(mo => mo.IsActive)))
+            .SelectMany(p => p.ProductModifierGroups)
             .ToList();
+        allProductModifierGroups.AddRange(products
+            .Where(p => p.IsCombo && p.ProductComboItems.Any(pci => pci.ItemProductVariant.Product.ProductModifierGroups
+                .Any(pmg => pmg.ModifierGroup.IsActive && pmg.ModifierGroup.ModifierOptions.Any(mo => mo.IsActive))))
+            .SelectMany(p => p.ProductComboItems)
+            .Select(pci => pci.ItemProductVariant.Product)
+            .SelectMany(subProduct => subProduct.ProductModifierGroups)
+            .ToList());
+        
+        // var productForModifierGroups = products
+        //     .Where(p => p.ProductModifierGroups
+        //         .Any(pmg => pmg.ModifierGroup.IsActive 
+        //                     && pmg.ModifierGroup.ModifierOptions.Any(mo => mo.IsActive)))
+        //     .ToList();
         var listModifierOptions = MapModifierOptions(
-            productForModifierGroups.SelectMany(x => x.ProductModifierGroups).ToList()
-        );;
+            allProductModifierGroups.DistinctBy(pmg => pmg.Id).ToList()
+        );
         var response = new GetMenuProductByStoreResponse()
         {
             ListCategoryResponse = listCategory,
@@ -195,7 +218,31 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 Description = product.Description ?? String.Empty,
                 Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == variant.Id).OverridePrice,
                 CategoryId = product.IsCombo ? comboCategory?.Id : product.CategoryId.ToString(),
-                ProductVariants = null
+                ProductVariants = null,
+                ComboItems = product.IsCombo ? new ListComboItemResponse()
+                {
+                    ComboItems =
+                    {
+                        product.ProductComboItems.OrderBy(pci => pci.DisplayOrder ?? 0).Select(pci => new ComboItemResponse()
+                        {
+                            Id = pci.Id.ToString(),
+                            DisplayOrder = pci.DisplayOrder ?? 0,
+                            Quantity = pci.Quantity,
+                            ProductVariant = new ProductVariantResponse()
+                            {
+                                Id = pci.ItemProductVariant.Id.ToString(),
+                                Code = pci.ItemProductVariant.Code,
+                                Name = pci.ItemProductVariant.Name,
+                                Description = pci.ItemProductVariant.Description ?? String.Empty,
+                                DisplayOrder = pci.ItemProductVariant.DisplayOrder ?? 0,
+                                Price = 0,
+                                IsActive = pci.ItemProductVariant.IsActive,
+                                Size = pci.ItemProductVariant.Size ?? String.Empty,
+                                Sku = pci.ItemProductVariant.Sku ?? String.Empty,
+                            }
+                        }).ToList() 
+                    }
+                } : null
             };
             return productItem;
         }
@@ -228,7 +275,8 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                             Sku = pv.Sku ?? String.Empty,
                         }).ToList()
                     }
-                }
+                },
+                ComboItems = null
             };
             return productItem;
         }

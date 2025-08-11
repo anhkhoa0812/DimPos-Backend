@@ -34,6 +34,9 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
             && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(p => p.Product)
                 .Include(x => x.RecipeItems)
+                .Include(x => x.ProductComboItems)
+                .ThenInclude(x => x.Product)
+                .ThenInclude(x => x.ProductVariants)
         );
         if(productVariant == null)
             throw new BadHttpRequestException("Không tìm thấy biến thể sản phẩm với ID đã cung cấp.");
@@ -43,6 +46,13 @@ public class UpdateProductVariantsCommandHandler : IRequestHandler<UpdateProduct
                 (productVariant.RecipeItems == null || !productVariant.RecipeItems.Any()) )
             {
                 throw new BadHttpRequestException("Không thể kích hoạt biến thể sản phẩm, vui lòng thêm công thức cho biến thể sản phẩm");
+            }
+
+            if (request.UpdateProductVariants.IsActive == false && 
+                productVariant.ProductComboItems != null 
+                && productVariant.ProductComboItems.Any(x => x.Product.ProductVariants.Any(pv => pv.IsActive)))
+            {
+                throw new BadHttpRequestException("Biến thể sản phẩm đang được sử dụng trong combo, không thể vô hiệu hóa");
             }
             productVariant.IsActive = request.UpdateProductVariants.IsActive.Value;
         }

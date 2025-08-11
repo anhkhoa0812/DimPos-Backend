@@ -1,3 +1,4 @@
+using DimPos.Identity.Application.Common.Protos;
 using DimPos.Order.Application.Services.Interface;
 using DimPos.Order.Domain.Entities;
 using DimPos.Order.Domain.Models.Common;
@@ -7,6 +8,7 @@ using DimPos.Order.Infrastructure.Repositories.Interface;
 using DimPos.Store.Application.Common.Protos;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using AccountStatus = DimPos.Order.Domain.Models.Response.AccountStatus;
 
 namespace DimPos.Order.Application.Features.StorePurchaseOrder.Query.GetStorePurchaseOrderById;
 
@@ -16,14 +18,16 @@ public class GetStorePurchaseOrderByIdQueryHandler : IRequestHandler<GetStorePur
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     private readonly StoreGrpcService.StoreGrpcServiceClient _storeGrpcService;
-    
+    private readonly IdentityGrpcService.IdentityGrpcServiceClient _identityGrpcService;
     public GetStorePurchaseOrderByIdQueryHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService,
-        StoreGrpcService.StoreGrpcServiceClient storeGrpcService)
+        StoreGrpcService.StoreGrpcServiceClient storeGrpcService,
+        IdentityGrpcService.IdentityGrpcServiceClient identityGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
         _storeGrpcService = storeGrpcService ?? throw new ArgumentNullException(nameof(storeGrpcService));
+        _identityGrpcService = identityGrpcService ?? throw new ArgumentNullException(nameof(identityGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(GetStorePurchaseOrderByIdQuery request, CancellationToken cancellationToken)
@@ -59,6 +63,27 @@ public class GetStorePurchaseOrderByIdQueryHandler : IRequestHandler<GetStorePur
         if (storePurchaseOrder == null)
             throw new BadHttpRequestException("Không tìm thấy đơn hàng mua sắm của cửa hàng.");
 
+        var createdByAccount = new AccountForPurchaseOrderResponse();
+        
+        if (storePurchaseOrder.CreatedByAccountId != Guid.Empty)
+        {
+            var accountGrpcResponse = await _identityGrpcService.GetAccountDetailAsync(new GetAccountDetailRequest()
+            {
+                AccountId = storePurchaseOrder.CreatedByAccountId.ToString()
+            });
+            if(accountGrpcResponse != null && accountGrpcResponse.Id != String.Empty)
+            {
+                createdByAccount = new AccountForPurchaseOrderResponse()
+                {
+                    Id = Guid.Parse(accountGrpcResponse.Id),
+                    Code = accountGrpcResponse.Code,
+                    Username = accountGrpcResponse.Username,
+                    Email = accountGrpcResponse.Email,
+                    Status = (AccountStatus) accountGrpcResponse.Status
+                };
+            }
+        }
+        
         var storeGrpcResponse = await _storeGrpcService.GetListStoreByStoreIdsAsync(new GetListStoreByStoreIdsRequest()
         {
             StoreIds = { storePurchaseOrder.StoreId.ToString() }
@@ -100,7 +125,8 @@ public class GetStorePurchaseOrderByIdQueryHandler : IRequestHandler<GetStorePur
                 TotalPriceOfOrderItems = item.TotalPriceOfOrderItems,
                 RequestedQuantity = item.RequestedQuantity,
                 ApprovedQuantityByBrand = item.ApprovedQuantityByBrand
-            }).ToList()
+            }).ToList(),
+            CreatedByAccount = createdByAccount
         };
         return new ApiResponse()
         {
