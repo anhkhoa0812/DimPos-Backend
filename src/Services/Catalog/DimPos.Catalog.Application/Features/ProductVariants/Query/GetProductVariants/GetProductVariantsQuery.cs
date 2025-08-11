@@ -12,4 +12,5 @@ public class GetProductVariantsQuery : IRequest<ApiResponse>
     public string? Name { get; set; }
     public string? Sku { get; set; }
     public string? Code { get; set; }
+    public bool? IsActive { get; set; }
 }

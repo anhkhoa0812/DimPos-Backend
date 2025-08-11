@@ -22,5 +22,11 @@ public class CreateOrderItemRequest
     public Guid ProductVariantId { get; set; }
     public int Quantity { get; set; }
     public string? Note { get; set; }
-    public List<Guid>? ModifierOptionIds { get; set; }
+    public List<CreateOrderItemSelectedOptionRequest>? OrderItemSelectedOptions{ get; set; }
+}
+
+public class CreateOrderItemSelectedOptionRequest
+{
+    public Guid ModifierOptionId { get; set; }
+    public Guid? RelatedComboProductVariantItemId { get; set; }
 }

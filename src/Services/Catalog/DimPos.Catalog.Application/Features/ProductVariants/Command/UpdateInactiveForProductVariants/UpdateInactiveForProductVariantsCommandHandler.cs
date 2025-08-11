@@ -33,12 +33,18 @@ public class UpdateInactiveForProductVariantsCommandHandler : IRequestHandler<Up
                             && x.Type == EProductType.CustomerOrder 
                             && !x.IsCombo,
             include: x => x.Include(x => x.ProductVariants)
+                .ThenInclude(x => x.ProductComboItems)
+                .ThenInclude(x => x.Product)
+                .ThenInclude(x => x.ProductVariants)
         );
         if (product == null)
         {
             throw new BadHttpRequestException("Không tìm thấy sản phẩm với Id đã cho.");
         }
-
+        if(product.ProductVariants.Any(pv => pv.ProductComboItems.Any(x => x.Product.ProductVariants.Any(pv => pv.IsActive))))
+        {
+            throw new BadHttpRequestException("Không thể cập nhật trạng thái không hoạt động cho các biến thể sản phẩm, vì có biến thể sản phẩm đang được sử dụng trong combo.");
+        }
         if (product.ProductVariants.Any(x => x.IsActive))
         {
             foreach (var productVariant in product.ProductVariants)
