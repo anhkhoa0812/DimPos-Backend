@@ -6,4 +6,5 @@ public enum ESystemPaymentMethod
     QR_VIETQR = 1,
     QR_EDC = 2,
     CARD_EDC = 3,
+    QR_PAYOS = 4
 }

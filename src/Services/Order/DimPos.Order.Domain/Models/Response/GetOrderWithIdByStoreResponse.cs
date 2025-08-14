@@ -44,6 +44,8 @@ public class GetOrderItemSelectedOptionsByOrderIdResponse
     public string ModifierGroupSnapshot { get; set; } = string.Empty;
     public string ModifierOptionSnapshot { get; set; } = string.Empty;
     public decimal PriceDeltaOptionSnapshot { get; set; }
+    public Guid? RelatedComboProductVariantItemId { get; set; }
+    public string? RelatedComboProductVariantItemName { get; set; }
 }
 public class GetAppliedOrderPromotionsByOrderIdResponse
 {

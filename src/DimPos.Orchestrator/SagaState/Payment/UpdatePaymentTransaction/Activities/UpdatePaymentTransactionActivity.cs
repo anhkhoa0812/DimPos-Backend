@@ -28,7 +28,8 @@ public class UpdatePaymentTransactionActivity : IStateMachineActivity<UpdatePaym
             TransStatus = context.Message.TransStatus,
             TransCode = context.Message.TransCode,
             TransAmount = context.Message.TransAmount,
-            OrderId = context.Message.OrderId
+            OrderId = context.Message.OrderId,
+            Type = context.Message.Type
         };
         await _topicProducer.Produce(
             null,

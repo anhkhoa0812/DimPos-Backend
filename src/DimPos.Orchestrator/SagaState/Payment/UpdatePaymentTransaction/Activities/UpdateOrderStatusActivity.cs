@@ -27,8 +27,16 @@ public class UpdateOrderStatusActivity :  IStateMachineActivity<UpdatePaymentTra
             CorrelationId = context.Saga.CorrelationId,
             OrderId = context.Message.OrderId,
             PaymentTransactionId = context.Message.PaymentTransactionId,
-            IsPaymentSuccess = context.Message.TransStatus == MPosTransStatus.Settled
         };
+        if (context.Message.Type == PaymentCallbackType.PayOs)
+        {
+            updateOrderStatusRequestModel.IsPaymentSuccess = true;
+        }
+        else if( context.Message.Type == PaymentCallbackType.MPos)
+        {
+            updateOrderStatusRequestModel.IsPaymentSuccess = context.Message.TransStatus == MPosTransStatus.Settled;
+        }
+        
         await _topicProducer.Produce(
             null,
             updateOrderStatusRequestModel,

@@ -3,8 +3,10 @@ using DimPos.Payment.Application.Services.Interface;
 using DimPos.Payment.Domain.Models.Common;
 using DimPos.Payment.Domain.Models.MPos.Base;
 using DimPos.Payment.Domain.Models.Payment;
+using DimPos.Payment.Domain.Models.PayOs;
 using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
+using Net.payOS.Types;
 
 namespace DimPos.Payment.Application.Endpoints;
 
@@ -29,7 +31,13 @@ public class PaymentEndpoints : ICarterModule
             .WithName(nameof(RefundEDCPayment));
         group.MapPost("/callback", Callback)
             .DisableAntiforgery()
-            .WithName(nameof(Callback)); 
+            .WithName(nameof(Callback));
+        group.MapPost("/payOs/callback", PayOsCallback)
+            .DisableAntiforgery()
+            .WithName(nameof(PayOsCallback));
+        group.MapPost("/payOs/confirm-webhook", ConfirmWebhookUrl)
+            .DisableAntiforgery()
+            .WithName(nameof(ConfirmWebhookUrl));
     }
 
     public async Task<IResult> CreateQr(IMPosService service, [FromBody] CreateQrPaymentRequest request)
@@ -84,6 +92,28 @@ public class PaymentEndpoints : ICarterModule
         {
             Data = StatusCodes.Status200OK,
             Message = "Callback processed successfully",
+        };
+        return Results.Ok(response);
+    }
+
+    public async Task<IResult> PayOsCallback(IPayOsService service, [FromBody] WebhookType body)
+    {
+        await service.HandlePayOsCallback(body);
+        var response = new ApiResponse()
+        {
+            Data = StatusCodes.Status200OK,
+            Message = "PayOs callback processed successfully",
+        };
+        return Results.Ok(response);
+    }
+
+    public async Task<IResult> ConfirmWebhookUrl(IPayOsService service, [FromBody] ConfirmWebhookUrlRequest request)
+    {
+        await service.ConfirmWebhookUrl(request);
+        var response = new ApiResponse()
+        {
+            Data = StatusCodes.Status200OK,
+            Message = "Webhook URL confirmed successfully",
         };
         return Results.Ok(response);
     }

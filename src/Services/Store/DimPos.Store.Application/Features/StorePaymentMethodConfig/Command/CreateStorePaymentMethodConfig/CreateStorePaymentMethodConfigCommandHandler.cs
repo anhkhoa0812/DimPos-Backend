@@ -5,6 +5,7 @@ using DimPos.Store.Application.Services.Interface;
 using DimPos.Store.Domain.Entities;
 using DimPos.Store.Domain.Models.Common;
 using DimPos.Store.Domain.Models.MPos;
+using DimPos.Store.Domain.Models.PayOs;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
 using Mediator;
@@ -82,6 +83,21 @@ public class CreateStorePaymentMethodConfigCommandHandler : IRequestHandler<Crea
                     MerchantId = mPosModelRequest.MerchantId,
                     Data = data
                 });
+        }
+        else if (systemPaymentMethodGrpc.PaymentMethod == PaymentMethod.QrPayos)
+        {
+            if (string.IsNullOrEmpty(request.CredentialsConfigAtStore))
+            {
+                throw new BadHttpRequestException("Cấu hình thông tin xác thực không được để trống cho phương thức thanh toán này");
+            }
+
+            var payOsModel = JsonSerializer.Deserialize<PayOsModel>(request.CredentialsConfigAtStore);
+            if (payOsModel == null)
+            {
+                throw new BadHttpRequestException("Thông tin xác thực không hợp lệ");
+            }
+            var data = CryptographyUtil.EncodeCredentialsConfig(JsonSerializer.Serialize(payOsModel), storeId.ToString("N"));
+            storePaymentMethodConfig.CredentialsConfigAtStore = data;
         }
         await _unitOfWork.GetRepository<StorePaymentMethodConfigs>().InsertAsync(storePaymentMethodConfig);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

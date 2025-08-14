@@ -7,6 +7,10 @@ service PaymentGrpcService {
   rpc GetSystemPaymentMethodById(GetSystemPaymentMethodByIdRequest) returns (GetSystemPaymentMethodByIdResponse);
   rpc CreatePaymentTransaction(CreatePaymentTransactionRequest) returns (CreatePaymentTransactionResponse);
   rpc GetSystemPaymentMethodListById(GetSystemPaymentMethodListByIdRequest) returns (GetSystemPaymentMethodListByIdResponse);
+  rpc UpdatePaymentMethodForOrder (UpdatePaymentMethodForOrderRequest) returns (UpdatePaymentMethodForOrderResponse);
+  rpc GetPaymentTransactionByOrderId(GetPaymentTransactionByOrderIdRequest) returns (GetPaymentTransactionByOrderIdResponse);
+  rpc CheckSuccessPaymentTransaction(CheckSuccessPaymentTransactionRequest) returns (CheckSuccessPaymentTransactionResponse);
+  rpc CheckForCancelOrder(CheckForCancelOrderRequest) returns (CheckForCancelOrderResponse);
 }
 message CreateB2CPaymentRequest {
   string storeId = 1;
@@ -28,6 +32,7 @@ enum PaymentMethod {
   QR_VIETQR = 1;
   QR_EDC = 2;
   CARD_EDC = 3;
+  QR_PAYOS = 4;
 }
 message CreateB2CPaymentResponse {
   bool isSuccess = 1;
@@ -36,6 +41,7 @@ message CreateB2CPaymentResponse {
 }
 message CreatePaymentTransactionResponse {
   string qrLink = 1;
+  string systemPaymentMethodName = 2;
 }
 message CreatePaymentTransactionRequest {
   string orderId = 1;
@@ -58,4 +64,46 @@ message GetSystemPaymentMethodByIdResponse {
   string description = 4;
   PaymentMethod paymentMethod = 5;
   string logoUrl = 6;
+}
+message UpdatePaymentMethodForOrderRequest {
+  string orderId = 1;
+  string storeId = 2;
+  string oldSystemPaymentMethodId = 3;
+  string oldCredentialsConfig = 4;
+  string newSystemPaymentMethodId = 5;
+  string newCredentialsConfig = 6;
+  float amount = 7;
+}
+message UpdatePaymentMethodForOrderResponse {
+  string qrLink = 1;
+  string systemPaymentMethodName = 2;
+}
+message GetPaymentTransactionByOrderIdRequest {
+  string storeId = 1;
+  string orderId = 2;
+}
+message GetPaymentTransactionByOrderIdResponse {
+  string id = 1;
+  string orderId = 2;
+  float amount = 3;
+  string currencyCode = 4;
+  string systemPaymentMethodId = 5;
+  PaymentMethod paymentMethod = 6;
+}
+message CheckSuccessPaymentTransactionRequest {
+  string storeId = 1;
+  string orderId = 2;
+}
+message CheckSuccessPaymentTransactionResponse {
+  bool  isSuccess = 1;
+}
+message CheckForCancelOrderRequest {
+  string storeId = 1;
+  string orderId = 2;
+  string credentialsConfig = 3;
+}
+message CheckForCancelOrderResponse {
+  bool isSuccess = 1;
+  string message = 2;
+  string paymentTransactionId = 3;
 }

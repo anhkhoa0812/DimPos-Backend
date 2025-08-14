@@ -23,6 +23,7 @@ public static class ConfigureServices
         services.AddScoped(typeof(ValidationUtil<>));
         services.AddScoped<IMPosService, MPosService>();
         services.AddScoped<IClaimService, ClaimService>();
+        services.AddScoped<IPayOsService, PayOsService>();
         services.AddHttpClient();
         services.Configure<RouteHandlerOptions>(options =>
         {

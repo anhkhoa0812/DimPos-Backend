@@ -28,7 +28,8 @@ public class MPosService : IMPosService
 {
     private readonly ILogger _logger;
     private readonly HttpClient _httpClient;
-    private MPosSettings _settings;
+    private readonly MPosSettings _settings;
+    private readonly QrSettings _qrSettings;
     private readonly string _qrUrl;
     private readonly string _edcPaymentUrl;
     private readonly string _refundEdcUrl;
@@ -36,7 +37,8 @@ public class MPosService : IMPosService
     private readonly ITopicProducer<Null, CallbackPaymentResponseModel> _topicProducer;
     public MPosService(HttpClient httpClient, IOptions<MPosSettings> settings,
         StoreGrpcService.StoreGrpcServiceClient storeGrpcService, ILogger logger,
-        ITopicProducer<Null, CallbackPaymentResponseModel> topicProducer)
+        ITopicProducer<Null, CallbackPaymentResponseModel> topicProducer,
+        IOptions<QrSettings> qrSettings)
     {
         _httpClient = httpClient;
         _settings = settings.Value;
@@ -46,7 +48,7 @@ public class MPosService : IMPosService
         _refundEdcUrl = _settings.DevDomain + "/transaction";
         _logger = logger ?? throw new ArgumentNullException(nameof(logger)); 
         _topicProducer = topicProducer ?? throw new ArgumentNullException(nameof(topicProducer));
-        
+        _qrSettings = qrSettings.Value ?? throw new ArgumentNullException(nameof(qrSettings));
     }
     public async Task<string> CreateQr(CreateQrPaymentRequest request)
     {
@@ -88,7 +90,7 @@ public class MPosService : IMPosService
         var publicPath = Path.Combine(publicFolder, fileName);
         File.Copy(tempFile, publicPath, true);
         
-        var publicUrl = $"{_settings.QrLink}/{fileName}";
+        var publicUrl = $"{_qrSettings.QrLink}/{fileName}";
         return publicUrl;
     }
 
@@ -301,6 +303,7 @@ public class MPosService : IMPosService
                 TransCode = callbackRequestData.TransCode,
                 TransAmount = callbackRequestData.TransAmount,
                 TransStatus = status.Value,
+                Type = PaymentCallbackType.MPos
             };
             await _topicProducer.Produce(
                 null,

@@ -99,7 +99,8 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
         var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
             predicate: x => x.BrandId == Guid.Parse(request.BrandId) && x.Type == ECategoryType.Parent,
-            include: x => x.Include(x => x.ChildCategories)
+            include: x => x.Include(x => x.ChildCategories),
+            orderBy: x => x.OrderBy(x => x.DisplayOrder)
         );
         var listCategory = new ListCategoryResponse();
         foreach (var category in categories)
@@ -445,11 +446,11 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             };
             if (productVariant.Product.IsCombo)
             {
-                var comboItemProductVariantIds = productVariant.Product.ProductComboItems?.Select(x => x.ItemProductVariantId).ToList();
+                var comboItemProductVariantIds = productVariant.Product.ProductComboItems?.Select(x => x.ItemProductVariant.Id).ToList();
                 if (comboItemProductVariantIds != null && comboItemProductVariantIds.Any())
                 {
                     var comboRecipeItems = await _unitOfWork.GetRepository<RecipeItems>().GetListAsync(
-                        predicate: x => comboItemProductVariantIds.Contains(x.Id),
+                        predicate: x => comboItemProductVariantIds.Contains(x.ProductVariantId),
                         include: x => x.Include(x => x.Ingredient)
                     );
                     productForOrderResponse.RecipeItems.AddRange(
@@ -466,7 +467,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                                 MeasureUnit = x.Ingredient.MeasureUnit ?? String.Empty,
                                 Description = x.Ingredient.Description ?? String.Empty
                             }
-                        })
+                        }).ToList()
                     );
                 }
             }
