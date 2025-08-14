@@ -11,5 +11,6 @@ public class UpdatePaymentTransactionRequestModel : CorrelatedBy<Guid>
     // public string IssuerCode { get; set; }
     // public string Muid { get; set; }
     public Guid OrderId { get; set; }
+    public PaymentCallbackType Type { get; set; }
     // public string PosId { get; set; }
 }

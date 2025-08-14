@@ -3,6 +3,7 @@ using DimPos.Payment.Application.Services.Interface;
 using DimPos.Payment.Domain.Entities;
 using DimPos.Payment.Domain.Enums;
 using DimPos.Payment.Domain.Models.Payment;
+using DimPos.Payment.Domain.Models.PayOs;
 using DimPos.Payment.Infrastructure.Persistence;
 using DimPos.Payment.Infrastructure.Repositories.Interface;
 using DimPos.Payment.Infrastructure.Utils;
@@ -16,11 +17,14 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
     private readonly IUnitOfWork<PaymentContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IMPosService _mPosService;
-    public PaymentGrpcService(IUnitOfWork<PaymentContext> unitOfWork, ILogger logger, IMPosService mPosService)
+    private readonly IPayOsService _payOsService;
+    public PaymentGrpcService(IUnitOfWork<PaymentContext> unitOfWork, ILogger logger, IMPosService mPosService,
+        IPayOsService payOsService)
     {
-        _unitOfWork = unitOfWork;
-        _logger = logger;
-        _mPosService = mPosService;
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _mPosService = mPosService ?? throw new ArgumentNullException(nameof(mPosService));
+        _payOsService = payOsService ?? throw new ArgumentNullException(nameof(payOsService));
     }
     public override async Task<CreateB2CPaymentResponse> CreateB2CPayment(CreateB2CPaymentRequest request, ServerCallContext context)
     {
@@ -218,6 +222,15 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                     Key = Guid.Parse(request.StoreId).ToString("N")
                 });
                 break;
+            case ESystemPaymentMethod.QR_PAYOS:
+                qrLink = await _payOsService.CreateQr(new CreateQrPayOsPaymentRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    Amount = (decimal)request.Amount,
+                    CredentialsConfig = request.CredentialsConfig,
+                    Key = Guid.Parse(request.StoreId).ToString("N")
+                });
+                break;
             default:
                 throw new RpcException(new Status(StatusCode.Unimplemented, "Không hỗ trợ phương thức thanh toán này"));
         }
@@ -325,6 +338,8 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                 break;
             case ESystemPaymentMethod.CASH:
                 break;
+            case ESystemPaymentMethod.QR_PAYOS:
+                break;
             default:
                 throw new RpcException(new Status(StatusCode.Unimplemented, "Không hỗ trợ phương thức thanh toán này"));
         }
@@ -356,6 +371,15 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                 break;
             case ESystemPaymentMethod.QR_VIETQR:
                 qrLink = await _mPosService.CreateQr(new CreateQrPaymentRequest()
+                {
+                    OrderId = Guid.Parse(request.OrderId),
+                    Amount = (decimal) request.Amount,
+                    CredentialsConfig = request.NewCredentialsConfig,
+                    Key = Guid.Parse(request.StoreId).ToString("N")
+                });
+                break;
+            case ESystemPaymentMethod.QR_PAYOS:
+                qrLink = await _payOsService.CreateQr(new CreateQrPayOsPaymentRequest()
                 {
                     OrderId = Guid.Parse(request.OrderId),
                     Amount = (decimal) request.Amount,
@@ -480,6 +504,8 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
                 );
                 break;
             case ESystemPaymentMethod.CASH:
+                break;
+            case ESystemPaymentMethod.QR_PAYOS:
                 break;
             default:
                 return new CheckForCancelOrderResponse()

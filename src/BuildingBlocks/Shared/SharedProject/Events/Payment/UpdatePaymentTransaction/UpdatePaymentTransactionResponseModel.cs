@@ -8,4 +8,5 @@ public class UpdatePaymentTransactionResponseModel : CorrelatedBy<Guid>
     public MPosTransStatus TransStatus { get; set; }
     public Guid OrderId { get; set; }
     public Guid PaymentTransactionId { get; set; }
+    public PaymentCallbackType Type { get; set; }
 }

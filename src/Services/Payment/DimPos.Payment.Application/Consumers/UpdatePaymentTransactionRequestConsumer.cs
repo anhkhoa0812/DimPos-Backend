@@ -27,17 +27,24 @@ public class UpdatePaymentTransactionRequestConsumer : IConsumer<UpdatePaymentTr
             predicate: x => x.OrderId == context.Message.OrderId
         );
 
-        var status = context.Message.TransStatus;
-        switch (status)
+        if (context.Message.Type == PaymentCallbackType.MPos)
         {
-            case MPosTransStatus.Settled:
-                paymentTransaction.Status = EPaymentTransactionStatus.SUCCESS;
-                break;
-            case MPosTransStatus.Fail:
-            case MPosTransStatus.Rejected:
-            case MPosTransStatus.Voided:
-                paymentTransaction.Status = EPaymentTransactionStatus.FAILED;
-                break;
+            var status = context.Message.TransStatus;
+            switch (status)
+            {
+                case MPosTransStatus.Settled:
+                    paymentTransaction.Status = EPaymentTransactionStatus.SUCCESS;
+                    break;
+                case MPosTransStatus.Fail:
+                case MPosTransStatus.Rejected:
+                case MPosTransStatus.Voided:
+                    paymentTransaction.Status = EPaymentTransactionStatus.FAILED;
+                    break;
+            }
+        }
+        else if (context.Message.Type == PaymentCallbackType.PayOs )
+        {
+            paymentTransaction.Status = EPaymentTransactionStatus.SUCCESS;
         }
 
         _unitOfWork.GetRepository<PaymentTransactions>().UpdateAsync(paymentTransaction);
@@ -50,6 +57,7 @@ public class UpdatePaymentTransactionRequestConsumer : IConsumer<UpdatePaymentTr
                 TransStatus = context.Message.TransStatus,
                 OrderId = context.Message.OrderId,
                 PaymentTransactionId = paymentTransaction.Id,
+                Type = context.Message.Type
             };
             await _topicProducer.Produce(
                 null,

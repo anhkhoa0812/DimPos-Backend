@@ -74,7 +74,9 @@ public class GetOrderWithIdQueryHandler : IRequestHandler<GetOrderWithIdQuery, A
                     ModifierOptionId = x.ModifierOptionId,
                     ModifierGroupSnapshot = x.ModifierGroupSnapshot,
                     ModifierOptionSnapshot = x.ModifierOptionSnapshot,
-                    PriceDeltaOptionSnapshot = x.PriceDeltaOptionSnapshot
+                    PriceDeltaOptionSnapshot = x.PriceDeltaOptionSnapshot,
+                    RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId,
+                    RelatedComboProductVariantItemName = x.RelatedComboProductVariantItemName
                 }).ToList()
             }).ToList(),
             AppliedOrderPromotions = order.AppliedOrderPromotions?.Select(aop =>

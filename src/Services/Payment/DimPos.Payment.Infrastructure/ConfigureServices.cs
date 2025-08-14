@@ -35,7 +35,7 @@ public static class ConfigureServices
             }
         );        
         services.Configure<MPosSettings>(configuration.GetSection("MPosSettings"));
-
+        services.Configure<QrSettings>(configuration.GetSection("QrSettings"));
         services.AddEndpointsApiExplorer();
         services.AddCors();
         return services;

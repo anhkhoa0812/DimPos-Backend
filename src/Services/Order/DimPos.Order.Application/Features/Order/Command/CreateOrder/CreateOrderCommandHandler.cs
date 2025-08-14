@@ -141,30 +141,51 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         {
             throw new BadHttpRequestException(orderItemsFromGrpc.ErrorMessage);
         }
+
+        _logger.Information("Order items from gRPC: {Unknown}", 
+            string.Join(", ", orderItemsFromGrpc.ProductForOrders.Select(x => $"{x.Id}: {x.RecipeItems}: {x.Quantity}")));
+        var ingredientInventoryRequest = orderItemsFromGrpc.ProductForOrders
+            .SelectMany(product => product.RecipeItems.Select(recipe => new
+            {
+                IngredientId = recipe.Ingredient.Id,
+                Quantity = recipe.Quantity * product.Quantity
+            }))
+            .GroupBy(x => x.IngredientId)
+            .Select(group => new IngredientInventory()
+            {
+                IngredientId = group.Key,
+                Quantity = group.Sum(item => item.Quantity)
+            }).ToList();
+        if (ingredientInventoryRequest.Count == 0)
+        {
+            throw new BadHttpRequestException("Không có nguyên liệu nào trong đơn hàng");
+        }
+        _logger.Information("Ingredient inventory request for order: {Join}", string.Join(", ", ingredientInventoryRequest.Select(x => $"{x.IngredientId}: {x.Quantity}")));
         var checkInventoryResponse = await _inventoryGrpcService.CheckInventoryForOrderAsync(new CheckInventoryForOrderRequest()
         {
             StoreId = storeId.ToString(),
             IngredientInventory =
             {
-                // orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
-                //     .GroupBy(y => y.Ingredient.Id)
+                ingredientInventoryRequest
+                // // orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
+                // //     .GroupBy(y => y.Ingredient.Id)
+                // //     .Select(group => new IngredientInventory()
+                // // {
+                // //     IngredientId = group.Key,
+                // //     Quantity = group.Sum(item => item.Quantity)
+                // // })
+                // orderItemsFromGrpc.ProductForOrders
+                //     .SelectMany(product => product.RecipeItems.Select(recipe => new
+                //     {
+                //         IngredientId = recipe.Ingredient.Id,
+                //         Quantity = recipe.Quantity * product.Quantity
+                //     }))
+                //     .GroupBy(x => x.IngredientId)
                 //     .Select(group => new IngredientInventory()
-                // {
-                //     IngredientId = group.Key,
-                //     Quantity = group.Sum(item => item.Quantity)
-                // })
-                orderItemsFromGrpc.ProductForOrders
-                    .SelectMany(product => product.RecipeItems.Select(recipe => new
-                    {
-                        IngredientId = recipe.Ingredient.Id,
-                        Quantity = recipe.Quantity * product.Quantity
-                    }))
-                    .GroupBy(x => x.IngredientId)
-                    .Select(group => new IngredientInventory()
-                    {
-                        IngredientId = group.Key,
-                        Quantity = group.Sum(item => item.Quantity)
-                    })
+                //     {
+                //         IngredientId = group.Key,
+                //         Quantity = group.Sum(item => item.Quantity)
+                //     }).ToList()
             }
         });
 
