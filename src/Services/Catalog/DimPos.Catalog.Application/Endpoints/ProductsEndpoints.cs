@@ -7,6 +7,7 @@ using DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;
 using DimPos.Catalog.Application.Features.Products.Query.GetProductsById;
 using DimPos.Catalog.Application.Features.ProductVariants.Command.CreateProductVariant;
 using DimPos.Catalog.Application.Features.ProductVariants.Command.UpdateInactiveForProductVariants;
+using DimPos.Catalog.Application.Features.Test;
 using DimPos.Catalog.Domain.Constants;
 using DimPos.Catalog.Domain.Entities;
 using DimPos.Catalog.Domain.Models.Common;
@@ -72,6 +73,8 @@ public class ProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPost("store-menu", GetStoreMenu)
+            .WithName(nameof(GetStoreMenu));
     }
     public async Task<IResult> CreateProduct(IMediator mediator,  [FromForm] CreateProductRequest request, ValidationUtil<CreateProductsCommand> validationUtil)
     {
@@ -180,6 +183,11 @@ public class ProductsEndpoints : ICarterModule
         };
         
         var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetStoreMenu(IMediator mediator, [FromBody] GetMenuStoreQuery query) 
+    {
+        var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }
 }

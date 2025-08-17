@@ -7,12 +7,39 @@ service CatalogGrpcService {
   rpc GetProductVariantsByBrand (GetProductVariantsByBrandRequest) returns (GetProductVariantsByBrandResponse);
   rpc CheckProductVariantInBrand (CheckProductVariantInBrandRequest) returns (CheckProductVariantInBrandResponse);
   rpc GetMenuProductByStore (GetMenuProductByStoreRequest) returns (GetMenuProductByStoreResponse);
+  rpc GetProductsForMenuStore (GetProductsForMenuStoreRequest) returns (GetProductsForMenuStoreResponse);
+  rpc GetCategoryForMenuStore (GetCategoryForMenuStoreRequest) returns (GetCategoryForMenuStoreResponse);
+  rpc GetModiferGroupForMenuStore (GetModiferGroupForMenuStoreRequest) returns (GetModiferGroupForMenuStoreResponse);
   rpc GetProductVariantListByIds (GetProductVariantListByIdsRequest) returns (GetProductVariantListByIdsResponse);
   rpc GetProductVariantListByIdsForStoreMenu (GetProductVariantListByIdsForStoreMenuRequest) returns (GetProductVariantListByIdsForStoreMenuResponse);
   rpc GetProductForOrder (GetProductForOrderRequest) returns (GetProductForOrderResponse);
   rpc GetProductVariantForInternalOrder (GetProductVariantForInternalOrderRequest) returns (GetProductVariantForInternalOrderResponse);
   rpc GetIngredientsByIngredientIds (GetIngredientsByIngredientIdsRequest) returns (GetIngredientsByIngredientIdsResponse);
   rpc GetRecipeItemsByOrderItems (GetRecipeItemsByOrderItemsRequest)returns (GetRecipeItemsByOrderItemsResponse);
+}
+message GetProductsForMenuStoreRequest {
+  string storeId = 1;
+  string brandId = 2;
+  string comboCategoryId = 3;
+  ListProductVariantIds listProductVariantIds = 4;
+}
+message GetProductsForMenuStoreResponse {
+  ListProductResponse listProductResponse = 1;
+}
+message GetCategoryForMenuStoreRequest {
+  string storeId = 1;
+  string brandId = 2;
+}
+message GetCategoryForMenuStoreResponse {
+  ListCategoryResponse listCategoryResponse = 1;
+}
+message GetModiferGroupForMenuStoreRequest {
+  string storeId = 1;
+  string brandId = 2;
+  ListProductVariantIds listProductVariantIds = 3;
+}
+message GetModiferGroupForMenuStoreResponse {
+  ListModifierGroupResponse listModifierGroupResponse = 1;
 }
 message GetProductVariantsByBrandRequest {
   int32 page = 1;
@@ -183,11 +210,16 @@ message ProductForOrderRequest {
   string id = 1;
   string note = 2;
   int32 quantity = 3;
-  repeated string modifierOptionIds = 4;
+  repeated ModifierOptionForOrderRequest modifierOptions = 4;
 }
-
+message ModifierOptionForOrderRequest {
+  string modifierOptionId = 1;
+  string relatedComboProductVariantItemId = 2;
+}
 message GetProductForOrderResponse {
-  repeated ProductForOrderResponse productForOrders = 1;
+  bool isSuccess = 1;
+  string errorMessage = 2;
+  repeated ProductForOrderResponse productForOrders = 3;
 }
 message ProductForOrderResponse {
   string id = 1;
@@ -205,6 +237,8 @@ message ModifierOptionForOrderResponse {
   string modifierGroupName = 3;
   string modifierOptionName = 4;
   float deltaPrice = 5;
+  string relatedComboProductVariantItemId = 6;
+  string relatedComboProductVariantItemName = 7;
 }
 message RecipeItemsForOrderResponse {
   string recipeItemId = 1;
