@@ -38,10 +38,6 @@ public class GetStoreQueryHandler : IRequestHandler<GetStoreQuery, ApiResponse>
             throw new BadHttpRequestException("Cửa hàng không tồn tại");
         }
         var taxRate = store.TaxRates.FirstOrDefault(x => x.IsActive);
-        if (taxRate == null)
-        {
-            throw new BadHttpRequestException("Không tìm thấy thuế áp dụng cho cửa hàng này");
-        }
         var response = new GetStoreResponse()
         {
             Id = store.Id,
@@ -64,12 +60,12 @@ public class GetStoreQueryHandler : IRequestHandler<GetStoreQuery, ApiResponse>
             Type = store.Type,
             CreatedDate = store.CreatedDate,
             LastModifiedDate = store.LastModifiedDate,
-            TaxRate = new TaxRateForGetStoreResponse()
+            TaxRate = taxRate != null ? new TaxRateForGetStoreResponse()
             {
                 Id = taxRate.Id,
                 Name = taxRate.Name,
                 Rate = taxRate.Rate
-            }
+            } : null
         };
         return new ApiResponse()
         {

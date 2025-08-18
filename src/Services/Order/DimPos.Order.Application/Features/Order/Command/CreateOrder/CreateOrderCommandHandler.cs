@@ -54,21 +54,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         {
             throw new BadHttpRequestException("Không tìm thấy cửa hàng");
         }
-
-        if (request.TableNumberDineIn != null)
-        {
-            var existingTableNumberDineInOrder = await _unitOfWork.GetRepository<Orders>().SingleOrDefaultAsync(
-                predicate: x => x.StoreId == storeId &&
-                                x.BrandId == request.BrandId &&
-                                x.TableNumberDineIn == request.TableNumberDineIn &&
-                                (x.Status == EOrderStatus.PendingPayment || x.Status == EOrderStatus.Confirmed) &&
-                                x.Type == EOrderType.DineIn
-            );
-            if (existingTableNumberDineInOrder != null)
-            {
-                throw new BadHttpRequestException($"Bàn {request.TableNumberDineIn} đã có đơn hàng đang chờ thanh toán");
-            }
-        }
+        
         var accountId = _claimService.GetCurrentUserId;
         if (accountId == Guid.Empty)
         {
@@ -113,9 +99,23 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 TaxRateSnapshot = (decimal)storeDetailGrpcResponse.Rate,
             };
         }
+        if (request.TableNumberDineIn != null)
+        {
+            var existingTableNumberDineInOrder = await _unitOfWork.GetRepository<Orders>().SingleOrDefaultAsync(
+                predicate: x => x.StoreId == storeId &&
+                                x.BrandId == request.BrandId &&
+                                x.FinancialShiftId == Guid.Parse(storeDetailGrpcResponse.FinancialShiftId) &&
+            x.TableNumberDineIn == request.TableNumberDineIn &&
+                (x.Status == EOrderStatus.PendingPayment || x.Status == EOrderStatus.Confirmed) &&
+                x.Type == EOrderType.DineIn
+                );
+            if (existingTableNumberDineInOrder != null)
+            {
+                throw new BadHttpRequestException($"Bàn {request.TableNumberDineIn} đã có đơn hàng đang chờ thanh toán");
+            }
+        }
         
-        
-        var orderItemsFromGrpc = await _catalogGrpcService.GetProductForOrderAsync(new GetProductForOrderRequest()
+        var getProductForOrderRequest = new GetProductForOrderRequest()
         {
             StoreId = storeId.ToString(),
             BrandId = request.BrandId.ToString(),
@@ -136,7 +136,10 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                     }
                 })
             }
-        });
+        };
+        _logger.Information("GetProductForOrderRequest: {Request}",
+            getProductForOrderRequest);
+        var orderItemsFromGrpc = await _catalogGrpcService.GetProductForOrderAsync(getProductForOrderRequest);
         if (!orderItemsFromGrpc.IsSuccess)
         {
             throw new BadHttpRequestException(orderItemsFromGrpc.ErrorMessage);

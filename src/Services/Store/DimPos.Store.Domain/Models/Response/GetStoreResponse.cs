@@ -24,7 +24,7 @@ public class GetStoreResponse
     public EStoreType Type { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
-    public TaxRateForGetStoreResponse TaxRate { get; set; } = new TaxRateForGetStoreResponse();
+    public TaxRateForGetStoreResponse? TaxRate { get; set; }
 }
 public class TaxRateForGetStoreResponse
 {

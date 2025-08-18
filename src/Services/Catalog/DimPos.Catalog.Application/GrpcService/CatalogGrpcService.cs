@@ -98,230 +98,309 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
 
         var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
         var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
-            predicate: x => x.BrandId == Guid.Parse(request.BrandId) && x.Type == ECategoryType.Parent,
+            predicate: x => x.BrandId == brandId && x.Type == ECategoryType.Parent,
             include: x => x.Include(x => x.ChildCategories),
             orderBy: x => x.OrderBy(x => x.DisplayOrder)
         );
-        var listCategory = new ListCategoryResponse();
-        foreach (var category in categories)
+        var categoryResponses = categories.Select(category => new CategoryResponse()
         {
-            var categoryItem = new CategoryResponse
-            {
-                Id = category.Id.ToString(),
-                Name = category.Name,
-                DisplayOrder = category.DisplayOrder ?? 0,
-                Code = category.Code ?? String.Empty,
-                Description = category.Description ?? String.Empty,
-                ChildCategories = category.ChildCategories != null ? new ListChildCategoryResponse()
+            Id = category.Id.ToString(),
+            Name = category.Name,
+            DisplayOrder = category.DisplayOrder ?? 0,
+            Code = category.Code ?? String.Empty,
+            Description = category.Description ?? String.Empty,
+            ChildCategories = category.ChildCategories != null
+                ? new ListChildCategoryResponse()
                 {
-                    ChildCategories = { category.ChildCategories.Select(x => new ChildCategoryResponse()
+                    ChildCategories =
                     {
-                        Id = x.Id.ToString(),
-                        Code = x.Code,
-                        Name = x.Name,
-                        DisplayOrder = x.DisplayOrder ?? 0,
-                        Description = x.Description ?? String.Empty,
-                    }) 
+                        category.ChildCategories.Select(x => new ChildCategoryResponse()
+                        {
+                            Id = x.Id.ToString(),
+                            Code = x.Code,
+                            Name = x.Name,
+                            DisplayOrder = x.DisplayOrder ?? 0,
+                            Description = x.Description ?? String.Empty,
+                        })
                     }
-                } : null
-            };
-            listCategory.Categories.Add(categoryItem);
-        }
-
+                }
+                : null
+        }).ToList();
+        
         var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
-            predicate: x => x.BrandId == Guid.Parse(request.BrandId)
+            predicate: x => x.BrandId == brandId
                             && x.Type == EProductType.CustomerOrder
                             && x.ProductVariants.Any(pv =>
                                 variantIds.Contains(pv.Id) && pv.IsActive),
-            include: x => x.Include(x => x.ProductImages)
-                .Include(x => x.ProductVariants.Where(pv =>
-                    variantIds.Contains(pv.Id) && pv.IsActive))
-                .Include(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == brandId
-                && pmg.ModifierGroup.IsActive))
-                .ThenInclude(pmg => pmg.ModifierGroup)
-                .ThenInclude(mg => mg.ModifierOptions.Where(mo => mo.IsActive))
-                .Include(x => x.ProductComboItems)
-                .ThenInclude(x => x.ItemProductVariant)
-                .ThenInclude(x => x.Product)
-                .ThenInclude(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.BrandId == brandId
-                                                                   && pmg.ModifierGroup.IsActive))
-                .ThenInclude(pmg => pmg.ModifierGroup)
-                .ThenInclude(mg => mg.ModifierOptions.Where(mo => mo.IsActive)),
+            include: x => x.Include(x => x.ProductImages.Where(img => img.IsMainImage))
+                .Include(x => x.ProductModifierGroups)
+                .Include(x => x.ProductVariants.Where(pv => variantIds.Contains(pv.Id) && pv.IsActive))
+                .Include(x => x.ProductComboItems.Where(x => x.Product.ProductVariants
+                    .Any(pv => variantIds.Contains(pv.Id) && pv.IsActive)))
+                .ThenInclude(x => x.ItemProductVariant),
             orderBy: x => x.OrderBy(p => p.DisplayOrder)
         );
-        if (products.Any(p => p.IsCombo))
+        
+        var comboItemVariantIds = products
+            .Where(p => p.IsCombo)
+            .SelectMany(p => p.ProductComboItems)
+            .Select(pci => pci.ItemProductVariantId)
+            .Distinct()
+            .ToList();
+        var allVariantIds = variantIds.Union(comboItemVariantIds).ToList();
+        
+        var comboCategory = new CategoryResponse()
         {
-            listCategory.Categories.Add(new CategoryResponse()
-            {
-                Id = Guid.CreateVersion7().ToString(),
-                Code = "COMBO",
-                Name = "Combo",
-                ChildCategories = new ListChildCategoryResponse(),
-                Description = "Danh mục dành cho Combo",
-                DisplayOrder = 0
-            });
-        }
+            Id = Guid.CreateVersion7().ToString(),
+            Code = "COMBO",
+            Name = "Combo",
+            ChildCategories = new ListChildCategoryResponse(),
+            Description = "Danh mục dành cho Combo",
+            DisplayOrder = 0
+        };
+        categoryResponses.Add(comboCategory);
         
         var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
             predicate: x => x.StoreId == Guid.Parse(request.StoreId)
                            && variantIds.Contains(x.ProductVariantId)
         );
-        var comboCategory = listCategory.Categories
-            .FirstOrDefault(c => c.Code == "COMBO") ?? null;
+        var priceDictionary = storePrices.ToDictionary(p => p.ProductVariantId, p => p.OverridePrice);
+        
         var listProduct = new ListProductResponse()
         {
             Products =
             {
-                products.Select(p => MapProduct(p, storePrices.ToList(), comboCategory)).ToList() 
+                products.Select(p => MapProduct(p, priceDictionary, comboCategory.Id)).ToList() 
             }
         };
+        var modifierGroupIds = new HashSet<Guid>();
+
+        foreach (var product in products)
+        {
+            foreach (var pmg in product.ProductModifierGroups)
+            {
+                modifierGroupIds.Add(pmg.ModifierGroupId);
+            }
+        }
         
-        var allProductModifierGroups = products
-            .Where(p => p.ProductModifierGroups.Any(pmg => pmg.ModifierGroup.IsActive
-                                                           && pmg.ModifierGroup.ModifierOptions.Any(mo => mo.IsActive)))
-            .SelectMany(p => p.ProductModifierGroups)
-            .ToList();
-        allProductModifierGroups.AddRange(products
-            .Where(p => p.IsCombo && p.ProductComboItems.Any(pci => pci.ItemProductVariant.Product.ProductModifierGroups
-                .Any(pmg => pmg.ModifierGroup.IsActive && pmg.ModifierGroup.ModifierOptions.Any(mo => mo.IsActive))))
-            .SelectMany(p => p.ProductComboItems)
-            .Select(pci => pci.ItemProductVariant.Product)
-            .SelectMany(subProduct => subProduct.ProductModifierGroups)
-            .ToList());
+        if (comboItemVariantIds.Any())
+        {
+            var comboModifierGroups = await _unitOfWork.GetRepository<ProductModifierGroups>().GetListAsync(
+                predicate: pmg => pmg.Product.ProductVariants.Any(pv => comboItemVariantIds.Contains(pv.Id))
+            );
+            
+            foreach (var pmg in comboModifierGroups)
+            {
+                modifierGroupIds.Add(pmg.ModifierGroupId);
+            }
+        }
         
-        // var productForModifierGroups = products
-        //     .Where(p => p.ProductModifierGroups
-        //         .Any(pmg => pmg.ModifierGroup.IsActive 
-        //                     && pmg.ModifierGroup.ModifierOptions.Any(mo => mo.IsActive)))
-        //     .ToList();
-        var listModifierOptions = MapModifierOptions(
-            allProductModifierGroups.DistinctBy(pmg => pmg.Id).ToList()
+
+        var modifierGroups = modifierGroupIds.Any() ? await _unitOfWork.GetRepository<Domain.Entities.ModifierGroups>().GetListAsync(
+            predicate: mg => modifierGroupIds.Contains(mg.Id) 
+                             && mg.BrandId == brandId
+                             && mg.IsActive,
+            include: mg => mg.Include(x => x.ModifierOptions.Where(mo => mo.IsActive))
+                .Include(x => x.ProductModifierGroups)
+                .ThenInclude(x => x.Product)
+                .ThenInclude(x => x.ProductVariants.Where(pv => allVariantIds.Contains(pv.Id)))
+        ) : new List<Domain.Entities.ModifierGroups>();
+
+        _logger.Information(
+            $"Found {modifierGroups.Count} active modifier groups for brand {brandId} with IDs: {string.Join(", ", modifierGroups.Select(mg => mg.Id))}"
         );
+        var listModifierOptions = MapModifierOptions(
+            modifierGroups.ToList()
+        );
+        
         var response = new GetMenuProductByStoreResponse()
         {
-            ListCategoryResponse = listCategory,
+            ListCategoryResponse = new ListCategoryResponse()
+            {
+                Categories = { categoryResponses }
+            },
             ListProductResponse = listProduct,
             ListModifierGroupResponse = listModifierOptions
         };
         return response;
     }
-    private ProductResponse MapProduct(Products product, List<StorePrice> storePrices, CategoryResponse? comboCategory = null)
+    private ProductResponse MapProduct(Products product,  Dictionary<Guid,decimal> priceDictionary, string? comboCategoryId = null)
     {
-        if (!product.IsHasVariants)
+        var variant = product.ProductVariants.FirstOrDefault(pv => pv.ProductId == product.Id);
+        var mainImage = product.ProductImages?.SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? string.Empty;
+
+        var productItem = new ProductResponse()
         {
-            var variant = product.ProductVariants.FirstOrDefault(pv => pv.ProductId == product.Id);
-            var productItem = new ProductResponse()
+            Id = product.IsHasVariants ? product.Id.ToString() : variant.Id.ToString(),
+            Code = product.IsHasVariants ? product.Code : variant.Code,
+            Name = product.IsHasVariants ? product.Name : variant.Name,
+            ImageUrl = mainImage,
+            Description = product.Description ?? string.Empty,
+            Price = product.IsHasVariants ? 0 : (float)priceDictionary.GetValueOrDefault(variant.Id, 0),
+            CategoryId = product.IsCombo ? comboCategoryId : product.CategoryId.ToString(),
+            ProductVariants = product.IsHasVariants ? new ListProductVariant()
             {
-                Id = variant.Id.ToString(),
-                Code = variant.Code,
-                Name = variant.Name,
-                ImageUrl = product.ProductImages?
-                    .SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? String.Empty,
-                Description = product.Description ?? String.Empty,
-                Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == variant.Id).OverridePrice,
-                CategoryId = product.IsCombo ? comboCategory?.Id : product.CategoryId.ToString(),
-                ProductVariants = null,
-                ComboItems = product.IsCombo ? new ListComboItemResponse()
+                ProductVariants =
                 {
-                    ComboItems =
+                    product.ProductVariants?.OrderBy(pv => pv.DisplayOrder).Select(pv => new ProductVariantResponse()
                     {
-                        product.ProductComboItems.OrderBy(pci => pci.DisplayOrder ?? 0).Select(pci => new ComboItemResponse()
-                        {
-                            Id = pci.Id.ToString(),
-                            DisplayOrder = pci.DisplayOrder ?? 0,
-                            Quantity = pci.Quantity,
-                            ProductVariant = new ProductVariantResponse()
-                            {
-                                Id = pci.ItemProductVariant.Id.ToString(),
-                                Code = pci.ItemProductVariant.Code,
-                                Name = pci.ItemProductVariant.Name,
-                                Description = pci.ItemProductVariant.Description ?? String.Empty,
-                                DisplayOrder = pci.ItemProductVariant.DisplayOrder ?? 0,
-                                Price = 0,
-                                IsActive = pci.ItemProductVariant.IsActive,
-                                Size = pci.ItemProductVariant.Size ?? String.Empty,
-                                Sku = pci.ItemProductVariant.Sku ?? String.Empty,
-                            }
-                        }).ToList() 
-                    }
-                } : null
-            };
-            return productItem;
-        }
-        else
-        {
-            var productItem = new ProductResponse()
+                        Id = pv.Id.ToString(),
+                        Code = pv.Code,
+                        Name = pv.Name,
+                        Description = pv.Description ?? string.Empty,
+                        DisplayOrder = pv.DisplayOrder ?? 0,
+                        Price = (float)priceDictionary.GetValueOrDefault(pv.Id, 0),
+                        IsActive = pv.IsActive,
+                        Size = pv.Size ?? string.Empty,
+                        Sku = pv.Sku ?? string.Empty,
+                    }).ToList()
+                }
+            } : null,
+            ComboItems = product.IsCombo ? new ListComboItemResponse()
             {
-                Id = product.Id.ToString(),
-                Code = product.Code,
-                Name = product.Name,
-                ImageUrl = product.ProductImages?
-                    .SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? String.Empty,
-                Description = product.Description ?? String.Empty,
-                Price = 0,
-                CategoryId = product.CategoryId.ToString(),
-                ProductVariants = new ListProductVariant()
+                ComboItems =
                 {
-                    ProductVariants =
+                    product.ProductComboItems.OrderBy(pci => pci.DisplayOrder ?? 0).Select(pci => new ComboItemResponse()
                     {
-                        product.ProductVariants?.OrderBy(pv => pv.DisplayOrder).Select(pv => new ProductVariantResponse()
+                        Id = pci.Id.ToString(),
+                        DisplayOrder = pci.DisplayOrder ?? 0,
+                        Quantity = pci.Quantity,
+                        ProductVariant = new ProductVariantResponse()
                         {
-                            Id = pv.Id.ToString(),
-                            Code = pv.Code,
-                            Name = pv.Name,
-                            Description = pv.Description ?? String.Empty,
-                            DisplayOrder = pv.DisplayOrder ?? 0,
-                            Price = (float) storePrices.FirstOrDefault(x => x.ProductVariantId == pv.Id).OverridePrice,
-                            IsActive = pv.IsActive,
-                            Size = pv.Size ?? String.Empty,
-                            Sku = pv.Sku ?? String.Empty,
-                        }).ToList()
-                    }
-                },
-                ComboItems = null
-            };
-            return productItem;
-        }
+                            Id = pci.ItemProductVariant.Id.ToString(),
+                            Code = pci.ItemProductVariant.Code,
+                            Name = pci.ItemProductVariant.Name,
+                            Description = pci.ItemProductVariant.Description ?? string.Empty,
+                            DisplayOrder = pci.ItemProductVariant.DisplayOrder ?? 0,
+                            Price = 0,
+                            IsActive = pci.ItemProductVariant.IsActive,
+                            Size = pci.ItemProductVariant.Size ?? string.Empty,
+                            Sku = pci.ItemProductVariant.Sku ?? string.Empty,
+                        }
+                    }).ToList()
+                }
+            } : null
+        };
+        return productItem;
+        // if (!product.IsHasVariants)
+        // {
+        //     var variant = product.ProductVariants.FirstOrDefault(pv => pv.ProductId == product.Id);
+        //     var productItem = new ProductResponse()
+        //     {
+        //         Id = variant.Id.ToString(),
+        //         Code = variant.Code,
+        //         Name = variant.Name,
+        //         ImageUrl = product.ProductImages?
+        //             .SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? String.Empty,
+        //         Description = product.Description ?? String.Empty,
+        //         Price = (float) priceDictionary[variant.Id],
+        //         CategoryId = product.IsCombo ? comboCategory?.Id : product.CategoryId.ToString(),
+        //         ProductVariants = null,
+        //         ComboItems = product.IsCombo ? new ListComboItemResponse()
+        //         {
+        //             ComboItems =
+        //             {
+        //                 product.ProductComboItems.OrderBy(pci => pci.DisplayOrder ?? 0).Select(pci => new ComboItemResponse()
+        //                 {
+        //                     Id = pci.Id.ToString(),
+        //                     DisplayOrder = pci.DisplayOrder ?? 0,
+        //                     Quantity = pci.Quantity,
+        //                     ProductVariant = new ProductVariantResponse()
+        //                     {
+        //                         Id = pci.ItemProductVariant.Id.ToString(),
+        //                         Code = pci.ItemProductVariant.Code,
+        //                         Name = pci.ItemProductVariant.Name,
+        //                         Description = pci.ItemProductVariant.Description ?? String.Empty,
+        //                         DisplayOrder = pci.ItemProductVariant.DisplayOrder ?? 0,
+        //                         Price = 0,
+        //                         IsActive = pci.ItemProductVariant.IsActive,
+        //                         Size = pci.ItemProductVariant.Size ?? String.Empty,
+        //                         Sku = pci.ItemProductVariant.Sku ?? String.Empty,
+        //                     }
+        //                 }).ToList() 
+        //             }
+        //         } : null
+        //     };
+        //     return productItem;
+        // }
+        // else
+        // {
+        //     var productItem = new ProductResponse()
+        //     {
+        //         Id = product.Id.ToString(),
+        //         Code = product.Code,
+        //         Name = product.Name,
+        //         ImageUrl = product.ProductImages?
+        //             .SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? String.Empty,
+        //         Description = product.Description ?? String.Empty,
+        //         Price = 0,
+        //         CategoryId = product.CategoryId.ToString(),
+        //         ProductVariants = new ListProductVariant()
+        //         {
+        //             ProductVariants =
+        //             {
+        //                 product.ProductVariants?.OrderBy(pv => pv.DisplayOrder).Select(pv => new ProductVariantResponse()
+        //                 {
+        //                     Id = pv.Id.ToString(),
+        //                     Code = pv.Code,
+        //                     Name = pv.Name,
+        //                     Description = pv.Description ?? String.Empty,
+        //                     DisplayOrder = pv.DisplayOrder ?? 0,
+        //                     Price = (float) priceDictionary[pv.Id],
+        //                     IsActive = pv.IsActive,
+        //                     Size = pv.Size ?? String.Empty,
+        //                     Sku = pv.Sku ?? String.Empty,
+        //                 }).ToList()
+        //             }
+        //         },
+        //         ComboItems = null
+        //     };
+        //     return productItem;
+        // }
     }
 
-    private ListModifierGroupResponse MapModifierOptions(List<ProductModifierGroups> productModifierGroups)
+    private ListModifierGroupResponse MapModifierOptions(List<ModifierGroups> modifierGroups)
     {
-        var modifierOptions = new ListModifierGroupResponse();
-        foreach (var productModifierGroup in productModifierGroups)
+        var response = new ListModifierGroupResponse()
         {
-            var modifierGroup = productModifierGroup.ModifierGroup;
-            var modifierGroupResponse = new ModifierGroupResponse()
+            ModifierGroups =
             {
-                Id = modifierGroup.Id.ToString(),
-                Name = modifierGroup.Name,
-                DisplayOrder = modifierGroup.DisplayOrder ?? 0,
-                Description = modifierGroup.Description ?? String.Empty,
-                SelectedType = (SelectedTypeModifier) modifierGroup.SelectedType,
-                IsActive = modifierGroup.IsActive,
-                BrandId = modifierGroup.BrandId.ToString(),
-                ProductVariantId =
+                modifierGroups.Select(modifierGroup => new ModifierGroupResponse()
                 {
-                    productModifierGroup.Product.ProductVariants.Select(x => x.Id.ToString()).ToList(),
-                },
-                ModifierOptions = new ListModifierOptionResponse()
-                {
-                    ModifierOptions =
+                    Id = modifierGroup.Id.ToString(),
+                    Name = modifierGroup.Name,
+                    DisplayOrder = modifierGroup.DisplayOrder ?? 0,
+                    Description = modifierGroup.Description ?? String.Empty,
+                    SelectedType = (SelectedTypeModifier)modifierGroup.SelectedType,
+                    IsActive = modifierGroup.IsActive,
+                    BrandId = modifierGroup.BrandId.ToString(),
+                    ProductVariantId =
                     {
-                        modifierGroup.ModifierOptions?.Select(x => new ModifierOptionResponse()
+                        modifierGroup.ProductModifierGroups
+                            .SelectMany(pmg => pmg.Product.ProductVariants.Select(pv => pv.Id))
+                            .Select(x => x.ToString())
+                            .Distinct()
+                            .ToList(),
+                    },
+                    ModifierOptions = new ListModifierOptionResponse()
+                    {
+                        ModifierOptions =
                         {
-                            Id = x.Id.ToString(),
-                            Name = x.Name,
-                            Description = x.Description ?? String.Empty,
-                            IsActive = x.IsActive,
-                            PriceDelta = (float)x.PriceDelta,
-                            ModifierGroupId = modifierGroup.Id.ToString()
-                        })
+                            modifierGroup.ModifierOptions?.Select(option => new ModifierOptionResponse()
+                            {
+                                Id = option.Id.ToString(),
+                                Name = option.Name,
+                                Description = option.Description ?? String.Empty,
+                                IsActive = option.IsActive,
+                                PriceDelta = (float)option.PriceDelta,
+                                ModifierGroupId = modifierGroup.Id.ToString()
+                            }).ToList()
+                        }
                     }
-                }
-            };
-            modifierOptions.ModifierGroups.Add(modifierGroupResponse);
-        }
-        return modifierOptions;
+                }).ToList()
+            }
+        };
+        return response;
     }
 
     public override async Task<GetProductVariantListByIdsResponse> GetProductVariantListByIds(GetProductVariantListByIdsRequest request, ServerCallContext context)
@@ -376,160 +455,249 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var storeId = Guid.Parse(request.StoreId);
         var brandId = Guid.Parse(request.BrandId);
         var productVariantIds = request.ProductForOrders.Select(x => Guid.Parse(x.Id)).ToList();
-        var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
+        
+        var productVariants = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().GetListAsync(
             predicate: x => productVariantIds.Contains(x.Id)
                             && x.IsActive == true
-                            && x.Product.BrandId == brandId && x.Product.Type == EProductType.CustomerOrder,
+                            && x.Product.BrandId == brandId 
+                            && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
-                .ThenInclude(x => x.ProductComboItems)
-                .ThenInclude(x => x.ItemProductVariant)
-                .ThenInclude(x => x.Product)
-                .ThenInclude(x => x.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
-                .ThenInclude(pmg => pmg.ModifierGroup)
-                .ThenInclude(mg => mg.ModifierOptions)
-                .Include(x => x.Product.ProductModifierGroups.Where(pmg => pmg.ModifierGroup.IsActive))
-                .ThenInclude(pmg => pmg.ModifierGroup)
-                .ThenInclude(mg => mg.ModifierOptions)
-                .Include(x => x.RecipeItems)
-                .ThenInclude(ri => ri.Ingredient)
-            );
-        var response = new GetProductForOrderResponse();
-        var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
-            predicate: x => x.StoreId == storeId
-                            && productVariantIds.Contains(x.ProductVariantId)
         );
-        var storePriceMap = storePrices.ToDictionary(x => x.ProductVariantId);
+        
+        var response = new GetProductForOrderResponse();
+        
         var missingVariants = productVariantIds.Except(productVariants.Select(v => v.Id)).ToList();
         if (missingVariants.Any())
         {
             response.IsSuccess = false;
-            response.ErrorMessage = $"Không tìm thấy những biến thể sản phẩm: {string.Join(',', missingVariants)}";
+            response.ErrorMessage = $"Không tìm thấy biến thể sản phẩm: {string.Join(',', missingVariants)}";
             return response;
         }
-        var missingPrices = productVariantIds.Except(storePriceMap.Keys).ToList();
+        
+        var foundVariantIds = productVariants.Select(pv => pv.Id).ToList();
+        
+        var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
+            predicate: x => x.StoreId == storeId && foundVariantIds.Contains(x.ProductVariantId)
+        );
+        var storePriceMap = storePrices.ToDictionary(x => x.ProductVariantId);
+        
+        var missingPrices = foundVariantIds.Except(storePriceMap.Keys).ToList();
         if (missingPrices.Any())
         {
             response.IsSuccess = false;
             response.ErrorMessage = $"Không tìm thấy giá của những biến thể sản phẩm: {string.Join(',', missingPrices)}";
         }
+        
+        var recipeItems = await _unitOfWork.GetRepository<RecipeItems>().GetListAsync(
+            predicate: x => foundVariantIds.Contains(x.ProductVariantId),
+            include: x => x.Include(ri => ri.Ingredient)
+        );
+        var recipeItemsLookup = recipeItems.GroupBy(ri => ri.ProductVariantId).ToDictionary(g => g.Key, g => g.ToList());
+        
+        
+        var comboProducts = productVariants.Where(pv => pv.Product.IsCombo).Select(pv => pv.ProductId).ToList();
+        var nonComboProducts = productVariants.Where(pv => !pv.Product.IsCombo).Select(pv => pv.ProductId).ToList();
+        
+        
+        var comboItems = comboProducts.Any() 
+            ? await _unitOfWork.GetRepository<ProductComboItems>().GetListAsync(
+                predicate: x => comboProducts.Contains(x.ProductId)
+            )
+            : new List<Domain.Entities.ProductComboItems>();
+        var comboItemsLookup = comboItems.GroupBy(ci => ci.ProductId).ToDictionary(g => g.Key, g => g.ToList());
+        
+        
+        var comboItemVariantIds = comboItems.Select(ci => ci.ItemProductVariantId).Distinct().ToList();
+        
+        var comboItemVariants = comboItemVariantIds.Any()
+            ? await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().GetListAsync(
+                predicate: pv => comboItemVariantIds.Contains(pv.Id)
+            )
+            : new List<ProductVariants>();
+        var comboItemVariantsLookup = comboItemVariants.ToDictionary(x => x.Id);
+        
+        var comboRecipeItems = comboItemVariantIds.Any() 
+            ? await _unitOfWork.GetRepository<Domain.Entities.RecipeItems>().GetListAsync(
+                predicate: x => comboItemVariantIds.Contains(x.ProductVariantId),
+                include: x => x.Include(ri => ri.Ingredient)
+            )
+            : new List<Domain.Entities.RecipeItems>();
+        var comboRecipeLookup = comboRecipeItems.GroupBy(ri => ri.ProductVariantId).ToDictionary(g => g.Key, g => g.ToList());
+        
+        var productModifierGroups = nonComboProducts.Any() 
+            ? await _unitOfWork.GetRepository<ProductModifierGroups>().GetListAsync(
+                predicate: pmg => nonComboProducts.Contains(pmg.ProductId) && pmg.ModifierGroup.IsActive,
+                include: pmg => pmg.Include(x => x.ModifierGroup)
+                    .ThenInclude(mg => mg.ModifierOptions.Where(mo => mo.IsActive))
+            )
+            : new List<ProductModifierGroups>();
+        var productModifierLookup = productModifierGroups.GroupBy(pmg => pmg.ProductId).ToDictionary(g => g.Key, g => g.ToList());
+        var productVariantLookup = productVariants.ToDictionary(x => x.Id);
+
+        var requestedComboModifierOptionIds = request.ProductForOrders
+            .Where(p => productVariantLookup.ContainsKey(Guid.Parse(p.Id)) && 
+                       productVariantLookup[Guid.Parse(p.Id)].Product.IsCombo)
+            .SelectMany(p => p.ModifierOptions.Select(mo => Guid.Parse(mo.ModifierOptionId)))
+            .Distinct()
+            .ToList();
+            
+        var comboModifierOptions = requestedComboModifierOptionIds.Any()
+            ? await _unitOfWork.GetRepository<Domain.Entities.ModifierOptions>().GetListAsync(
+                predicate: mo => requestedComboModifierOptionIds.Contains(mo.Id) && mo.IsActive,
+                include: mo => mo.Include(x => x.ModifierGroup)
+            )
+            : new List<Domain.Entities.ModifierOptions>();
+        var comboModifierOptionsLookup = comboModifierOptions.ToDictionary(x => x.Id);
+        
+        
         foreach (var productForOrder in request.ProductForOrders)
         {
             var id = Guid.Parse(productForOrder.Id);
-            var productVariant = productVariants.First(x => x.Id == id);
+            var productVariant = productVariantLookup[id];
             var price = storePriceMap[id];
+
             var productForOrderResponse = new ProductForOrderResponse()
             {
                 Id = productVariant.Id.ToString(),
-                ProductName = productVariant.Product.Name ?? String.Empty,
-                ProductVariantName = productVariant.Name ?? String.Empty,
-                UnitPrice = (float) price.OverridePrice,
+                ProductName = productVariant.Product.Name ?? string.Empty,
+                ProductVariantName = productVariant.Name ?? string.Empty,
+                UnitPrice = (float)price.OverridePrice,
                 Quantity = productForOrder.Quantity,
-                Note = productForOrder.Note ?? String.Empty,
-                RecipeItems =
-                {
-                    productVariant.RecipeItems != null ?
-                        productVariant.RecipeItems.Select(x => new RecipeItemsForOrderResponse()
+                RecipeItems = {
+                    recipeItemsLookup.TryGetValue(id, out var recipeList) 
+                        ? recipeList.Select(x => new RecipeItemsForOrderResponse()
                         {
                             RecipeItemId = x.Id.ToString(),
-                            Quantity = (float) x.Quantity,
+                            Quantity = (float)x.Quantity,
                             Ingredient = new IngredientForOrderResponse()
                             {
                                 Id = x.Ingredient.Id.ToString(),
                                 Name = x.Ingredient.Name,
-                                Sku = x.Ingredient.Sku ?? String.Empty,
-                                Code = x.Ingredient.Code ?? String.Empty,
-                                MeasureUnit = x.Ingredient.MeasureUnit ?? String.Empty,
-                                Description = x.Ingredient.Description ?? String.Empty
-                            }
-                        }).ToList() : new List<RecipeItemsForOrderResponse>()
-                }
-            };
-            if (productVariant.Product.IsCombo)
-            {
-                var comboItemProductVariantIds = productVariant.Product.ProductComboItems?.Select(x => x.ItemProductVariant.Id).ToList();
-                if (comboItemProductVariantIds != null && comboItemProductVariantIds.Any())
-                {
-                    var comboRecipeItems = await _unitOfWork.GetRepository<RecipeItems>().GetListAsync(
-                        predicate: x => comboItemProductVariantIds.Contains(x.ProductVariantId),
-                        include: x => x.Include(x => x.Ingredient)
-                    );
-                    productForOrderResponse.RecipeItems.AddRange(
-                        comboRecipeItems.Select(x => new RecipeItemsForOrderResponse()
-                        {
-                            RecipeItemId = x.Id.ToString(),
-                            Quantity = (float) x.Quantity,
-                            Ingredient = new IngredientForOrderResponse()
-                            {
-                                Id = x.Ingredient.Id.ToString(),
-                                Name = x.Ingredient.Name,
-                                Sku = x.Ingredient.Sku ?? String.Empty,
-                                Code = x.Ingredient.Code ?? String.Empty,
-                                MeasureUnit = x.Ingredient.MeasureUnit ?? String.Empty,
-                                Description = x.Ingredient.Description ?? String.Empty
+                                Sku = x.Ingredient.Sku ?? string.Empty,
+                                Code = x.Ingredient.Code ?? string.Empty,
+                                MeasureUnit = x.Ingredient.MeasureUnit ?? string.Empty,
+                                Description = x.Ingredient.Description ?? string.Empty
                             }
                         }).ToList()
-                    );
+                        : new List<RecipeItemsForOrderResponse>()
+                }
+            };
+            
+            if (productVariant.Product.IsCombo && comboItemsLookup.TryGetValue(productVariant.ProductId, out var comboItemList))
+            {
+                var comboItemIds = comboItemList.Select(x => x.ItemProductVariantId).ToList();
+                foreach (var comboItemId in comboItemIds)
+                {
+                    if (comboRecipeLookup.TryGetValue(comboItemId, out var recipes))
+                    {
+                        productForOrderResponse.RecipeItems.AddRange(
+                            recipes.Select(x => new RecipeItemsForOrderResponse()
+                            {
+                                RecipeItemId = x.Id.ToString(),
+                                Quantity = (float)x.Quantity,
+                                Ingredient = new IngredientForOrderResponse()
+                                {
+                                    Id = x.Ingredient.Id.ToString(),
+                                    Name = x.Ingredient.Name,
+                                    Sku = x.Ingredient.Sku ?? string.Empty,
+                                    Code = x.Ingredient.Code ?? string.Empty,
+                                    MeasureUnit = x.Ingredient.MeasureUnit ?? string.Empty,
+                                    Description = x.Ingredient.Description ?? string.Empty
+                                }
+                            }).ToList()
+                        );
+                    }
                 }
             }
-            foreach (var modifierOptionRequest in productForOrder.ModifierOptions)
+            
+            var modifierOptionRequests = productForOrder.ModifierOptions
+                .Select(mo => new 
+                {
+                    ModifierOptionId = Guid.Parse(mo.ModifierOptionId),
+                    RelatedComboProductVariantItemId = !string.IsNullOrEmpty(mo.RelatedComboProductVariantItemId) 
+                        ? Guid.Parse(mo.RelatedComboProductVariantItemId) 
+                        : (Guid?)null,
+                    Original = mo
+                }).ToList();
+                
+            foreach (var modifierOptionRequest in modifierOptionRequests)
             {
                 if (!productVariant.Product.IsCombo)
                 {
-                    var modifierOption = productVariant.Product.ProductModifierGroups?
-                        .SelectMany(pmg => pmg.ModifierGroup.ModifierOptions)
-                        .FirstOrDefault(x => x.Id == Guid.Parse(modifierOptionRequest.ModifierOptionId));
+                    var modifierOption = productModifierLookup.TryGetValue(productVariant.ProductId, out var modifierGroups)
+                        ? modifierGroups.SelectMany(pmg => pmg.ModifierGroup.ModifierOptions)
+                            .FirstOrDefault(x => x.Id == modifierOptionRequest.ModifierOptionId)
+                        : null;
+
                     if (modifierOption == null)
                     {
                         response.IsSuccess = false;
-                        response.ErrorMessage = $"Không tìm thấy tuỳ chọn với Id: {modifierOptionRequest.ModifierOptionId} cho biến thể sản phẩm: {productVariant.Name}.";
+                        response.ErrorMessage = $"Không tìm thấy tùy chọn điều chỉnh: {modifierOptionRequest.ModifierOptionId}";
                         return response;
                     }
+
                     productForOrderResponse.ModifierOptions.Add(new ModifierOptionForOrderResponse()
                     {
                         Id = modifierOption.Id.ToString(),
-                        ModifierGroupId = modifierOption.Id.ToString(),
-                        ModifierGroupName = modifierOption.ModifierGroup.Name ?? String.Empty,
-                        ModifierOptionName = modifierOption.Name ?? String.Empty,
-                        DeltaPrice = (float) modifierOption.PriceDelta,
-                        RelatedComboProductVariantItemId = String.Empty,
-                        RelatedComboProductVariantItemName = String.Empty
+                        ModifierGroupId = modifierOption.ModifierGroup.Id.ToString(),
+                        ModifierGroupName = modifierOption.ModifierGroup.Name ?? string.Empty,
+                        ModifierOptionName = modifierOption.Name ?? string.Empty,
+                        DeltaPrice = (float)modifierOption.PriceDelta,
+                        RelatedComboProductVariantItemId = string.Empty,
+                        RelatedComboProductVariantItemName = string.Empty
                     });
                 }
-                else
+                else 
                 {
-                    var existingProductComboItem = productVariant.Product.ProductComboItems.Select(x => x.ItemProductVariant)
-                        .FirstOrDefault(x => x.Id == Guid.Parse(modifierOptionRequest.RelatedComboProductVariantItemId));
+                    if (!modifierOptionRequest.RelatedComboProductVariantItemId.HasValue)
+                    {
+                        response.IsSuccess = false;
+                        response.ErrorMessage = $"Tùy chọn điều chỉnh {modifierOptionRequest.ModifierOptionId} yêu cầu ID biến thể combo liên quan.";
+                        return response;
+                    }
+
+                    var comboItemVariantId = modifierOptionRequest.RelatedComboProductVariantItemId.Value;
+                    var existingProductComboItem = comboItemsLookup.TryGetValue(productVariant.ProductId, out var comboList)
+                        ? comboList.FirstOrDefault(x => x.ItemProductVariantId == comboItemVariantId)
+                        : null;
+
                     if (existingProductComboItem == null)
                     {
                         response.IsSuccess = false;
-                        response.ErrorMessage = $"Không tìm thấy biến thể sản phẩm trong combo với Id: {modifierOptionRequest.RelatedComboProductVariantItemId}.";
+                        response.ErrorMessage = $"Không tìm thấy mục combo cho biến thể {comboItemVariantId} trong sản phẩm {productVariant.ProductId}.";
                         return response;
                     }
-                    var existingModifierOption = existingProductComboItem.Product.ProductModifierGroups
-                        .SelectMany(pmg => pmg.ModifierGroup.ModifierOptions)
-                        .FirstOrDefault(x => x.Id == Guid.Parse(modifierOptionRequest.ModifierOptionId));
+
+                    var existingModifierOption = comboModifierOptionsLookup.TryGetValue(modifierOptionRequest.ModifierOptionId, out var modifierOption)
+                        ? modifierOption
+                        : null;
+
                     if (existingModifierOption == null)
                     {
                         response.IsSuccess = false;
-                        response.ErrorMessage = $"Không tìm thấy tuỳ chọn với Id: {modifierOptionRequest.ModifierOptionId} cho biến thể sản phẩm trong combo: {existingProductComboItem.Name}.";
+                        response.ErrorMessage = $"Không tìm thấy tùy chọn điều chỉnh {modifierOptionRequest.ModifierOptionId} trong nhóm điều chỉnh của combo.";
                         return response;
                     }
+
+                    var comboItemVariant = comboItemVariantsLookup.TryGetValue(comboItemVariantId, out var variant) ? variant : null;
+
                     productForOrderResponse.ModifierOptions.Add(new ModifierOptionForOrderResponse()
                     {
                         Id = existingModifierOption.Id.ToString(),
                         ModifierGroupId = existingModifierOption.ModifierGroup.Id.ToString(),
-                        ModifierGroupName = existingModifierOption.ModifierGroup.Name ?? String.Empty,
-                        ModifierOptionName = existingModifierOption.Name ?? String.Empty,
-                        DeltaPrice = (float) existingModifierOption.PriceDelta,
-                        RelatedComboProductVariantItemId = existingProductComboItem.Id.ToString(),
-                        RelatedComboProductVariantItemName = existingProductComboItem.Name ?? String.Empty
+                        ModifierGroupName = existingModifierOption.ModifierGroup.Name ?? string.Empty,
+                        ModifierOptionName = existingModifierOption.Name ?? string.Empty,
+                        DeltaPrice = (float)existingModifierOption.PriceDelta,
+                        RelatedComboProductVariantItemId = comboItemVariantId.ToString(),
+                        RelatedComboProductVariantItemName = comboItemVariant?.Name ?? string.Empty
                     });
                 }
             }
             response.ProductForOrders.Add(productForOrderResponse);
         }
+    
         response.IsSuccess = true;
-        response.ErrorMessage = String.Empty;
+        response.ErrorMessage = string.Empty;
         return response;
     }
 
@@ -703,6 +871,110 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         }
         return response;
     }
+
+    public override async Task<GetCategoryForMenuStoreResponse> GetCategoryForMenuStore(GetCategoryForMenuStoreRequest request, ServerCallContext context)
+    {
+        var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
+            predicate: x => x.BrandId == Guid.Parse(request.BrandId) && x.Type == ECategoryType.Parent,
+            include: x => x.Include(x => x.ChildCategories),
+            orderBy: x => x.OrderBy(x => x.DisplayOrder)
+        );
+        var categoryResponses = categories.Select(category => new CategoryResponse()
+        {
+            Id = category.Id.ToString(),
+            Name = category.Name,
+            DisplayOrder = category.DisplayOrder ?? 0,
+            Code = category.Code ?? String.Empty,
+            Description = category.Description ?? String.Empty,
+            ChildCategories = category.ChildCategories != null
+                ? new ListChildCategoryResponse()
+                {
+                    ChildCategories =
+                    {
+                        category.ChildCategories.Select(x => new ChildCategoryResponse()
+                        {
+                            Id = x.Id.ToString(),
+                            Code = x.Code,
+                            Name = x.Name,
+                            DisplayOrder = x.DisplayOrder ?? 0,
+                            Description = x.Description ?? String.Empty,
+                        })
+                    }
+                }
+                : null
+        }).ToList();
+        var comboCategory = new CategoryResponse()
+        {
+            Id = Guid.CreateVersion7().ToString(),
+            Code = "COMBO",
+            Name = "Combo",
+            ChildCategories = new ListChildCategoryResponse(),
+            Description = "Danh mục dành cho Combo",
+            DisplayOrder = 0
+        };
+        
+        categoryResponses.Add(comboCategory);
+        var response = new GetCategoryForMenuStoreResponse();
+        response.ListCategoryResponse = new ListCategoryResponse()
+        {
+            Categories = { categoryResponses }
+        };
+        return response;
+    }
+
+    public override async Task<GetProductsForMenuStoreResponse> GetProductsForMenuStore(GetProductsForMenuStoreRequest request, ServerCallContext context)
+    {
+        var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
+        var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
+            predicate: x => x.BrandId == Guid.Parse(request.BrandId)
+                            && x.Type == EProductType.CustomerOrder
+                            && x.ProductVariants.Any(pv =>
+                                variantIds.Contains(pv.Id) && pv.IsActive),
+            include: x => x.Include(x => x.ProductImages.Where(img => img.IsMainImage))
+                .Include(x => x.ProductModifierGroups)
+                .Include(x => x.ProductVariants.Where(pv => variantIds.Contains(pv.Id) && pv.IsActive))
+                .Include(x => x.ProductComboItems.Where(x => x.Product.ProductVariants
+                    .Any(pv => variantIds.Contains(pv.Id) && pv.IsActive)))
+                .ThenInclude(x => x.ItemProductVariant)
+                .ThenInclude(x => x.Product)
+                .ThenInclude(x => x.ProductModifierGroups),
+            orderBy: x => x.OrderBy(p => p.DisplayOrder)
+        );
+        var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
+            predicate: x => x.StoreId == Guid.Parse(request.StoreId)
+                            && variantIds.Contains(x.ProductVariantId)
+        );
+        var priceDictionary = storePrices.ToDictionary(p => p.ProductVariantId, p => p.OverridePrice);
+
+        var response = new GetProductsForMenuStoreResponse();
+        response.ListProductResponse = new ListProductResponse()
+        {
+            Products = { products.Select(product => MapProduct(product, priceDictionary, request.ComboCategoryId)) }
+        };
+        return response;
+    }
+
+    // public override async Task<GetModiferGroupForMenuStoreResponse> GetModiferGroupForMenuStore(GetModiferGroupForMenuStoreRequest request, ServerCallContext context)
+    // {
+    //     var brandId = Guid.Parse(request.BrandId);
+    //     var productVariantIds = request.ListProductVariantIds.ProductVariantId
+    //         .Select(Guid.Parse)
+    //         .ToList();
+    //     var productModifierGroups = await _unitOfWork.GetRepository<ProductModifierGroups>().GetListAsync(
+    //         predicate: x => x.Product.ProductVariants.Any(pv => productVariantIds.Contains(pv.Id))
+    //                         && x.ModifierGroup.IsActive
+    //                         && x.Product.BrandId == brandId,
+    //         include: x => x.Include(x => x.ModifierGroup)
+    //             .ThenInclude(x => x.ModifierOptions)
+    //             .Include(x => x.Product)
+    //             .ThenInclude(x => x.ProductVariants.Where(pv => productVariantIds.Contains(pv.Id)))
+    //     );
+    //     var response = new GetModiferGroupForMenuStoreResponse()
+    //     {
+    //         ListModifierGroupResponse = MapModifierOptions(productModifierGroups.ToList())
+    //     };
+    //     return response;
+    // }
     // public override async Task<GetMenuProductByStoreResponse> GetMenuProductByStore(GetMenuProductByStoreRequest request, ServerCallContext context)
     // {
     //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
