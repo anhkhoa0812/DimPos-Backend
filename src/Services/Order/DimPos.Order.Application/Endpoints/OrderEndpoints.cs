@@ -7,6 +7,7 @@ using DimPos.Order.Application.Features.Order.Command.UpdateCompleteOrder;
 using DimPos.Order.Application.Features.Order.Command.UpdatePaymentMethod;
 using DimPos.Order.Application.Features.Order.Query.GetOrder;
 using DimPos.Order.Application.Features.Order.Query.GetOrderWithId;
+using DimPos.Order.Application.Features.Order.Query.GetTableNumberDineIn;
 using DimPos.Order.Domain.Constants;
 using DimPos.Order.Domain.Enums;
 using DimPos.Order.Domain.Models.Common;
@@ -79,6 +80,14 @@ public class OrderEndpoints : ICarterModule
             .WithName(nameof(CancelOrder))
             .RequireAuthorization("StaffPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/financial-shifts/{id:guid}/table-numbers", GetTableNumberDineIn)
+            .WithName(nameof(GetTableNumberDineIn))
+            .RequireAuthorization("StaffPolicy")
+            .Produces<ApiResponse<GetTableNumberDineInQueryResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -184,6 +193,15 @@ public class OrderEndpoints : ICarterModule
             return Results.BadRequest(response);
         }
         var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetTableNumberDineIn(IMediator mediator, [FromRoute] Guid id)
+    {
+        var query = new GetTableNumberDineInQuery()
+        {
+            FinancialShiftId = id
+        };
+        var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }
  }

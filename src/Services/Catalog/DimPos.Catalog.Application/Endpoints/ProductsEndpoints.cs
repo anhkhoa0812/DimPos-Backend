@@ -75,6 +75,8 @@ public class ProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapPost("store-menu", GetStoreMenu)
             .WithName(nameof(GetStoreMenu));
+        group.MapPost("get-product-for-order", GetProductForOrder)
+            .WithName(nameof(GetProductForOrder));
     }
     public async Task<IResult> CreateProduct(IMediator mediator,  [FromForm] CreateProductRequest request, ValidationUtil<CreateProductsCommand> validationUtil)
     {
@@ -186,6 +188,11 @@ public class ProductsEndpoints : ICarterModule
         return Results.Ok(apiResponse);
     }
     public async Task<IResult> GetStoreMenu(IMediator mediator, [FromBody] GetMenuStoreQuery query) 
+    {
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetProductForOrder(IMediator mediator, [FromBody] GetProductForOrderQuery query)
     {
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
