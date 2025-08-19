@@ -64,7 +64,8 @@ public class CreateInternalProductCommandHandler : IRequestHandler<CreateInterna
             Note = request.Note,
             IsHasVariants = false,
             Type = EProductType.InternalOrder,
-            IsCombo = false
+            IsCombo = false,
+            IsExtra = false,
         };
         
         var productVariant = new Domain.Entities.ProductVariants()

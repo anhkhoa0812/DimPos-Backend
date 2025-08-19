@@ -9,16 +9,16 @@ using DimPos.Media.Application.Common.Protos;
 using Google.Protobuf;
 using Mediator;
 
-namespace DimPos.Catalog.Application.Features.ComboProducts.Command.CreateComboProduct;
+namespace DimPos.Catalog.Application.Features.ExtraProducts.Command.CreateExtraProduct;
 
-public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProductCommand, ApiResponse>
+public class CreateExtraProductCommandHandler : IRequestHandler<CreateExtraProductCommand, ApiResponse>
 {
     private readonly IUnitOfWork<CatalogContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     private readonly MediaGrpcService.MediaGrpcServiceClient _mediaGrpcService;
     
-    public CreateComboProductCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService,
+    public CreateExtraProductCommandHandler(IUnitOfWork<CatalogContext> unitOfWork, ILogger logger, IClaimService claimService,
         MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -27,12 +27,11 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
         _mediaGrpcService = mediaGrpcService ?? throw new ArgumentNullException(nameof(mediaGrpcService));
     }
     
-    public async ValueTask<ApiResponse> Handle(CreateComboProductCommand request, CancellationToken cancellationToken)
+    public async ValueTask<ApiResponse> Handle(CreateExtraProductCommand request, CancellationToken cancellationToken)
     {
         var brandId = _claimService.GetBrandId ?? Guid.Empty;
         if(brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy id của thương hiệu");
-        
         var accountId = _claimService.GetCurrentUserId;
         if(accountId == Guid.Empty) 
             throw new BadHttpRequestException("Không tìm thấy id của tài khoản");
@@ -40,14 +39,10 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
         var exisingProduct = await _unitOfWork.GetRepository<Domain.Entities.Products>().SingleOrDefaultAsync(
             predicate: x => x.Code == request.Code
         );
+        
         if (exisingProduct != null)
         {
             throw new BadHttpRequestException("Mã combo sản phẩm đã tồn tại");
-        }
-
-        if (request.ItemProductVariants.Count < 2)
-        {
-            throw new BadHttpRequestException("Sản phẩm combo phải có ít nhất 2 sản phẩm");
         }
         var product = new Domain.Entities.Products()
         {
@@ -57,11 +52,11 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
             Description = request.Description,
             DisplayOrder = request.DisplayOrder,
             Note = request.Note,
-            IsCombo = true,
+            IsCombo = false,
             Type = EProductType.CustomerOrder,
             IsHasVariants = false,
             BrandId = brandId,
-            IsExtra = false
+            IsExtra = true,
         };
         var existingProductVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>()
             .SingleOrDefaultAsync(
@@ -76,7 +71,7 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
         {
             Id = Guid.CreateVersion7(),
             Size = null,
-            IsActive = true,
+            IsActive = false,
             Description = request.Description,
             Name = request.Name,
             Code = request.Code,
@@ -160,44 +155,16 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
         }
         await _unitOfWork.GetRepository<Domain.Entities.Products>().InsertAsync(product);
         
-        var itemProductVariantIds = request.ItemProductVariants.Select(x => x.ProductVariantId).ToList();
-        var itemProductVariants = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().GetListAsync(
-            predicate: x => itemProductVariantIds.Contains(x.Id) 
-                            && x.Product.Type == EProductType.CustomerOrder
-                            && x.Product.BrandId == brandId
-                            && !x.Product.IsCombo
-                            && x.IsActive
-        );
-        if(request.ItemProductVariants.Count != itemProductVariants.Count)
-        {
-            throw new BadHttpRequestException("Một hoặc nhiều sản phẩm không tồn tại hoặc không hoạt động");
-        }
-        foreach (var itemProductVariant in itemProductVariants)
-        {
-           var requestItemProductVariant = request.ItemProductVariants
-               .First(x => x.ProductVariantId == itemProductVariant.Id);
-           
-           var productComboItem = new Domain.Entities.ProductComboItems()
-           {
-               Id = Guid.CreateVersion7(),
-               DisplayOrder = requestItemProductVariant.DisplayOrder,
-               Quantity = requestItemProductVariant.Quantity,
-               ProductId = product.Id,
-               ItemProductVariantId = itemProductVariant.Id,
-           };
-           await _unitOfWork.GetRepository<Domain.Entities.ProductComboItems>().InsertAsync(productComboItem);
-        }
-        
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         if (!isSuccess)
         {
-            throw new Exception("Tạo sản phẩm combo thất bại");
+            throw new Exception("Không thể tạo sản phẩm phụ");
         }
 
         return new ApiResponse()
         {
             Status = StatusCodes.Status201Created,
-            Message = "Tạo sản phẩm combo thành công",
+            Message = "Tạo sản phẩm phụ thành công",
             Data = productVariant.Id
         };
     }

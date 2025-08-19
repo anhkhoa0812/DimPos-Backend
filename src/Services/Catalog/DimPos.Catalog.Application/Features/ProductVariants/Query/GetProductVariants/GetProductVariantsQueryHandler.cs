@@ -48,7 +48,7 @@ public class GetProductVariantsQueryHandler : IRequestHandler<GetProductVariants
             },
             predicate: x => x.Product.BrandId == brandId &&
                             x.Product.Type == EProductType.CustomerOrder &&
-                            !x.Product.IsCombo &&
+                            !x.Product.IsCombo && !x.Product.IsExtra &&
                             (request.Name == null || x.Name.Contains(request.Name)) && 
                             (request.Sku == null || x.Sku.Contains(request.Sku)) && 
                             (string.IsNullOrEmpty(request.Code) || x.Code.Contains(request.Code)) && 

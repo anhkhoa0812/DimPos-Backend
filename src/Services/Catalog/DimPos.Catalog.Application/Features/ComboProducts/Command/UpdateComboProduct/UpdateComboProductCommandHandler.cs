@@ -42,6 +42,7 @@ public class UpdateComboProductCommandHandler : IRequestHandler<UpdateComboProdu
             predicate: x => x.Id == request.Id
             && x.Product.Type == EProductType.CustomerOrder
             && x.Product.IsCombo
+            && !x.Product.IsExtra
             && x.Product.BrandId == brandId,
             include: x => x.Include(p => p.Product)
                 .ThenInclude(x => x.ProductImages)

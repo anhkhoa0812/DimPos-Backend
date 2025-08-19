@@ -31,7 +31,8 @@ public class GetComboProductByIdQueryHandler : IRequestHandler<GetComboProductBy
         var productVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.ProductVariantId
             && x.Product.Type == EProductType.CustomerOrder
-            && x.Product.IsCombo,
+            && x.Product.IsCombo
+            && !x.Product.IsExtra,
             include: x => x.Include(x => x.Product)
                 .ThenInclude(x => x.ProductImages)
                 .Include(x => x.Product.ProductComboItems)

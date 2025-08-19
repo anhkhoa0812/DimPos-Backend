@@ -196,7 +196,7 @@ public class ProductVariantsEndpoint : ICarterModule
     }
     public async Task<IResult> GetProductVariantsForMenu(IMediator mediator, [FromQuery] int page = 1, 
         [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true,
-        [FromQuery] string? code = null, [FromQuery] string? sku = null, [FromQuery] bool? isCombo = null)
+        [FromQuery] string? code = null, [FromQuery] string? sku = null, [FromQuery] bool? isCombo = null, [FromQuery] bool? isExtra = null)
     {
         var query = new GetProductVariantsForMenuQuery()
         {
@@ -206,7 +206,8 @@ public class ProductVariantsEndpoint : ICarterModule
             IsAsc = isAsc,
             Code = code,
             Sku = sku,
-            IsCombo = isCombo
+            IsCombo = isCombo,
+            IsExtra = isExtra
         };
         var result = await mediator.Send(query);
         return Results.Ok(result);

@@ -1,6 +1,7 @@
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Application.Features.ModifierGroups.Command.UpdateModifierGroupForProduct;
+using DimPos.Catalog.Application.Features.ProductExtraItems.Command.CreateProductExtraItem;
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 using DimPos.Catalog.Application.Features.Products.Commands.UpdateProducts;
 using DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;
@@ -73,10 +74,15 @@ public class ProductsEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
-        group.MapPost("store-menu", GetStoreMenu)
-            .WithName(nameof(GetStoreMenu));
-        group.MapPost("get-product-for-order", GetProductForOrder)
-            .WithName(nameof(GetProductForOrder));
+        group.MapPut("{id:guid}/extra-items", UpdateProductExtraItems)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateProductExtraItems))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status201Created)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
     public async Task<IResult> CreateProduct(IMediator mediator,  [FromForm] CreateProductRequest request, ValidationUtil<CreateProductsCommand> validationUtil)
     {
@@ -196,5 +202,16 @@ public class ProductsEndpoints : ICarterModule
     {
         var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> UpdateProductExtraItems(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] UpdateProductExtraItemRequest request)
+    {
+        var command = new UpdateProductExtraItemCommand()
+        {
+            ProductId = id,
+            ProductVariantItemIds = request.ProductVariantItemIds
+        };
+        var apiResponse = await mediator.Send(command);
+        return Results.Created($"{ApiEndPointConstants.Products.ProductsEndpoint}/{id}/extra-items", apiResponse);
     }
 }

@@ -49,6 +49,7 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Features\ProductComboItems\Query\" />
+      <Folder Include="Features\ProductExtraItems\Query\" />
     </ItemGroup>
 
 </Project>

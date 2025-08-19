@@ -32,7 +32,7 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
         var product = await _unitOfWork.GetRepository<Domain.Entities.Products>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.ProductId && x.BrandId == brandId
             && x.Type == EProductType.CustomerOrder
-            && !x.IsCombo,
+            && !x.IsCombo && !x.IsExtra,
             selector: p => new ProductByIdResponse()
             {
                 Id = p.Id,
@@ -86,7 +86,19 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
                         DisplayOrder = x.DisplayOrder,
                         IsActive = x.IsActive,
                         SelectedType = x.SelectedType
-                    }).ToList() : new List<ModifierGroupResponse>()
+                    }).ToList() : new List<ModifierGroupResponse>(),
+                ProductExtras = p.ProductExtraItems != null ?
+                    p.ProductExtraItems.Select(x => new ProductExtrasResponse()
+                    {
+                        Id = x.ExtraProductVariant.Id,
+                        Name = x.ExtraProductVariant.Name,
+                        Code = x.ExtraProductVariant.Code,
+                        Sku = x.ExtraProductVariant.Sku,
+                        Price = x.ExtraProductVariant.Price,
+                        Description = x.ExtraProductVariant.Description,
+                        DisplayOrder = x.ExtraProductVariant.DisplayOrder,
+                        IsActive = x.ExtraProductVariant.IsActive
+                    }).ToList() : new List<ProductExtrasResponse>()
             }
         );
         if (product == null)

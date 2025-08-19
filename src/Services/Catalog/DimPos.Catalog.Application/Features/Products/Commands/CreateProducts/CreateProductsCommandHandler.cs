@@ -57,6 +57,7 @@ public class CreateProductsCommandHandler : IRequestHandler<CreateProductsComman
         product.BrandId = brandId;
         product.Type = EProductType.CustomerOrder;
         product.IsCombo = false;
+        product.IsExtra = false;
         var category = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.CategoryId
         );
