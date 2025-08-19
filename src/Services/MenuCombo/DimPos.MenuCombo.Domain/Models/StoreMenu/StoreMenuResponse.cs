@@ -39,6 +39,7 @@ public record ProductsResponse
     public Guid CategoryId { get; set; }
     public List<ProductVariantResponse>? ProductVariants { get; set; }
     public List<ComboItemsResponse>? ComboItems { get; set; }
+    public List<ProductVariantResponse>? ExtraItemProductVariants { get; set; }
 }
 
 public record ProductVariantResponse

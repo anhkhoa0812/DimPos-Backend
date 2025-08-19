@@ -165,6 +165,18 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
                     DisplayOrder = ci.ProductVariant.DisplayOrder,
                     Sku = ci.ProductVariant.Sku
                 }
+            }).ToList(),
+            ExtraItemProductVariants = product.ExtraItemProductVariants?.ProductVariants.Select(pv => new ProductVariantResponse()
+            {
+                Id = Guid.Parse(pv.Id),
+                Code = pv.Code,
+                Name = pv.Name,
+                Description = pv.Description,
+                Price = (decimal) pv.Price,
+                IsActive = pv.IsActive,
+                Size = pv.Size,
+                DisplayOrder = pv.DisplayOrder,
+                Sku = pv.Sku
             }).ToList()
         };
     }
