@@ -61,6 +61,7 @@ public class CreateComboProductCommandHandler : IRequestHandler<CreateComboProdu
             Type = EProductType.CustomerOrder,
             IsHasVariants = false,
             BrandId = brandId,
+            IsExtra = false
         };
         var existingProductVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>()
             .SingleOrDefaultAsync(

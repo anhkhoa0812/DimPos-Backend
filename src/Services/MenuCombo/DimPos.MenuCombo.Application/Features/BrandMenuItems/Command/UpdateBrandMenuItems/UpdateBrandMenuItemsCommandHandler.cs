@@ -53,7 +53,7 @@ public class UpdateBrandMenuItemsCommandHandler : IRequestHandler<UpdateBrandMen
         var requestedIdStrings = request.UpdateBrandMenuItemsRequest.ProductVariantIds
             .Select(x => x.ToString())
             .ToList();
-        var isValidProductVariants = _catalogGrpcService.CheckProductVariantInBrand(
+        var isValidProductVariants = await _catalogGrpcService.CheckProductVariantInBrandAsync(
             new CheckProductVariantInBrandRequest()
             {
                 BrandId = brandId.ToString(),

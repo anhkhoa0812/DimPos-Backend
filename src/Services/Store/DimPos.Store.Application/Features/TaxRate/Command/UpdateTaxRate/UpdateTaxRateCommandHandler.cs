@@ -66,7 +66,7 @@ public class UpdateTaxRateCommandHandler : IRequestHandler<UpdateTaxRateCommand,
         if (!isSuccess)
         {
             _logger.Error("Lỗi khi cập nhật thuế cho cửa hàng {StoreId} với tên {Name}", request.StoreId, request.Name);
-            throw new BadHttpRequestException("Đã xảy ra lỗi khi cập nhật thuế.");
+            throw new Exception("Đã xảy ra lỗi khi cập nhật thuế.");
         }
         _logger.Information("Cập nhật thuế thành công cho cửa hàng {StoreId} với tên {Name}", request.StoreId, request.Name);
         return new ApiResponse()

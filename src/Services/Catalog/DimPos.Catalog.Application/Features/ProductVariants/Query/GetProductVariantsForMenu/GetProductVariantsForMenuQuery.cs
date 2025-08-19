@@ -12,4 +12,5 @@ public class GetProductVariantsForMenuQuery : IRequest<ApiResponse>
     public string? Code { get; set; }
     public string? Sku { get; set; }
     public bool? IsCombo { get; set; }
+    public bool? IsExtra { get; set; }
 }

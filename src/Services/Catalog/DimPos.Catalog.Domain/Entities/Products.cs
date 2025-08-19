@@ -13,6 +13,7 @@ public class Products : EntityAuditBase<Guid>
     public string? Note { get; set; }
     public EProductType Type { get; set; }
     public bool IsCombo { get; set; }
+    public bool IsExtra { get; set; }
     public Guid BrandId { get; set; }
     public Guid? CategoryId { get; set; }
     
@@ -22,4 +23,5 @@ public class Products : EntityAuditBase<Guid>
     public virtual ICollection<ProductVariants> ProductVariants { get; set; } = new List<ProductVariants>();
     public virtual ICollection<ProductModifierGroups>? ProductModifierGroups { get; set; } = new List<ProductModifierGroups>();
     public virtual ICollection<ProductComboItems>? ProductComboItems { get; set; } = new List<ProductComboItems>();
+    public virtual ICollection<ProductExtraItems>? ProductExtraItems { get; set; } = new List<ProductExtraItems>();
 }

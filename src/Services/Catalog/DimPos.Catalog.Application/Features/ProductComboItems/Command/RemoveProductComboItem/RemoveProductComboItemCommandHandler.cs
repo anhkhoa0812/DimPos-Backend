@@ -29,7 +29,7 @@ public class RemoveProductComboItemCommandHandler : IRequestHandler<RemoveProduc
         var productVariant = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().SingleOrDefaultAsync(
             predicate: x => x.Id == request.ProductVariantId &&
                             x.Product.BrandId == brandId &&
-                            x.Product.IsCombo,
+                            x.Product.IsCombo && !x.Product.IsExtra,
             include: x => x.Include(x => x.Product)
                 .ThenInclude(x => x.ProductComboItems)
         );

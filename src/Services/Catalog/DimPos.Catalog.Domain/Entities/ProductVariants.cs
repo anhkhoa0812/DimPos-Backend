@@ -18,4 +18,5 @@ public class ProductVariants : EntityBase<Guid>
     
     public virtual ICollection<RecipeItems>? RecipeItems { get; set; } = new List<RecipeItems>();
     public virtual ICollection<ProductComboItems>? ProductComboItems { get; set; } = new List<ProductComboItems>();
+    public virtual ICollection<ProductExtraItems>? ProductExtraItems { get; set; } = new List<ProductExtraItems>();
 }

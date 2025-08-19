@@ -34,6 +34,8 @@ public class ProductsConfiguration : IEntityTypeConfiguration<Products>
             );
         builder.Property(x => x.IsCombo)
             .IsRequired();
+        builder.Property(x => x.IsExtra)
+            .IsRequired();
         builder.Property(p => p.BrandId)
             .IsRequired();
         builder.HasOne(p => p.Category)

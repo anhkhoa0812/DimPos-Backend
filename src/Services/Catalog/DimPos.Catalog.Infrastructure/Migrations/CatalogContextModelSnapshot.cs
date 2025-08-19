@@ -339,6 +339,33 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.ToTable("ProductComboItems");
                 });
 
+            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductExtraItems", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ExtraProductVariantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExtraProductVariantId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductExtraItems");
+                });
+
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductImages", b =>
                 {
                     b.Property<Guid>("Id")
@@ -472,6 +499,9 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("IsCombo")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsExtra")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsHasVariants")
@@ -703,6 +733,25 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductExtraItems", b =>
+                {
+                    b.HasOne("DimPos.Catalog.Domain.Entities.ProductVariants", "ExtraProductVariant")
+                        .WithMany("ProductExtraItems")
+                        .HasForeignKey("ExtraProductVariantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DimPos.Catalog.Domain.Entities.Products", "Product")
+                        .WithMany("ProductExtraItems")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ExtraProductVariant");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductImages", b =>
                 {
                     b.HasOne("DimPos.Catalog.Domain.Entities.Products", "Product")
@@ -825,6 +874,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                 {
                     b.Navigation("ProductComboItems");
 
+                    b.Navigation("ProductExtraItems");
+
                     b.Navigation("RecipeItems");
                 });
 
@@ -833,6 +884,8 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.Navigation("ProductAttributes");
 
                     b.Navigation("ProductComboItems");
+
+                    b.Navigation("ProductExtraItems");
 
                     b.Navigation("ProductImages");
 

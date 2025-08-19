@@ -65,16 +65,17 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         CheckProductVariantInBrandRequest request, ServerCallContext context)
     {
         _logger.Information($"BEGIN: {nameof(CheckProductVariantInBrand)} - {TimeUtil.GetCurrentSEATime()}");
-        var productVariantIds = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
-            selector: x => x.Id,
+        var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
             predicate: x => x.Product.BrandId == Guid.Parse(request.BrandId) 
                             && x.Product.Type == EProductType.CustomerOrder,
             include: x => x.Include(x => x.Product)
+                .ThenInclude(x => x.ProductComboItems)
+                .ThenInclude(x => x.ItemProductVariant)
         );
         var requestedIds = request.ListProductVariantId.ProductVariantId
             .Select(Guid.Parse)
             .ToList();
-        var variantSet = new HashSet<Guid>(productVariantIds);
+        var variantSet = new HashSet<Guid>(productVariants.Select(x => x.Id));
         bool allExist = requestedIds.All(variantSet.Contains);
         _logger.Information($"END: {nameof(CheckProductVariantInBrand)} - {TimeUtil.GetCurrentSEATime()}");
 
@@ -83,12 +84,31 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
             return new CheckProductVariantInBrandResponse()
             {
                 IsValid = false,
+                ExtraItemProductVariants = { new ProductVariant() }
             };
         }
 
         return new CheckProductVariantInBrandResponse()
         {
-            IsValid = true
+            IsValid = true,
+            ExtraItemProductVariants =
+            {
+                productVariants
+                    .Where(x => x.ProductExtraItems != null)
+                    .SelectMany(x => x.ProductExtraItems)
+                    .Select(x => new ProductVariant() 
+                    {
+                        Id = x.ExtraProductVariant.Id.ToString(),
+                        Code = x.ExtraProductVariant.Code,
+                        Name = x.ExtraProductVariant.Name,
+                        Description = x.ExtraProductVariant.Description ?? String.Empty,
+                        DisplayOrder = x.ExtraProductVariant.DisplayOrder ?? 0,
+                        Price = (float)x.ExtraProductVariant.Price,
+                        IsActive = x.ExtraProductVariant.IsActive,
+                        Size = x.ExtraProductVariant.Size ?? String.Empty,
+                        Sku = x.ExtraProductVariant.Sku ?? String.Empty, 
+                    })
+            }
         };
     }
 
@@ -97,6 +117,8 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var brandId = Guid.Parse(request.BrandId);
 
         var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
+        _logger.Information("Fetching variantIds for brand {BrandId} with variant IDs: {VariantIds}",
+            brandId, string.Join(", ", variantIds));
         var categories = await _unitOfWork.GetRepository<Categories>().GetListAsync(
             predicate: x => x.BrandId == brandId && x.Type == ECategoryType.Parent,
             include: x => x.Include(x => x.ChildCategories),
@@ -130,6 +152,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
             predicate: x => x.BrandId == brandId
                             && x.Type == EProductType.CustomerOrder
+                            && !x.IsExtra
                             && x.ProductVariants.Any(pv =>
                                 variantIds.Contains(pv.Id) && pv.IsActive),
             include: x => x.Include(x => x.ProductImages.Where(img => img.IsMainImage))
@@ -140,7 +163,14 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                 .ThenInclude(x => x.ItemProductVariant),
             orderBy: x => x.OrderBy(p => p.DisplayOrder)
         );
-        
+
+        var extraProductItems = await _unitOfWork.GetRepository<ProductExtraItems>().GetListAsync(
+            predicate: pci => variantIds.Contains(pci.ExtraProductVariantId),
+            include: pci => pci.Include(x => x.ExtraProductVariant)
+        );
+
+        _logger.Information("Found {ProductCount} Extra Products for brand {BrandId} with variant IDs: {VariantIds}",
+            extraProductItems.Count, brandId, string.Join(", ", extraProductItems.Select(x => x.ExtraProductVariant)));
         var comboItemVariantIds = products
             .Where(p => p.IsCombo)
             .SelectMany(p => p.ProductComboItems)
@@ -166,11 +196,16 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         );
         var priceDictionary = storePrices.ToDictionary(p => p.ProductVariantId, p => p.OverridePrice);
         
+        var extraProductItemsByProduct = extraProductItems
+            .GroupBy(epi => epi.ProductId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+        _logger.Information("Found {ExtraProductCount} Extra Product Items for brand {BrandId} with variant IDs: {VariantIds}",
+            extraProductItemsByProduct.Count, brandId, string.Join(", ", extraProductItemsByProduct.Keys));
         var listProduct = new ListProductResponse()
         {
             Products =
             {
-                products.Select(p => MapProduct(p, priceDictionary, comboCategory.Id)).ToList() 
+                products.Select(p => MapProduct(p, priceDictionary, extraProductItemsByProduct, comboCategory.Id)).ToList() 
             }
         };
         var modifierGroupIds = new HashSet<Guid>();
@@ -224,7 +259,9 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         };
         return response;
     }
-    private ProductResponse MapProduct(Products product,  Dictionary<Guid,decimal> priceDictionary, string? comboCategoryId = null)
+    private ProductResponse MapProduct(Products product,  Dictionary<Guid,decimal> priceDictionary,
+        Dictionary<Guid, List<ProductExtraItems>> extraProductItemsByProduct,
+        string? comboCategoryId = null)
     {
         var variant = product.ProductVariants.FirstOrDefault(pv => pv.ProductId == product.Id);
         var mainImage = product.ProductImages?.SingleOrDefault(x => x.IsMainImage && x.ProductId == product.Id)?.ImageUrl ?? string.Empty;
@@ -279,7 +316,26 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                         }
                     }).ToList()
                 }
-            } : null
+            } : null,
+            ExtraItemProductVariants = extraProductItemsByProduct.ContainsKey(product.Id) ?
+                new ListProductVariant()
+                {
+                    ProductVariants =
+                    {
+                        extraProductItemsByProduct[product.Id].Select(epi => new ProductVariantResponse()
+                        {
+                            Id = epi.ExtraProductVariant.Id.ToString(),
+                            Code = epi.ExtraProductVariant.Code,
+                            Name = epi.ExtraProductVariant.Name,
+                            Description = epi.ExtraProductVariant.Description ?? string.Empty,
+                            DisplayOrder = epi.ExtraProductVariant.DisplayOrder ?? 0,
+                            Price = (float)priceDictionary.GetValueOrDefault(epi.ExtraProductVariant.Id, 0),
+                            IsActive = epi.ExtraProductVariant.IsActive,
+                            Size = epi.ExtraProductVariant.Size ?? string.Empty,
+                            Sku = epi.ExtraProductVariant.Sku ?? string.Empty,
+                        }).ToList()
+                    }
+                } : null
         };
         return productItem;
         // if (!product.IsHasVariants)
@@ -922,37 +978,37 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         return response;
     }
 
-    public override async Task<GetProductsForMenuStoreResponse> GetProductsForMenuStore(GetProductsForMenuStoreRequest request, ServerCallContext context)
-    {
-        var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
-        var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
-            predicate: x => x.BrandId == Guid.Parse(request.BrandId)
-                            && x.Type == EProductType.CustomerOrder
-                            && x.ProductVariants.Any(pv =>
-                                variantIds.Contains(pv.Id) && pv.IsActive),
-            include: x => x.Include(x => x.ProductImages.Where(img => img.IsMainImage))
-                .Include(x => x.ProductModifierGroups)
-                .Include(x => x.ProductVariants.Where(pv => variantIds.Contains(pv.Id) && pv.IsActive))
-                .Include(x => x.ProductComboItems.Where(x => x.Product.ProductVariants
-                    .Any(pv => variantIds.Contains(pv.Id) && pv.IsActive)))
-                .ThenInclude(x => x.ItemProductVariant)
-                .ThenInclude(x => x.Product)
-                .ThenInclude(x => x.ProductModifierGroups),
-            orderBy: x => x.OrderBy(p => p.DisplayOrder)
-        );
-        var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
-            predicate: x => x.StoreId == Guid.Parse(request.StoreId)
-                            && variantIds.Contains(x.ProductVariantId)
-        );
-        var priceDictionary = storePrices.ToDictionary(p => p.ProductVariantId, p => p.OverridePrice);
-
-        var response = new GetProductsForMenuStoreResponse();
-        response.ListProductResponse = new ListProductResponse()
-        {
-            Products = { products.Select(product => MapProduct(product, priceDictionary, request.ComboCategoryId)) }
-        };
-        return response;
-    }
+    // public override async Task<GetProductsForMenuStoreResponse> GetProductsForMenuStore(GetProductsForMenuStoreRequest request, ServerCallContext context)
+    // {
+    //     var variantIds = request.ListProductVariantIds.ProductVariantId.Select(Guid.Parse).ToList();
+    //     var products = await _unitOfWork.GetRepository<Products>().GetListAsync(
+    //         predicate: x => x.BrandId == Guid.Parse(request.BrandId)
+    //                         && x.Type == EProductType.CustomerOrder
+    //                         && x.ProductVariants.Any(pv =>
+    //                             variantIds.Contains(pv.Id) && pv.IsActive),
+    //         include: x => x.Include(x => x.ProductImages.Where(img => img.IsMainImage))
+    //             .Include(x => x.ProductModifierGroups)
+    //             .Include(x => x.ProductVariants.Where(pv => variantIds.Contains(pv.Id) && pv.IsActive))
+    //             .Include(x => x.ProductComboItems.Where(x => x.Product.ProductVariants
+    //                 .Any(pv => variantIds.Contains(pv.Id) && pv.IsActive)))
+    //             .ThenInclude(x => x.ItemProductVariant)
+    //             .ThenInclude(x => x.Product)
+    //             .ThenInclude(x => x.ProductModifierGroups),
+    //         orderBy: x => x.OrderBy(p => p.DisplayOrder)
+    //     );
+    //     var storePrices = await _unitOfWork.GetRepository<StorePrice>().GetListAsync(
+    //         predicate: x => x.StoreId == Guid.Parse(request.StoreId)
+    //                         && variantIds.Contains(x.ProductVariantId)
+    //     );
+    //     var priceDictionary = storePrices.ToDictionary(p => p.ProductVariantId, p => p.OverridePrice);
+    //
+    //     var response = new GetProductsForMenuStoreResponse();
+    //     response.ListProductResponse = new ListProductResponse()
+    //     {
+    //         Products = { products.Select(product => MapProduct(product, priceDictionary, request.ComboCategoryId)) }
+    //     };
+    //     return response;
+    // }
 
     // public override async Task<GetModiferGroupForMenuStoreResponse> GetModiferGroupForMenuStore(GetModiferGroupForMenuStoreRequest request, ServerCallContext context)
     // {

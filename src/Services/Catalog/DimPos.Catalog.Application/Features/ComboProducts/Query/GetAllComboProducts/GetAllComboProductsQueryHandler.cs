@@ -52,6 +52,7 @@ public class GetAllComboProductsQueryHandler : IRequestHandler<GetAllComboProduc
             },
             predicate: x => x.Product.BrandId == brandId 
                             && x.Product.IsCombo 
+                            && !x.Product.IsExtra
                             && x.Product.Type == EProductType.CustomerOrder 
                             && (string.IsNullOrEmpty(request.Name) || x.Name.Contains(request.Name)) 
                             && (string.IsNullOrEmpty(request.Sku) || x.Code.Contains(request.Sku)),

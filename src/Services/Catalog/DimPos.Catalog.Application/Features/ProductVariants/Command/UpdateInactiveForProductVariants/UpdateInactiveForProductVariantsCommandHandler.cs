@@ -31,7 +31,7 @@ public class UpdateInactiveForProductVariantsCommandHandler : IRequestHandler<Up
             predicate: x => x.Id == request.ProductId 
                             && x.BrandId == brandId 
                             && x.Type == EProductType.CustomerOrder 
-                            && !x.IsCombo,
+                            && !x.IsCombo && !x.IsExtra,
             include: x => x.Include(x => x.ProductVariants)
                 .ThenInclude(x => x.ProductComboItems)
                 .ThenInclude(x => x.Product)

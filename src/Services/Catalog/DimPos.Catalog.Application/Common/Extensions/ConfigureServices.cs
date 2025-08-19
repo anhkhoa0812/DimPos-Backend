@@ -4,6 +4,8 @@ using DimPos.Catalog.Application.Features.Categories.Command.CreateCategories;
 using DimPos.Catalog.Application.Features.Categories.Command.UpdateCategories;
 using DimPos.Catalog.Application.Features.ComboProducts.Command.CreateComboProduct;
 using DimPos.Catalog.Application.Features.ComboProducts.Command.UpdateComboProduct;
+using DimPos.Catalog.Application.Features.ExtraProducts.Command.CreateExtraProduct;
+using DimPos.Catalog.Application.Features.ExtraProducts.Command.UpdateExtraProduct;
 using DimPos.Catalog.Application.Features.Ingredients.Command.CreateIngredient;
 using DimPos.Catalog.Application.Features.Ingredients.Command.UpdateIngredient;
 using DimPos.Catalog.Application.Features.InternalProducts.Command.CreateInternalProduct;
@@ -65,6 +67,8 @@ public static class ConfigureServices
         services.AddScoped<IValidator<UpdateComboProductCommand>, UpdateComboProductCommandValidator>();
         services.AddScoped<IValidator<UpdateProductComboItemCommand>, UpdateProductComboItemCommandValidator>();
         services.AddScoped<IValidator<CreateProductComboItemCommand>, CreateProductComboItemCommandValidator>();
+        services.AddScoped<IValidator<CreateExtraProductCommand>, CreateExtraProductCommandValidator>();
+        services.AddScoped<IValidator<UpdateExtraProductCommand>, UpdateExtraProductCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

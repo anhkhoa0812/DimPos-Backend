@@ -6,6 +6,7 @@ public class ProductByIdResponse : ProductResponse
 {
     public CategoryResponse Category { get; set; } = new CategoryResponse();
     public List<ModifierGroupResponse>? ModifierGroup { get; set; }
+    public List<ProductExtrasResponse>? ProductExtras { get; set; }
 }
 
 public record CategoryResponse
@@ -27,6 +28,17 @@ public record ModifierGroupResponse
     public string Name { get; set; } = String.Empty;
     public string? Description { get; set; }
     public ESelectedTypeModifier SelectedType { get; set; }
+    public int? DisplayOrder { get; set; }
+    public bool IsActive { get; set; }
+}
+public record ProductExtrasResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string? Sku { get; set; }
+    public decimal Price { get; set; }
+    public string? Description { get; set; }
     public int? DisplayOrder { get; set; }
     public bool IsActive { get; set; }
 }
