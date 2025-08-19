@@ -1,17 +1,14 @@
 using Carter;
 using DimPos.Store.Application.Common.Utils;
-using DimPos.Store.Application.Features.Stores.Command.CreateStaff;
 using DimPos.Store.Application.Features.Stores.Command.CreateStore;
-using DimPos.Store.Application.Features.Stores.Command.UpdateStaff;
 using DimPos.Store.Application.Features.Stores.Command.UpdateStore;
 using DimPos.Store.Application.Features.Stores.Command.UpdateStoreForBrand;
-using DimPos.Store.Application.Features.Stores.Query.GetStaffById;
-using DimPos.Store.Application.Features.Stores.Query.GetStaffs;
 using DimPos.Store.Application.Features.Stores.Query.GetStore;
 using DimPos.Store.Application.Features.Stores.Query.GetStoreById;
 using DimPos.Store.Application.Features.Stores.Query.GetStoresByBrand;
 using DimPos.Store.Application.Features.TaxRate.Command.CreateTaxRate;
 using DimPos.Store.Application.Features.TaxRate.Command.UpdateTaxRate;
+using DimPos.Store.Application.Features.TaxRate.Query.GetTaxRateByStoreId;
 using DimPos.Store.Domain.Constants;
 using DimPos.Store.Domain.Models.Common;
 using DimPos.Store.Domain.Models.Response;
@@ -38,6 +35,14 @@ public class StoreEndpoints : ICarterModule
             .RequireAuthorization("BrandPolicy")
             .WithName(nameof(CreateTaxRateForStore))
             .Produces<ApiResponse>(StatusCodes.Status201Created)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("/{id:guid}/tax-rates", GetTaxRateByStoreId)
+            .WithName(nameof(GetTaxRateByStoreId))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse<IPaginate<GetTaxRateByStoreIdResponse>>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -207,6 +212,21 @@ public class StoreEndpoints : ICarterModule
             return Results.BadRequest(response);
         }
         var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetTaxRateByStoreId(IMediator mediator, [FromRoute] Guid id, 
+        [FromQuery] int page = 1, [FromQuery] int size = 30,
+        [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var query = new GetTaxRateByStoreIdQuery()
+        {
+            StoreId = id,
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc
+        };
+        var apiResponse = await mediator.Send(query);
         return Results.Ok(apiResponse);
     }
 }

@@ -28,4 +28,9 @@ public static class ApiEndpointConstant
     {
         public const string StaffEndpoint = ApiEndpoint + "/staffs";
     }
+
+    public static class TaxRate
+    {
+        public const string TaxRateEndpoint = ApiEndpoint + "/tax-rates";
+    }
 }
