@@ -4,6 +4,7 @@ using DimPos.Order.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DimPos.Order.Infrastructure.Migrations
 {
     [DbContext(typeof(OrderContext))]
-    partial class OrderContextModelSnapshot : ModelSnapshot
+    [Migration("20250820060029_Add_IsExtraItem_And_RelatedProductVariantId_For_OrderItems")]
+    partial class Add_IsExtraItem_And_RelatedProductVariantId_For_OrderItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -85,41 +88,6 @@ namespace DimPos.Order.Infrastructure.Migrations
                     b.ToTable("AppliedTaxes");
                 });
 
-            modelBuilder.Entity("DimPos.Order.Domain.Entities.OrderItemExtras", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("OrderItemId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ProductNameSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid>("ProductVariantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ProductVariantNameSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("UnitPriceSnapshot")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderItemId");
-
-                    b.ToTable("OrderItemExtras");
-                });
-
             modelBuilder.Entity("DimPos.Order.Domain.Entities.OrderItemSelectedOptions", b =>
                 {
                     b.Property<Guid>("Id")
@@ -167,6 +135,9 @@ namespace DimPos.Order.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsExtraItem")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
@@ -192,6 +163,9 @@ namespace DimPos.Order.Infrastructure.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<Guid?>("RelatedProductVariantId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("TotalPriceBeforeItemDiscount")
                         .HasColumnType("decimal(18,2)");
@@ -417,17 +391,6 @@ namespace DimPos.Order.Infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("DimPos.Order.Domain.Entities.OrderItemExtras", b =>
-                {
-                    b.HasOne("DimPos.Order.Domain.Entities.OrderItems", "OrderItem")
-                        .WithMany("OrderItemExtras")
-                        .HasForeignKey("OrderItemId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("OrderItem");
-                });
-
             modelBuilder.Entity("DimPos.Order.Domain.Entities.OrderItemSelectedOptions", b =>
                 {
                     b.HasOne("DimPos.Order.Domain.Entities.OrderItems", "OrderItem")
@@ -463,8 +426,6 @@ namespace DimPos.Order.Infrastructure.Migrations
 
             modelBuilder.Entity("DimPos.Order.Domain.Entities.OrderItems", b =>
                 {
-                    b.Navigation("OrderItemExtras");
-
                     b.Navigation("OrderItemSelectedOptions");
                 });
 

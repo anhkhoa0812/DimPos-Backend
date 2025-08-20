@@ -14,7 +14,6 @@ public class GetOrderWithIdQueryHandler : IRequestHandler<GetOrderWithIdQuery, A
     private readonly IUnitOfWork<OrderContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
-    
     public GetOrderWithIdQueryHandler(IUnitOfWork<OrderContext> unitOfWork, ILogger logger, IClaimService claimService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -32,8 +31,11 @@ public class GetOrderWithIdQueryHandler : IRequestHandler<GetOrderWithIdQuery, A
                             && (brandId == Guid.Empty || x.BrandId == brandId),
             include: x => x.Include(x => x.OrderItems)
                 .ThenInclude(x => x.OrderItemSelectedOptions)
+                .Include(x => x.OrderItems)
+                .ThenInclude(x => x.OrderItemExtras)
                 .Include(x => x.AppliedOrderPromotions)
                 .Include(x => x.AppliedTax)
+            
         );
         if (order == null)
         {
@@ -61,6 +63,7 @@ public class GetOrderWithIdQueryHandler : IRequestHandler<GetOrderWithIdQuery, A
             OrderItems = order.OrderItems.Select(oi => new GetOrderItemsByOrderByIdResponse()
             {
                 Id = oi.Id,
+                ProductVariantId = oi.ProductVariantId,
                 ProductNameSnapshot = oi.ProductNameSnapshot,
                 ProductVariantNameSnapshot = oi.ProductVariantNameSnapshot,
                 Quantity = oi.Quantity,
@@ -74,9 +77,16 @@ public class GetOrderWithIdQueryHandler : IRequestHandler<GetOrderWithIdQuery, A
                     ModifierOptionId = x.ModifierOptionId,
                     ModifierGroupSnapshot = x.ModifierGroupSnapshot,
                     ModifierOptionSnapshot = x.ModifierOptionSnapshot,
-                    PriceDeltaOptionSnapshot = x.PriceDeltaOptionSnapshot,
                     RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId,
                     RelatedComboProductVariantItemName = x.RelatedComboProductVariantItemName
+                }).ToList(),
+                OrderItemExtras = oi.OrderItemExtras?.Select(oe => new GetOrderItemExtrasByOrderIdResponse()
+                {
+                    ProductVariantId = oe.ProductVariantId,
+                    ProductNameSnapshot = oe.ProductNameSnapshot,
+                    ProductVariantNameSnapshot = oe.ProductVariantNameSnapshot,
+                    Quantity = oe.Quantity,
+                    UnitPriceSnapshot = oe.UnitPriceSnapshot
                 }).ToList()
             }).ToList(),
             AppliedOrderPromotions = order.AppliedOrderPromotions?.Select(aop =>

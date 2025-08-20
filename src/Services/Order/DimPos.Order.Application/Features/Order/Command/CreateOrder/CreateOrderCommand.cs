@@ -22,7 +22,8 @@ public class CreateOrderItemRequest
     public Guid ProductVariantId { get; set; }
     public int Quantity { get; set; }
     public string? Note { get; set; }
-    public List<CreateOrderItemSelectedOptionRequest>? OrderItemSelectedOptions{ get; set; }
+    public List<CreateOrderItemSelectedOptionRequest>? OrderItemSelectedOptions { get; set; }
+    public List<CreateOrderItemRequest>? ExtraOrderItems { get; set; }
 }
 
 public class CreateOrderItemSelectedOptionRequest

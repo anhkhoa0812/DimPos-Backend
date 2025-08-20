@@ -35,7 +35,6 @@ public class GetModifierOptionsByIdQueryHandler : IRequestHandler<GetModifierOpt
                 Name = x.Name,
                 Description = x.Description,
                 IsActive = x.IsActive,
-                PriceDelta = x.PriceDelta,
             },
             predicate: x => x.Id == request.ModifierOptionId && x.ModifierGroup.BrandId == brandId
         );

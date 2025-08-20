@@ -45,51 +45,58 @@ public class AddStorePriceRequestConsumer : IConsumer<AddStorePriceRequestModel>
                 if (!basePriceDictionary.TryGetValue(storePriceRequest.ProductVariantId, out var brandPrice))
                     throw new BadHttpRequestException(
                         "Không tìm thấy giá của sản phẩm trong danh sách giá của thương hiệu trong khi cập nhập giá cho cửa hàng");
-                
-                var newStorePrice = new StorePrice()
+                var existingStorePrice = await _unitOfWork.GetRepository<StorePrice>().SingleOrDefaultAsync(
+                    predicate: x => x.StoreId == storePriceRequest.StoreId 
+                                && x.ProductVariantId == storePriceRequest.ProductVariantId
+                );
+                if (existingStorePrice == null)
                 {
-                    Id = Guid.CreateVersion7(),
-                    StoreId = storePriceRequest.StoreId,
-                    ProductVariantId = storePriceRequest.ProductVariantId,
-                    CurrencyCode = "VND",
-                    OverridePrice = brandPrice.Price,
-                    EffectiveFrom = TimeUtil.GetCurrentSEATime(),
-                    StorePriceHistories = new List<StorePriceHistory>()
+                    var newStorePrice = new StorePrice()
                     {
-                        new()
+                        Id = Guid.CreateVersion7(),
+                        StoreId = storePriceRequest.StoreId,
+                        ProductVariantId = storePriceRequest.ProductVariantId,
+                        CurrencyCode = "VND",
+                        OverridePrice = brandPrice.Price,
+                        EffectiveFrom = TimeUtil.GetCurrentSEATime(),
+                        StorePriceHistories = new List<StorePriceHistory>()
                         {
-                            Id = Guid.CreateVersion7(),
-                            CurrencyCode = "VND",
-                            NewPrice = brandPrice.Price,
-                            OldPrice = 0,
-                            ChangedAt = TimeUtil.GetCurrentSEATime(),
-                            ChangedBy = context.Message.BrandId,
-                            StoreId = storePriceRequest.StoreId,
-                            ProductVariantId = storePriceRequest.ProductVariantId,
+                            new()
+                            {
+                                Id = Guid.CreateVersion7(),
+                                CurrencyCode = "VND",
+                                NewPrice = brandPrice.Price,
+                                OldPrice = 0,
+                                ChangedAt = TimeUtil.GetCurrentSEATime(),
+                                ChangedBy = context.Message.BrandId,
+                                StoreId = storePriceRequest.StoreId,
+                                ProductVariantId = storePriceRequest.ProductVariantId,
+                            }
                         }
-                    }
-                };
-                storePrices.Add(newStorePrice);
+                    };
+                    storePrices.Add(newStorePrice);
+                }
             }
-            await _unitOfWork.GetRepository<StorePrice>().InsertRangeAsync(storePrices);
-            var isSuccess = await _unitOfWork.CommitAsync() > 0;
-            if (isSuccess)
+
+            if (storePrices.Any())
             {
-                var addStorePriceResponseModel = new AddStorePriceResponseModel()
+                await _unitOfWork.GetRepository<StorePrice>().InsertRangeAsync(storePrices);
+                var isSuccess = await _unitOfWork.CommitAsync() > 0;
+                if (!isSuccess)
                 {
-                    CorrelationId = context.Message.CorrelationId,
-                };
-                await _successTopicProducer.Produce(
-                    key: null,
-                    addStorePriceResponseModel,
-                    context.CancellationToken
-                ).ConfigureAwait(false);
-                _logger.Information("AddStorePriceRequestConsumer: {CorrelationId} - Success", context.Message.CorrelationId);
+                    throw new Exception("Lỗi khi cập nhật giá cho cửa hàng, vui lòng thử lại");
+                }
             }
-            else
+            var addStorePriceResponseModel = new AddStorePriceResponseModel()
             {
-                throw new Exception("Lỗi khi cập nhật giá cho cửa hàng, vui lòng thử lại");
-            }
+                CorrelationId = context.Message.CorrelationId,
+            };
+            await _successTopicProducer.Produce(
+                key: null,
+                addStorePriceResponseModel,
+                context.CancellationToken
+            ).ConfigureAwait(false);
+            _logger.Information("AddStorePriceRequestConsumer: {CorrelationId} - Success", context.Message.CorrelationId);
         }
         catch (Exception e)
         {

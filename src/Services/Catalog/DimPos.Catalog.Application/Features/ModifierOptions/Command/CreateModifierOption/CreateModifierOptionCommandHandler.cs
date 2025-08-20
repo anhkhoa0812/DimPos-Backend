@@ -46,7 +46,6 @@ public class CreateModifierOptionCommandHandler : IRequestHandler<CreateModifier
             Name = request.Name,
             Description = request.Description,
             IsActive = request.IsActive,
-            PriceDelta = request.PriceDelta,
             ModifierGroupId = request.ModifierGroupId
         };
         await _unitOfWork.GetRepository<Domain.Entities.ModifierOptions>().InsertAsync(modifierOption);

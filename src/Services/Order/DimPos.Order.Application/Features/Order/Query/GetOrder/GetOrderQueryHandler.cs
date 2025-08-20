@@ -42,11 +42,21 @@ public class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, ApiResponse>
                 OrderItems = x.OrderItems.Select(oi => new GetOrderItemByStoreResponse()
                 {
                     Id = oi.Id,
+                    ProductVariantId = oi.ProductVariantId,
                     ProductVariantNameSnapshot = oi.ProductVariantNameSnapshot,
                     Quantity = oi.Quantity,
                     UnitPriceSnapshot = oi.UnitPriceSnapshot,
                     TotalPriceBeforeItemDiscount = oi.TotalPriceBeforeItemDiscount,
-                    Note = oi.Note
+                    Note = oi.Note,
+                    OrderItemExtras = oi.OrderItemExtras.Select(x => new GetOrderItemExtrasByStoreResponse()
+                    {
+                        Id = x.Id,
+                        ProductVariantId = x.ProductVariantId,
+                        ProductNameSnapshot = x.ProductNameSnapshot,
+                        ProductVariantNameSnapshot = x.ProductVariantNameSnapshot,
+                        Quantity = x.Quantity,
+                        UnitPriceSnapshot = x.UnitPriceSnapshot
+                    }).ToList(),
                 }).ToList()
             },
             predicate: x => (storeId == Guid.Empty || x.StoreId == storeId) && 

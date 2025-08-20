@@ -56,8 +56,6 @@ public class UpdateModifierGroupsCommandHandler : IRequestHandler<UpdateModifier
                 modifierOption.Name = option.Name ?? modifierOption.Name;
                 modifierOption.Description = option.Description ?? modifierOption.Description;
                 modifierOption.IsActive = option.IsActive ?? modifierOption.IsActive;
-                modifierOption.PriceDelta = option.PriceDelta ?? modifierOption.PriceDelta;
-
                 _unitOfWork.GetRepository<Domain.Entities.ModifierOptions>().UpdateAsync(modifierOption);
             }
         }

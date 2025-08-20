@@ -224,7 +224,6 @@ public class GetProductForOrderQueryHandler : IRequestHandler<GetProductForOrder
                         ModifierGroupId = modifierOption.ModifierGroup.Id.ToString(),
                         ModifierGroupName = modifierOption.ModifierGroup.Name ?? string.Empty,
                         ModifierOptionName = modifierOption.Name ?? string.Empty,
-                        DeltaPrice = (float)modifierOption.PriceDelta,
                         RelatedComboProductVariantItemId = string.Empty,
                         RelatedComboProductVariantItemName = string.Empty
                     });
@@ -275,7 +274,6 @@ public class GetProductForOrderQueryHandler : IRequestHandler<GetProductForOrder
                         ModifierGroupId = existingModifierOption.ModifierGroup.Id.ToString(),
                         ModifierGroupName = existingModifierOption.ModifierGroup.Name ?? string.Empty,
                         ModifierOptionName = existingModifierOption.Name ?? string.Empty,
-                        DeltaPrice = (float)existingModifierOption.PriceDelta,
                         RelatedComboProductVariantItemId = comboItemVariantId.ToString(),
                         RelatedComboProductVariantItemName = comboItemVariant?.Name ?? string.Empty
                     });

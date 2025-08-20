@@ -36,7 +36,6 @@ public class UpdateModifierOptionsCommandHandler : IRequestHandler<UpdateModifie
         modifierOptions.Name = request.UpdateModifierOptions.Name ?? modifierOptions.Name;
         modifierOptions.Description = request.UpdateModifierOptions.Description ?? modifierOptions.Description;
         modifierOptions.IsActive = request.UpdateModifierOptions.IsActive ?? modifierOptions.IsActive;
-        modifierOptions.PriceDelta = request.UpdateModifierOptions.PriceDelta ?? modifierOptions.PriceDelta;
 
         _unitOfWork.GetRepository<Domain.Entities.ModifierOptions>().UpdateAsync(modifierOptions);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

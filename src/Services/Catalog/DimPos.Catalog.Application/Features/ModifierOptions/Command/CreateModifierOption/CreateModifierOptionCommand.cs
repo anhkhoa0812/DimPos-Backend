@@ -9,7 +9,6 @@ public class CreateModifierOptionCommand : IRequest<ApiResponse>
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; }
-    public decimal PriceDelta { get; set; }
 }
 
 public class CreateModifierOptionRequest
@@ -17,5 +16,4 @@ public class CreateModifierOptionRequest
     public string? Name { get; set; }
     public string? Description { get; set; }
     public bool IsActive { get; set; }
-    public decimal PriceDelta { get; set; }
 }
