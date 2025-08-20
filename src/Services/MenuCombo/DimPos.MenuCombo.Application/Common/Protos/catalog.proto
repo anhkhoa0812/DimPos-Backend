@@ -167,7 +167,6 @@ message ModifierOptionResponse {
   string name = 2;
   optional string description = 4;
   bool isActive = 5;
-  float priceDelta = 6;
   string modifierGroupId = 7;
 }
 message ListProductVariant {
@@ -202,7 +201,9 @@ message ProductForOrderRequest {
   string id = 1;
   string note = 2;
   int32 quantity = 3;
-  repeated ModifierOptionForOrderRequest modifierOptions = 4;
+  bool isExtraItem = 4;
+  string relatedProductVariantId = 5;
+  repeated ModifierOptionForOrderRequest modifierOptions = 6;
 }
 message ModifierOptionForOrderRequest {
   string modifierOptionId = 1;
@@ -220,15 +221,16 @@ message ProductForOrderResponse {
   int32 quantity = 4;
   float unitPrice = 5;
   string note = 6;
-  repeated ModifierOptionForOrderResponse modifierOptions = 7;
-  repeated RecipeItemsForOrderResponse recipeItems = 8;
+  bool isExtraItem = 7;
+  string relatedProductVariantId = 8;
+  repeated ModifierOptionForOrderResponse modifierOptions = 9;
+  repeated RecipeItemsForOrderResponse recipeItems = 10;
 }
 message ModifierOptionForOrderResponse {
   string id = 1;
   string modifierGroupId = 2;
   string modifierGroupName = 3;
   string modifierOptionName = 4;
-  float deltaPrice = 5;
   string relatedComboProductVariantItemId = 6;
   string relatedComboProductVariantItemName = 7;
 }

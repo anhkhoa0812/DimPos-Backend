@@ -198,7 +198,6 @@ public class GetStoreMenuQueryHandler : IRequestHandler<GetStoreMenuQuery, ApiRe
                 Name = mo.Name,
                 Description = mo.Description,
                 IsActive = mo.IsActive,
-                PriceDelta = (decimal) mo.PriceDelta,
                 ModifierGroupId = Guid.Parse(mo.ModifierGroupId)
             }).ToList()
         };
