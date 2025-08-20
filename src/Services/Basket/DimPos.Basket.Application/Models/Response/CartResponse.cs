@@ -45,6 +45,7 @@ public class CartItemResponse
     public string? NotesForItem { get; set; }
     public DateTime AddedAt { get; set; }
     public List<ModifierGroupItemResponse>? ModifierGroupItems { get; set; }
+    public List<ProductExtraItemResponse>? ExtraItems { get; set; }
 }
 
 public class ModifierGroupItemResponse
@@ -53,11 +54,18 @@ public class ModifierGroupItemResponse
     public Guid ModifierOptionId { get; set; }
     public string ModifierGroupNameSnapshot { get; set; } = string.Empty;
     public string ModifierOptionSnapshot { get; set; } = string.Empty;
-    public decimal PriceDeltaSnapshot { get; set; }
     public Guid? RelatedComboProductVariantItemId { get; set; }
     public string? RelatedComboProductVariantItemName { get; set; }
 }
 
+public class ProductExtraItemResponse
+{
+    public Guid ExtraProductVariantId { get; set; }
+    public string ExtraProductVariantNameSnapshot { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public decimal UnitPriceAtAdditionSnapshot { get; set; }
+    public Guid? RelatedProductVariantId { get; set; }
+}
 public class PromotionResponse
 {
     public Guid Id { get; set; }

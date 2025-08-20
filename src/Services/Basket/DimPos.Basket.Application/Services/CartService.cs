@@ -61,8 +61,12 @@ public class CartService : ICartService
                 {
                     var firstIds  = existingCartItem.ModifierGroupItems.Select(x => x.ModifierOptionId).OrderBy(id => id);
                     var secondIds = request.ModifierGroupItems.Select(x => x.ModifierOptionId).OrderBy(id => id);
+                    
+                    var firstExtraIds = existingCartItem.ExtraItems?.Select(x => x.ExtraProductVariantId).OrderBy(id => id) ?? Enumerable.Empty<Guid>();
+                    var secondExtraIds = request.ExtraItems?.Select(x => x.ExtraProductVariantId).OrderBy(id => id) ?? Enumerable.Empty<Guid>();
+                    
                     if (existingCartItem.ProductVariantId == request.ProductVariantId
-                        && firstIds.SequenceEqual(secondIds))
+                        && firstIds.SequenceEqual(secondIds) && firstExtraIds.SequenceEqual(secondExtraIds))
                     {
                         throw new BadHttpRequestException("Sản phẩm đã tồn tại trong giỏ hàng với cùng biến thể và tùy chọn sửa đổi");
                     }
@@ -80,7 +84,7 @@ public class CartService : ICartService
                 UnitPriceAtAdditionSnapshot = request.UnitPriceAtAdditionSnapshot, 
                 Quantity = request.Quantity, 
                 ItemSubtotalAmount = (request.UnitPriceAtAdditionSnapshot) * request.Quantity,
-                TotalPriceDeltaOptionSnapshot = 0,
+                TotalPriceOfProductExtraItems = 0,
                 AddedAt = TimeUtil.GetCurrentSEATime(),
                 ModifierGroupItems = request.ModifierGroupItems?.Select(x => new ModifierGroupItem() 
                 { 
@@ -88,15 +92,22 @@ public class CartService : ICartService
                     ModifierOptionId = x.ModifierOptionId, 
                     ModifierGroupNameSnapshot = x.ModifierGroupNameSnapshot, 
                     ModifierOptionSnapshot = x.ModifierOptionSnapshot,
-                    PriceDeltaSnapshot = x.PriceDeltaSnapshot,
                     RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId,
                     RelatedComboProductVariantItemName = x.RelatedComboProductVariantItemName
-                }).ToList() 
+                }).ToList(),
+                ExtraItems = request.ExtraItems?.Select(x => new ProductExtraItem() 
+                { 
+                    ExtraProductVariantId = x.ExtraProductVariantId, 
+                    ExtraProductVariantNameSnapshot = x.ExtraProductVariantNameSnapshot, 
+                    Quantity = x.Quantity, 
+                    UnitPriceAtAdditionSnapshot = x.UnitPriceAtAdditionSnapshot, 
+                    RelatedProductVariantId = x.RelatedProductVariantId
+                }).ToList()
             }; 
-            if(request.ModifierGroupItems != null && request.ModifierGroupItems.Any())
+            if(request.ExtraItems != null && request.ExtraItems.Any())
             {
-                cartItem.TotalPriceDeltaOptionSnapshot =  request.ModifierGroupItems.Sum(x => x.PriceDeltaSnapshot) * request.Quantity;
-                cartItem.ItemSubtotalAmount += cartItem.TotalPriceDeltaOptionSnapshot;
+                cartItem.TotalPriceOfProductExtraItems =  request.ExtraItems.Sum(x => x.UnitPriceAtAdditionSnapshot * x.Quantity);
+                cartItem.ItemSubtotalAmount += cartItem.TotalPriceOfProductExtraItems;
             }
             var cartItemJson = JsonSerializer.Serialize(cartItem); 
             
@@ -205,7 +216,9 @@ public class CartService : ICartService
         }
         catch (Exception e)
         {
-            throw new Exception("Lỗi khi thêm sản phẩm vào giỏ hàng", e);
+            // throw new Exception("Lỗi khi thêm sản phẩm vào giỏ hàng", e);
+            throw new Exception(e.Message);
+
         }
     }
 
@@ -741,7 +754,9 @@ public class CartService : ICartService
         {
             throw new BadHttpRequestException("Không tìm thấy sản phẩm trong giỏ hàng");
         }
-
+        cartItem.NotesForItem = string.IsNullOrEmpty(request.NotesForItem) 
+            ? cartItem.NotesForItem 
+            : request.NotesForItem;
         if (request.Quantity != null)
         {
             if (request.Quantity < 0)
@@ -780,12 +795,26 @@ public class CartService : ICartService
                         RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId,
                         RelatedComboProductVariantItemName = x.RelatedComboProductVariantItemName
                     }).ToList();
-                    var previousTotalPriceDeltaSnapshot = cartItem.TotalPriceDeltaOptionSnapshot;
-                    cartItem.TotalPriceDeltaOptionSnapshot = modifierGroupItems.Sum(x => x.PriceDeltaSnapshot) * cartItem.Quantity;
-                    cartItem.ItemSubtotalAmount += cartItem.TotalPriceDeltaOptionSnapshot;
                     cartItem.ModifierGroupItems = modifierGroupItems;
                     
-                    cart.SubtotalAmount += cartItem.TotalPriceDeltaOptionSnapshot - previousTotalPriceDeltaSnapshot;
+                }
+
+                if (request.ExtraItems != null && request.ExtraItems.Any())
+                {
+                    var extraItems = request.ExtraItems.Select(x => new ProductExtraItem()
+                    {
+                        ExtraProductVariantId = x.ExtraProductVariantId,
+                        ExtraProductVariantNameSnapshot = x.ExtraProductVariantNameSnapshot,
+                        Quantity = x.Quantity,
+                        UnitPriceAtAdditionSnapshot = x.UnitPriceAtAdditionSnapshot,
+                        RelatedProductVariantId = x.RelatedProductVariantId
+                    }).ToList();
+                    var previousTotalPriceOfProductExtraItems = cartItem.TotalPriceOfProductExtraItems;
+                    cartItem.TotalPriceOfProductExtraItems = extraItems.Sum(x => x.UnitPriceAtAdditionSnapshot * x.Quantity);
+                    cartItem.ItemSubtotalAmount += cartItem.TotalPriceOfProductExtraItems;
+                    
+                    cartItem.ExtraItems = extraItems;
+                    cart.SubtotalAmount += cartItem.TotalPriceOfProductExtraItems - previousTotalPriceOfProductExtraItems;
                 }
                 var promotionSortedSetKey = GetCartPromotionSortedSetKey(accountId, cartId);
                 var promotionHashKey = GetCartPromotionHashKey(accountId, cartId);

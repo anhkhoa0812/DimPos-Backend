@@ -11,10 +11,11 @@ public class CartItem
      public int Quantity { get; set; }
      public decimal UnitPriceAtAdditionSnapshot { get; set; }
      public decimal ItemSubtotalAmount { get; set; }
-     public decimal TotalPriceDeltaOptionSnapshot { get; set; }
+     public decimal TotalPriceOfProductExtraItems { get; set; }
      public string? NotesForItem { get; set; }
      public DateTime AddedAt { get; set; }
      public List<ModifierGroupItem>? ModifierGroupItems { get; set; }
+     public List<ProductExtraItem>? ExtraItems { get; set; }
 }
 
 public class ModifierGroupItem
@@ -26,4 +27,13 @@ public class ModifierGroupItem
      public decimal PriceDeltaSnapshot { get; set; }
      public Guid? RelatedComboProductVariantItemId { get; set; }
      public string? RelatedComboProductVariantItemName { get; set; }
+}
+
+public class ProductExtraItem
+{ 
+     public Guid ExtraProductVariantId { get; set; }
+     public string ExtraProductVariantNameSnapshot { get; set; } = string.Empty;
+     public int Quantity { get; set; }
+     public decimal UnitPriceAtAdditionSnapshot { get; set; }
+     public Guid? RelatedProductVariantId { get; set; }
 }
