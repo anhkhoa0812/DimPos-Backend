@@ -19,7 +19,7 @@ public class OrderContext : DbContext
     public virtual DbSet<AppliedTaxes> AppliedTaxes { get; set; } = null!;
     public virtual DbSet<StorePurchaseOrders> StorePurchaseOrders { get; set; } = null!;
     public virtual DbSet<StorePurchaseOrderItems> StorePurchaseOrderItems { get; set; } = null!;
-    
+    public virtual DbSet<OrderItemExtras> OrderItemExtras { get; set; } = null!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

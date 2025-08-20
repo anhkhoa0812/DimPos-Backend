@@ -35,7 +35,6 @@ public class GetModifierOptionsByModifierGroupQueryHandler : IRequestHandler<Get
                 Id = x.Id,
                 Name = x.Name,
                 Description = x.Description,
-                PriceDelta = x.PriceDelta,
                 IsActive = x.IsActive,
             },
             page: request.Page,

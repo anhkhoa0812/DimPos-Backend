@@ -20,9 +20,20 @@ public class GetOrderByStoreResponse
 public class GetOrderItemByStoreResponse
 {
     public Guid Id { get; set; }
+    public Guid ProductVariantId { get; set; }
     public string ProductVariantNameSnapshot { get; set; } = String.Empty;
     public int Quantity { get; set; }
     public decimal UnitPriceSnapshot { get; set; }
     public decimal TotalPriceBeforeItemDiscount { get; set; }
     public string? Note { get; set; }
+    public List<GetOrderItemExtrasByStoreResponse>? OrderItemExtras { get; set; } = new List<GetOrderItemExtrasByStoreResponse>();
+}
+public class GetOrderItemExtrasByStoreResponse
+{
+    public Guid Id { get; set; }
+    public Guid ProductVariantId { get; set; }
+    public string ProductNameSnapshot { get; set; } = string.Empty;
+    public string ProductVariantNameSnapshot { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public decimal UnitPriceSnapshot { get; set; }
 }

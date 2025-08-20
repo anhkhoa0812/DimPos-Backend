@@ -141,7 +141,6 @@ public class ModifierGroupsEndpoints : ICarterModule
             Name = request.Name,
             Description = request.Description,
             IsActive = request.IsActive,
-            PriceDelta = request.PriceDelta
         };
         var (isValid, response) = await validationUtil.ValidateAsync(command);
         if (!isValid)

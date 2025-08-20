@@ -133,6 +133,15 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                             ModifierOptionId = x.ModifierOptionId.ToString(),
                             RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId.ToString()
                         }).ToList() ?? new List<ModifierOptionForOrderRequest>()
+                    },
+                    ExtraItems =
+                    {
+                        x.ExtraOrderItems?.Select(eoi => new ProductForOrderRequest()
+                        {
+                            Id = eoi.ProductVariantId.ToString(),
+                            Quantity = x.Quantity,
+                            Note = x.Note ?? string.Empty
+                        })
                     }
                 })
             }
@@ -148,11 +157,23 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         _logger.Information("Order items from gRPC: {Unknown}", 
             string.Join(", ", orderItemsFromGrpc.ProductForOrders.Select(x => $"{x.Id}: {x.RecipeItems}: {x.Quantity}")));
         var ingredientInventoryRequest = orderItemsFromGrpc.ProductForOrders
-            .SelectMany(product => product.RecipeItems.Select(recipe => new
+            .SelectMany(product => 
             {
-                IngredientId = recipe.Ingredient.Id,
-                Quantity = recipe.Quantity * product.Quantity
-            }))
+                var mainIngredients = product.RecipeItems.Select(recipe => new
+                {
+                    IngredientId = recipe.Ingredient.Id,
+                    Quantity = recipe.Quantity * product.Quantity
+                });
+
+                var extraIngredients = product.ExtraItems
+                    .SelectMany(extraItem => extraItem.RecipeItems.Select(recipe => new
+                    {
+                        IngredientId = recipe.Ingredient.Id,
+                        Quantity = recipe.Quantity * extraItem.Quantity
+                    }));
+
+                return mainIngredients.Concat(extraIngredients);
+            })
             .GroupBy(x => x.IngredientId)
             .Select(group => new IngredientInventory()
             {
@@ -204,12 +225,12 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             Id = Guid.CreateVersion7(),
             ProductVariantId = Guid.Parse(x.Id),
             Quantity = x.Quantity,
-            Note = x.Note,
+            Note = x.Note != String.Empty ? x.Note : null,
             ProductNameSnapshot = x.ProductName,
             ProductVariantNameSnapshot = x.ProductVariantName,
             UnitPriceSnapshot = (decimal)x.UnitPrice,
             OrderId = order.Id,
-            TotalPriceBeforeItemDiscount = x.Quantity * ((decimal)x.UnitPrice + x.ModifierOptions.Sum(mo => (decimal)mo.DeltaPrice)),
+            TotalPriceBeforeItemDiscount = x.Quantity * (decimal)x.UnitPrice,
             OrderItemSelectedOptions = x.ModifierOptions.Select(x => new OrderItemSelectedOptions()
             {
                 Id = Guid.CreateVersion7(),
@@ -217,12 +238,20 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 ModifierGroupId = Guid.Parse(x.ModifierGroupId),
                 ModifierOptionSnapshot = x.ModifierOptionName,
                 ModifierGroupSnapshot = x.ModifierGroupName,
-                PriceDeltaOptionSnapshot = (decimal) x.DeltaPrice,
                 RelatedComboProductVariantItemId = x.RelatedComboProductVariantItemId != String.Empty ?
                     Guid.Parse(x.RelatedComboProductVariantItemId) : null,
                 RelatedComboProductVariantItemName = x.RelatedComboProductVariantItemName != String.Empty ? 
                     x.RelatedComboProductVariantItemName : null
-            }).ToList()
+            }).ToList(),
+            OrderItemExtras = x.ExtraItems?.Select(ei => new OrderItemExtras()
+            {
+                Id = Guid.CreateVersion7(),
+                ProductVariantId = Guid.Parse(ei.Id),
+                Quantity = ei.Quantity,
+                ProductNameSnapshot = ei.ProductName,
+                ProductVariantNameSnapshot = ei.ProductVariantName,
+                UnitPriceSnapshot = (decimal)ei.UnitPrice
+            }).ToList() 
         }).ToList();
         order.OrderItems = orderItems;
         order.SubTotalAmount = order.OrderItems.Sum(x => x.TotalPriceBeforeItemDiscount);
@@ -281,7 +310,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 StorePaymentMethodConfigId = request.StorePaymentMethodConfigId.ToString(),
                 AccountId = accountId.ToString(),
                 CustomerId = request.CustomerId != null ? request.CustomerId.ToString() : String.Empty
-            });
+            }
+        );
         order.SystemPaymentMethodNameSnapshot = paymentGrpcResponse.SystemPaymentMethodName;
         order.SystemPaymentMethodId = Guid.Parse(storeDetailGrpcResponse.SystemPaymentMethodId);
         await _unitOfWork.GetRepository<Orders>().InsertAsync(order);

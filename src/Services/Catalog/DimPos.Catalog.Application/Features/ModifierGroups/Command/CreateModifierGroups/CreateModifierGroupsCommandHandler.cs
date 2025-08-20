@@ -41,8 +41,7 @@ public class CreateModifierGroupsCommandHandler : IRequestHandler<CreateModifier
                     Id = Guid.CreateVersion7(),
                     Name = option.Name,
                     Description = option.Description,
-                    IsActive = option.IsActive,
-                    PriceDelta = option.PriceDelta
+                    IsActive = option.IsActive
                 };
                 modifierGroup.ModifierOptions.Add(modifierOption);
             }

@@ -27,6 +27,7 @@ public class GetOrderWithIdByStoreResponse
 public class GetOrderItemsByOrderByIdResponse
 {
     public Guid Id { get; set; }
+    public Guid ProductVariantId { get; set; }
     public string ProductNameSnapshot { get; set; } = string.Empty;
     public string ProductVariantNameSnapshot { get; set; } = string.Empty;
     public int Quantity { get; set; }
@@ -34,6 +35,7 @@ public class GetOrderItemsByOrderByIdResponse
     public decimal TotalPriceBeforeItemDiscount { get; set; }
     public string? Note { get; set; }
     public List<GetOrderItemSelectedOptionsByOrderIdResponse>? OrderItemSelectedOptions { get; set; } = new List<GetOrderItemSelectedOptionsByOrderIdResponse>();
+    public List<GetOrderItemExtrasByOrderIdResponse>? OrderItemExtras { get; set; } = new List<GetOrderItemExtrasByOrderIdResponse>();
 }
 
 public class GetOrderItemSelectedOptionsByOrderIdResponse
@@ -43,7 +45,6 @@ public class GetOrderItemSelectedOptionsByOrderIdResponse
     public Guid ModifierOptionId { get; set; }
     public string ModifierGroupSnapshot { get; set; } = string.Empty;
     public string ModifierOptionSnapshot { get; set; } = string.Empty;
-    public decimal PriceDeltaOptionSnapshot { get; set; }
     public Guid? RelatedComboProductVariantItemId { get; set; }
     public string? RelatedComboProductVariantItemName { get; set; }
 }
@@ -54,4 +55,13 @@ public class GetAppliedOrderPromotionsByOrderIdResponse
     public string PromotionTypeSnapshot { get; set; } = string.Empty; 
     public string? PromotionDescriptionSnapshot { get; set; }
     public decimal DiscountAmountApplied { get; set; }
+}
+
+public class GetOrderItemExtrasByOrderIdResponse
+{
+    public Guid ProductVariantId { get; set; }
+    public string ProductNameSnapshot { get; set; } = string.Empty;
+    public string ProductVariantNameSnapshot { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public decimal UnitPriceSnapshot { get; set; }
 }

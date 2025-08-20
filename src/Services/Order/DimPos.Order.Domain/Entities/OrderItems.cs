@@ -12,7 +12,7 @@ public class OrderItems : EntityAuditBase<Guid>
     public decimal UnitPriceSnapshot { get; set; }
     public decimal TotalPriceBeforeItemDiscount { get; set; }
     public string? Note { get; set; }
-    
     public virtual Orders Order { get; set; }
     public virtual ICollection<OrderItemSelectedOptions>? OrderItemSelectedOptions { get; set; } = new List<OrderItemSelectedOptions>();
+    public virtual ICollection<OrderItemExtras>? OrderItemExtras { get; set; } = new List<OrderItemExtras>();
 }

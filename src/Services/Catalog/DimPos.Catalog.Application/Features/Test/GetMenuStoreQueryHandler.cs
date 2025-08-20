@@ -238,7 +238,7 @@ public class GetMenuStoreQueryHandler : IRequestHandler<GetMenuStoreQuery, ApiRe
                 Name = option.Name,
                 Description = option.Description ?? string.Empty,
                 IsActive = option.IsActive,
-                PriceDelta = option.PriceDelta,
+                PriceDelta = 0,
                 ModifierGroupId = modifierGroup.Id
             }).ToList()
         }).ToList();

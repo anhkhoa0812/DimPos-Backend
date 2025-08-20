@@ -38,7 +38,5 @@ public class UpdateModifierOptionsValidator : AbstractValidator<UpdateModifierOp
             .MaximumLength(200).WithMessage("Tên của tùy chọn không được nhiều hơn 200 ký tự.");
         RuleFor(x => x.Description)
             .MaximumLength(1000).WithMessage("Mô tả của tùy chọn không được nhiều hơn 1000 ký tự.");
-        RuleFor(x => x.PriceDelta)
-            .GreaterThanOrEqualTo(0).WithMessage("Giá trị thay đổi phải lớn hơn hoặc bằng 0.");
     }
 }
