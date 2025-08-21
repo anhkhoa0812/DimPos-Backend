@@ -1,6 +1,7 @@
 using Carter;
 using DimPos.Brand.Application.Common.Utils;
 using DimPos.Brand.Application.Features.Brands.Command.CreateBrand;
+using DimPos.Brand.Application.Features.Brands.Command.UpdateBrands;
 using DimPos.Brand.Application.Features.Brands.Command.UpdatePassword;
 using DimPos.Brand.Application.Features.Brands.Query.GetBrandById;
 using DimPos.Brand.Application.Features.Brands.Query.GetBrandDetail;
@@ -53,6 +54,15 @@ public class BrandEndpoints : ICarterModule
             .DisableAntiforgery()
             .WithName(nameof(UpdateBrandPassword))
             .RequireAuthorization("SystemAdminPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("", UpdateBrands)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateBrands))
+            .RequireAuthorization("BrandPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -123,6 +133,18 @@ public class BrandEndpoints : ICarterModule
             BrandId = id
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> UpdateBrands(IMediator mediator, [FromForm] UpdateBrandsCommand command,
+        ValidationUtil<UpdateBrandsCommand> validationUtil)
+    {
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }

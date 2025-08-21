@@ -7,6 +7,8 @@ using DimPos.Brand.Domain.Enums;
 using DimPos.Brand.Domain.Models.Common;
 using DimPos.Brand.Infrastructure.Persistence;
 using DimPos.Brand.Infrastructure.Repositories.Interface;
+using DimPos.Media.Application.Common.Protos;
+using Google.Protobuf;
 using MassTransit;
 using Mediator;
 using SharedProject.Events.Brand;
@@ -19,13 +21,16 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Api
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
     private readonly ITopicProducer<Null, CreateBrandAccountModel> _producer;
+    private readonly MediaGrpcService.MediaGrpcServiceClient _mediaGrpcService;
     public CreateBrandCommandHandler(IUnitOfWork<BrandContext> unitOfWork, ILogger logger, IClaimService claimService,
-        ITopicProducer<Null, CreateBrandAccountModel> producer)
+        ITopicProducer<Null, CreateBrandAccountModel> producer,
+        MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
         _producer = producer ?? throw new ArgumentNullException(nameof(producer));
+        _mediaGrpcService = mediaGrpcService ?? throw new ArgumentNullException(nameof(mediaGrpcService));
     }
     public async ValueTask<ApiResponse> Handle(CreateBrandCommand request, CancellationToken cancellationToken)
     {
@@ -44,6 +49,38 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Api
         var brand = BrandMapper.ToBrands(request);
         brand.Id = Guid.CreateVersion7();
         brand.Status = EBrandStatus.Active;
+        
+        if (request.Picture != null)
+        {
+            using var memoryStream = new MemoryStream();
+            await request.Picture.CopyToAsync(memoryStream, cancellationToken);
+            var byteString = ByteString.CopyFrom(memoryStream.ToArray());
+            var imageRequestId = Guid.CreateVersion7().ToString();
+            var imageRequest = new ImageRequest()
+            {
+                Id = imageRequestId,
+                ChunkData = byteString
+            };
+            using var call = _mediaGrpcService.UploadImage(cancellationToken: cancellationToken);
+            await call.RequestStream.WriteAsync(new UploadImageRequest()
+            {
+                ListImageRequest = new ListImageRequest()
+                {
+                    ImageRequest = { imageRequest }
+                }
+            });
+            await call.RequestStream.CompleteAsync();
+            
+            var uploadImageGrpcResponse = await call.ResponseAsync;
+            var imageResponse = uploadImageGrpcResponse.ListImageResponse
+                .ImageResponse
+                .FirstOrDefault(x => x.Id == imageRequestId)
+                ?.ImageUrl;
+            if (string.IsNullOrEmpty(imageResponse))
+                throw new Exception("Lỗi khi tải ảnh lên");
+            brand.PictureUrl = imageResponse;
+        }
+        
         await _unitOfWork.GetRepository<Domain.Entities.Brands>().InsertAsync(brand);
 
         var accountId = Guid.CreateVersion7();
