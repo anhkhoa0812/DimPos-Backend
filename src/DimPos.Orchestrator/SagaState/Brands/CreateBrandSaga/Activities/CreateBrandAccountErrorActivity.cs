@@ -7,6 +7,12 @@ namespace DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga.Activities;
 public class CreateBrandAccountErrorActivity : IStateMachineActivity<CreateBrandSagaState, CreateBrandAccountErrorModel>
 {
     private readonly ITopicProducer<Null, RollbackBrandAccountModel> _producer;
+    
+    public CreateBrandAccountErrorActivity(ITopicProducer<Null, RollbackBrandAccountModel> producer)
+    {
+        _producer = producer ?? throw new ArgumentNullException(nameof(producer));
+    }
+    
     public void Probe(ProbeContext context)
     {
         context.CreateScope("CreateBrandAccountErrorActivity");

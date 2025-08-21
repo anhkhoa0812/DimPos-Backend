@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Confluent.Kafka;
 using DimPos.Store.Application.Consumers;
 using DimPos.Store.Infrastructure.Kafka;
 using MassTransit;
+using MassTransit.Serialization;
 using SharedProject.Events.Store.CreateStaff;
 using SharedProject.Events.Store.CreateStore;
 using SharedProject.Events.Store.UpdateStaff;
@@ -39,7 +41,7 @@ public static class KafkaConfig
                 configureRider.AddConsumer<RollbackUpdateStoreByBrandRequestConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
-                    kafkaConfig.TopicEndpoint<Null, RollbackStoreConsumer>(
+                    kafkaConfig.TopicEndpoint<Null, RollbackStoreRequestModel>(
                         topicName: kafkaOptions!.Topics.RollbackStoreAccountRequest,
                         groupId: kafkaOptions.ConsumerGroup,
                         configure: topicConfig =>
