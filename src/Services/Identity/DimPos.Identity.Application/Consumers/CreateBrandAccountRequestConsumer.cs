@@ -85,7 +85,8 @@ public class CreateBrandAccountRequestConsumer : IConsumer<CreateBrandAccountMod
                     CorrelationId = context.Message.CorrelationId,
                     AccountId = context.Message.AccountId,
                     BrandId = context.Message.BrandId,
-                    ErrorMessage = e.Message
+                    ErrorMessage = e.Message,
+                    SystemAdminAccountId = context.Message.SystemAdminAccountId
                 },
                 cancellationToken: context.CancellationToken
             ).ConfigureAwait(false);

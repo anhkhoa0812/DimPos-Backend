@@ -12,6 +12,7 @@ public class GetProductVariantsByIdResponse
     public string? Size { get; set; }
     public string? Sku { get; set; }
     public string? Description { get; set; }
+    public int? DisplayOrder { get; set; }
     public Guid CategoryId { get; set; }
     public Guid ProductId { get; set; }
     public List<RecipeItemsForGetProductVariantsByIdResponse>? RecipeItems { get; set; }
