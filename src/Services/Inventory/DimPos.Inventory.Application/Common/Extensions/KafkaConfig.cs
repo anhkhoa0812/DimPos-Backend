@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using DimPos.Inventory.Application.Consumers;
 using DimPos.Inventory.Infrastructure.Kafka;
 using MassTransit;
+using SharedProject.Events.Notification;
 using SharedProject.Events.Order.CancelOrder;
 using SharedProject.Events.Order.ChangeIsNeedToUpdateInventoryForOrder;
 using SharedProject.Events.Order.UpdateInventoryForSuccessOrder;
@@ -35,6 +36,7 @@ public static class KafkaConfig
                 configureRider.AddProducer<Null, UpdateInventoryForCancelOrderResponseModel>(kafkaOptions.Topics.UpdateInventoryForCancelOrderResponse);
                 configureRider.AddProducer<Null, UpdateInventoryForCancelOrderErrorModel>(kafkaOptions.Topics.UpdateInventoryForCancelOrderError);
                 configureRider.AddProducer<Null, ChangeIsNeedToUpdateInventoryForOrderRequestModel>(kafkaOptions.Topics.ChangeIsNeedToUpdateInventoryForOrderRequest);
+                configureRider.AddProducer<Null, SendNotificationForMultipleAccountRequestModel>(kafkaOptions.Topics.SendNotificationForMultipleAccountRequest);
                 
                 configureRider.AddConsumer<UpdateInventoryForInternalOrderRequestConsumer>();
                 configureRider.AddConsumer<UpdateInventoryForSuccessOrderConsumer>();

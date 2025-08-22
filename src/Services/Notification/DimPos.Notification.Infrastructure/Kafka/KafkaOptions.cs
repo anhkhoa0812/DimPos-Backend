@@ -12,4 +12,5 @@ public sealed record Topics
 {
     public string SendNotificationForAccountRequest { get; set; } = default!;
     public string SendNotificationForAccountsRequest { get; set; } = default!;
+    public string SendNotificationForMultipleAccountRequest { get; set; } = default!;
 }
