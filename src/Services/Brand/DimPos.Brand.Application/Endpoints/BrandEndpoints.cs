@@ -2,6 +2,7 @@ using Carter;
 using DimPos.Brand.Application.Common.Utils;
 using DimPos.Brand.Application.Features.Brands.Command.CreateBrand;
 using DimPos.Brand.Application.Features.Brands.Command.UpdateBrands;
+using DimPos.Brand.Application.Features.Brands.Command.UpdateBrandsById;
 using DimPos.Brand.Application.Features.Brands.Command.UpdatePassword;
 using DimPos.Brand.Application.Features.Brands.Query.GetBrandById;
 using DimPos.Brand.Application.Features.Brands.Query.GetBrandDetail;
@@ -63,6 +64,15 @@ public class BrandEndpoints : ICarterModule
             .DisableAntiforgery()
             .WithName(nameof(UpdateBrands))
             .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("{id:guid}", UpdateBrandsById)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateBrandsById))
+            .RequireAuthorization("SystemAdminPolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -147,4 +157,26 @@ public class BrandEndpoints : ICarterModule
         var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
+
+    public async Task<IResult> UpdateBrandsById(IMediator mediator, [FromRoute] Guid id,
+        [FromForm] UpdateBrandsByIdRequest request, ValidationUtil<UpdateBrandsByIdCommand> validationUtil)
+    {
+        var command = new UpdateBrandsByIdCommand()
+        {
+            BrandId = id,
+            Name = request.Name,
+            Address = request.Address,
+            Phone = request.Phone,
+            Picture = request.Picture
+        };
+        
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        
+        var apiResponse = await mediator.Send(command);
+        return Results.Ok(apiResponse);
+    } 
 }

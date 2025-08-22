@@ -4,10 +4,17 @@ option csharp_namespace = "DimPos.Brand.Application.Common.Protos";
 
 service BrandGrpcService {
   rpc GetBrandIdByAccountId (GetBrandIdByAccountIdRequest) returns (GetBrandIdByAccountIdResponse);
+  rpc GetBrandImageByBrandId (GetBrandImageByBrandIdRequest) returns (GetBrandImageByBrandIdResponse);
 }
 message GetBrandIdByAccountIdRequest {
   string accountId = 1;
 }
 message GetBrandIdByAccountIdResponse {
   string brandId = 1;
+}
+message GetBrandImageByBrandIdRequest {
+  string brandId = 1;
+}
+message GetBrandImageByBrandIdResponse { 
+  string pictureUrl = 1;
 }

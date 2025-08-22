@@ -1,4 +1,3 @@
-using DimPos.Brand.Application.Services.Interface;
 using DimPos.Brand.Domain.Models.Common;
 using DimPos.Brand.Infrastructure.Persistence;
 using DimPos.Brand.Infrastructure.Repositories.Interface;
@@ -6,39 +5,30 @@ using DimPos.Media.Application.Common.Protos;
 using Google.Protobuf;
 using Mediator;
 
-namespace DimPos.Brand.Application.Features.Brands.Command.UpdateBrands;
+namespace DimPos.Brand.Application.Features.Brands.Command.UpdateBrandsById;
 
-public class UpdateBrandsCommandHandler : IRequestHandler<UpdateBrandsCommand, ApiResponse>
+public class UpdateBrandsByIdCommandHandler : IRequestHandler<UpdateBrandsByIdCommand, ApiResponse>
 {
     private readonly IUnitOfWork<BrandContext> _unitOfWork;
     private readonly ILogger _logger;
-    private readonly IClaimService _claimService;
     private readonly MediaGrpcService.MediaGrpcServiceClient _mediaGrpcService;
     
-    public UpdateBrandsCommandHandler(IUnitOfWork<BrandContext> unitOfWork, ILogger logger, IClaimService claimService,
+    public UpdateBrandsByIdCommandHandler(IUnitOfWork<BrandContext> unitOfWork, ILogger logger,
         MediaGrpcService.MediaGrpcServiceClient mediaGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
         _mediaGrpcService = mediaGrpcService ?? throw new ArgumentNullException(nameof(mediaGrpcService));
     }
     
-    public async ValueTask<ApiResponse> Handle(UpdateBrandsCommand request, CancellationToken cancellationToken)
+    public async ValueTask<ApiResponse> Handle(UpdateBrandsByIdCommand request, CancellationToken cancellationToken)
     {
-        var brandId = _claimService.GetBrandId ?? Guid.Empty;
-        if (brandId == Guid.Empty)
-        {
-            throw new BadHttpRequestException("Không tìm thấy thương hiệu hiện tại");
-        }
-
         var brand = await _unitOfWork.GetRepository<Domain.Entities.Brands>().SingleOrDefaultAsync(
-            predicate: x => x.Id == brandId
+            predicate: x => x.Id == request.BrandId
         );
-        
         if (brand == null)
         {
-            throw new BadHttpRequestException("Không tìm thấy thương hiệu");
+            throw new BadHttpRequestException("Không tìm thấy thương hiệu với Id đã cung cấp");
         }
         
         brand.Name = request.Name ?? brand.Name;
@@ -68,7 +58,8 @@ public class UpdateBrandsCommandHandler : IRequestHandler<UpdateBrandsCommand, A
             
             var uploadImageGrpcResponse = await call.ResponseAsync;
             var imageResponse = uploadImageGrpcResponse.ListImageResponse
-                .ImageResponse.FirstOrDefault()
+                .ImageResponse
+                .FirstOrDefault()
                 ?.ImageUrl;
             if (string.IsNullOrEmpty(imageResponse))
                 throw new Exception("Lỗi khi tải ảnh lên");
@@ -82,7 +73,7 @@ public class UpdateBrandsCommandHandler : IRequestHandler<UpdateBrandsCommand, A
         {
             throw new BadHttpRequestException("Cập nhật thương hiệu không thành công");
         }
-        _logger.Information("Cập nhật thương hiệu thành công: {BrandId}", brandId);
+        _logger.Information("Cập nhật thương hiệu thành công: {BrandId}", brand.Id);
         return new ApiResponse()
         {
             Status = StatusCodes.Status200OK,

@@ -3,6 +3,7 @@ using DimPos.Brand.Application.Common.Protos;
 using DimPos.Brand.Application.Common.Utils;
 using DimPos.Brand.Application.Features.Brands.Command.CreateBrand;
 using DimPos.Brand.Application.Features.Brands.Command.UpdateBrands;
+using DimPos.Brand.Application.Features.Brands.Command.UpdateBrandsById;
 using DimPos.Brand.Application.Features.Brands.Command.UpdatePassword;
 using DimPos.Brand.Application.Services.Implement;
 using DimPos.Brand.Application.Services.Interface;
@@ -28,6 +29,7 @@ public static class ConfigureServices
         services.AddScoped<IValidator<CreateBrandCommand>, CreateBrandCommandValidator>();
         services.AddScoped<IValidator<UpdatePasswordCommand>, UpdatePasswordCommandValidator>();
         services.AddScoped<IValidator<UpdateBrandsCommand>, UpdateBrandsCommandValidator>();
+        services.AddScoped<IValidator<UpdateBrandsByIdCommand>, UpdateBrandsByIdCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

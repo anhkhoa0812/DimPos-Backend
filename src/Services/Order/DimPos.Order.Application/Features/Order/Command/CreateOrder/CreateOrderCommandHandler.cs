@@ -141,9 +141,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                             Id = eoi.ProductVariantId.ToString(),
                             Quantity = eoi.Quantity,
                             Note = string.Empty
-                        })
+                        }).ToList() ?? new List<ProductForOrderRequest>()
                     }
-                })
+                }).ToList()
             }
         };
         _logger.Information("GetProductForOrderRequest: {Request}",
