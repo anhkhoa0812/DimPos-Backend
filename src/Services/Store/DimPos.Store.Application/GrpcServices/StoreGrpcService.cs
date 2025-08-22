@@ -457,4 +457,29 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
             CredentialsConfigAtStore = storePaymentMethodConfig.CredentialsConfigAtStore ?? String.Empty
         };
     }
+
+    public override async Task<GetAccountIdsByStoreIdsResponse> GetAccountIdsByStoreIds(GetAccountIdsByStoreIdsRequest request, ServerCallContext context)
+    {
+        var storeIds = request.StoreIds
+            .Select(Guid.Parse)
+            .ToList();
+        var storeAccounts = await _unitOfWork.GetRepository<StoreAccounts>().GetListAsync(
+            predicate: x => storeIds.Contains(x.StoreId) && x.Role == EStoreRole.StoreAdmin
+        );
+        if (storeAccounts == null || !storeAccounts.Any())
+        {
+            return new GetAccountIdsByStoreIdsResponse();
+        }
+
+        var response = storeAccounts.Select(x => new GetAccountIdsByStoreIds()
+        {
+            StoreId = x.StoreId.ToString(),
+            AccountId = x.AccountId.ToString()
+        }).ToList();
+
+        return new GetAccountIdsByStoreIdsResponse()
+        {
+            Responses = { response }
+        };
+    }
 }

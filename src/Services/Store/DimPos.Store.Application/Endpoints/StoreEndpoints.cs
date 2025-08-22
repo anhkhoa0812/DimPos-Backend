@@ -66,7 +66,7 @@ public class StoreEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("/detail", GetStoreDetail)
             .WithName(nameof(GetStoreDetail))
-            .RequireAuthorization("StorePolicy")
+            .RequireAuthorization("StoreAndStaffPolicy")
             .Produces<ApiResponse<GetStoreResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)

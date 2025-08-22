@@ -5,6 +5,7 @@ service StoreGrpcService {
   rpc GetStoresByBrandPaging (GetStoresByBrandPagingRequest) returns (GetStoresByBrandPagingResponse);
   rpc CheckStoresInBrand (CheckStoresInBrandRequest) returns (CheckStoresInBrandResponse);
   rpc GetStoreIdByAccountId (GetStoreIdByAccountIdRequest) returns (GetStoreIdByAccountIdResponse);
+  rpc GetAccountIdsByStoreIds (GetAccountIdsByStoreIdsRequest) returns (GetAccountIdsByStoreIdsResponse);
   rpc GetStoresByBrandId (GetStoresByBrandIdRequest) returns (GetStoresByBrandIdResponse);
   rpc GetTaxRateByStoreId (GetTaxRateForStoreMenuRequest) returns (GetTaxRateForStoreMenuResponse);
   rpc GetTaxRateAndPaymentMethodConfig(GetTaxRateAndPaymentMethodConfigRequest) returns (GetTaxRateAndPaymentMethodConfigResponse);
@@ -145,4 +146,14 @@ message GetCredentialsConfigForPayOsResponse {
   string errorMessage = 2;
   string systemPaymentMethodId = 3;
   string credentialsConfigAtStore = 4;
+}
+message GetAccountIdsByStoreIdsRequest {
+  repeated string storeIds = 1;
+}
+message GetAccountIdsByStoreIdsResponse {
+  repeated GetAccountIdsByStoreIds responses = 1;
+}
+message  GetAccountIdsByStoreIds {
+  string storeId = 1;
+  string accountId = 2;
 }
