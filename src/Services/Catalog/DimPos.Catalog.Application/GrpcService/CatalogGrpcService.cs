@@ -528,7 +528,7 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
         }
         
         
-        var productVariants = await _unitOfWork.GetRepository<Domain.Entities.ProductVariants>().GetListAsync(
+        var productVariants = await _unitOfWork.GetRepository<ProductVariants>().GetListAsync(
             predicate: x => allProductVariantIds.Contains(x.Id)
                             && x.IsActive == true
                             && x.Product.BrandId == brandId 
@@ -871,7 +871,11 @@ public class CatalogGrpcService : Common.Protos.CatalogGrpcService.CatalogGrpcSe
                     : new List<RecipeItemsForOrderResponse>()
             }
         };
-    
+        _logger.Information("Processing product for order: {ProductVariantName}, Ingredients: {IngredientsCount}, ExtraItem: {IsExtraItem}, ParentItemId: {ParentItemId}",
+            productForOrderResponse.ProductName, 
+            productForOrderResponse.RecipeItems.Count, 
+            isExtraItem, 
+            parentItemId);
         if (productVariant.Product.IsCombo && comboItemsLookup.TryGetValue(productVariant.ProductId, out var comboItemList))
         {
             var comboItemIds = comboItemList.Select(x => x.ItemProductVariantId).ToList();

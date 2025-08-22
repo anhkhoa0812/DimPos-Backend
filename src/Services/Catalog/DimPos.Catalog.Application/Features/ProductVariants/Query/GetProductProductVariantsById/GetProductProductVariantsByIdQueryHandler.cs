@@ -52,6 +52,7 @@ public class GetProductProductVariantsByIdQueryHandler : IRequestHandler<GetProd
             Code = productVariant.Code,
             Size = productVariant.Size,
             Description = productVariant.Description,
+            DisplayOrder = productVariant.DisplayOrder,
             CategoryId = productVariant.Product.CategoryId.Value,
             RecipeItems = productVariant.RecipeItems?.Select(x => new RecipeItemsForGetProductVariantsByIdResponse()
             {

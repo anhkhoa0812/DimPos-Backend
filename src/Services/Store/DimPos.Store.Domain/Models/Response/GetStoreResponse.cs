@@ -22,6 +22,8 @@ public class GetStoreResponse
     public string? ManagerName { get; set; }
     public decimal StartingStoreCashLending { get; set; }
     public EStoreType Type { get; set; }
+    public string? PictureUrl { get; set; }
+    public Guid BrandId { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
     public TaxRateForGetStoreResponse? TaxRate { get; set; }

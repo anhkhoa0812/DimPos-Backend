@@ -52,7 +52,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("customPolicyAuthentication", policy =>
-        policy.RequireAuthenticatedUser().RequireRole("BrandAdmin", "StoreAdmin", "Staff"));
+        policy.RequireAuthenticatedUser().RequireRole("SystemAdmin", "BrandAdmin", "StoreAdmin", "Staff"));
 });
 
 var app = builder.Build();

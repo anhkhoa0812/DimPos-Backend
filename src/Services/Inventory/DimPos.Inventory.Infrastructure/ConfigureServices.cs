@@ -4,6 +4,8 @@ using DimPos.Inventory.Infrastructure.Persistence;
 using DimPos.Inventory.Infrastructure.Repositories;
 using DimPos.Inventory.Infrastructure.Repositories.Interface;
 using DimPos.MenuCombo.Infrastructure.Configurations;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +35,24 @@ public static class ConfigureServices
             }
         );        
         services.AddEndpointsApiExplorer();
+        services.AddHangfire(config =>
+        {
+            config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection"),
+                    new SqlServerStorageOptions()
+                    {
+                        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                        QueuePollInterval = TimeSpan.Zero,
+                        UseRecommendedIsolationLevel = true,
+                        UsePageLocksOnDequeue = true,
+                        DisableGlobalLocks = true
+                    }
+                );
+        });
+        services.AddHangfireServer();
         services.AddCors();
         return services;
     }

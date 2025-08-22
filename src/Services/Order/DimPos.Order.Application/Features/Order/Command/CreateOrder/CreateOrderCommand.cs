@@ -23,11 +23,16 @@ public class CreateOrderItemRequest
     public int Quantity { get; set; }
     public string? Note { get; set; }
     public List<CreateOrderItemSelectedOptionRequest>? OrderItemSelectedOptions { get; set; }
-    public List<CreateOrderItemRequest>? ExtraOrderItems { get; set; }
+    public List<CreateOrderItemExtraRequest>? OrderItemExtras { get; set; }
 }
 
 public class CreateOrderItemSelectedOptionRequest
 {
     public Guid ModifierOptionId { get; set; }
     public Guid? RelatedComboProductVariantItemId { get; set; }
+}
+public class CreateOrderItemExtraRequest
+{
+    public Guid ProductVariantId { get; set; }
+    public int Quantity { get; set; }
 }

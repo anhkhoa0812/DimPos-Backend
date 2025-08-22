@@ -54,7 +54,7 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductsByIdQuery,
                         AltText = pi.AltText
                     }).ToList()
                     : new List<ProductImagesResponse>(),
-                ProductVariants = p.ProductVariants.Select(v => new ProductVariantsResponse
+                ProductVariants = p.ProductVariants.OrderBy(pv => pv.DisplayOrder).Select(v => new ProductVariantsResponse
                 {
                     Id = v.Id,
                     Code = v.Code,

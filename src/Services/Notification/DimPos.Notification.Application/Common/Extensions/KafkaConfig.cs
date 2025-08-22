@@ -25,6 +25,7 @@ public static class KafkaConfig
             configureMassTransit.AddRider(configureRider =>
             {
                 configureRider.AddConsumer<SendNotificationForAccountConsumer>();
+                configureRider.AddConsumer<SendNotificationForMultipleAccountRequestConsumer>();
                 configureRider.UsingKafka(kafkaOptions!.ClientConfig, (riderContext, kafkaConfig) =>
                 {
                     kafkaConfig.TopicEndpoint<Null, SendNotificationForAccountRequestModel>(
@@ -34,6 +35,19 @@ public static class KafkaConfig
                         {
                             topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
                             topicConfig.ConfigureConsumer<SendNotificationForAccountConsumer>(
+                                riderContext);
+                            topicConfig.DiscardSkippedMessages();
+                            topicConfig.UseInMemoryOutbox(riderContext);
+                            topicConfig.CreateIfMissing();
+                        });
+                    
+                    kafkaConfig.TopicEndpoint<Null, SendNotificationForMultipleAccountRequestModel>(
+                        topicName: kafkaOptions!.Topics.SendNotificationForMultipleAccountRequest,
+                        groupId: kafkaOptions.ConsumerGroup,
+                        configure: topicConfig =>
+                        {
+                            topicConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            topicConfig.ConfigureConsumer<SendNotificationForMultipleAccountRequestConsumer>(
                                 riderContext);
                             topicConfig.DiscardSkippedMessages();
                             topicConfig.UseInMemoryOutbox(riderContext);

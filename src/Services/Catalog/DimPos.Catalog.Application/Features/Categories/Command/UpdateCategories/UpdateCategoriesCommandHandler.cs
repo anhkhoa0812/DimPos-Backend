@@ -85,7 +85,7 @@ public class UpdateCategoriesCommandHandler : IRequestHandler<UpdateCategoriesCo
             var uploadImageGrpcResponse = await call.ResponseAsync;
             var imageResponse = uploadImageGrpcResponse.ListImageResponse
                 .ImageResponse
-                .FirstOrDefault(x => x.Id == imageRequestId)
+                .FirstOrDefault()
                 ?.ImageUrl;
             if (string.IsNullOrEmpty(imageResponse))
                 throw new Exception("Lỗi khi tải ảnh lên");

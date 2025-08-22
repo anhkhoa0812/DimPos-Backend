@@ -1,3 +1,4 @@
+using DimPos.Brand.Application.Common.Protos;
 using DimPos.Store.Application.Services.Interface;
 using DimPos.Store.Domain.Models.Common;
 using DimPos.Store.Domain.Models.Response;
@@ -13,12 +14,15 @@ public class GetStoreQueryHandler : IRequestHandler<GetStoreQuery, ApiResponse>
     private readonly IUnitOfWork<StoreContext> _unitOfWork;
     private readonly ILogger _logger;
     private readonly IClaimService _claimService;
+    private readonly BrandGrpcService.BrandGrpcServiceClient _brandGrpcService;
     
-    public GetStoreQueryHandler(IUnitOfWork<StoreContext> unitOfWork, ILogger logger, IClaimService claimService)
+    public GetStoreQueryHandler(IUnitOfWork<StoreContext> unitOfWork, ILogger logger, IClaimService claimService,
+        BrandGrpcService.BrandGrpcServiceClient brandGrpcService)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
+        _brandGrpcService = brandGrpcService ?? throw new ArgumentNullException(nameof(brandGrpcService));
     }
     
     public async ValueTask<ApiResponse> Handle(GetStoreQuery request, CancellationToken cancellationToken)
@@ -38,6 +42,12 @@ public class GetStoreQueryHandler : IRequestHandler<GetStoreQuery, ApiResponse>
             throw new BadHttpRequestException("Cửa hàng không tồn tại");
         }
         var taxRate = store.TaxRates.FirstOrDefault(x => x.IsActive);
+        var pictureUrl = await _brandGrpcService.GetBrandImageByBrandIdAsync(
+            new GetBrandImageByBrandIdRequest()
+            {
+                BrandId = store.BrandId.ToString()
+            }
+        );
         var response = new GetStoreResponse()
         {
             Id = store.Id,
@@ -58,6 +68,8 @@ public class GetStoreQueryHandler : IRequestHandler<GetStoreQuery, ApiResponse>
             ManagerName = store.ManagerName,
             StartingStoreCashLending = store.StartingStoreCashLending,
             Type = store.Type,
+            PictureUrl = pictureUrl.PictureUrl != String.Empty ? pictureUrl.PictureUrl : null,
+            BrandId = store.BrandId,
             CreatedDate = store.CreatedDate,
             LastModifiedDate = store.LastModifiedDate,
             TaxRate = taxRate != null ? new TaxRateForGetStoreResponse()

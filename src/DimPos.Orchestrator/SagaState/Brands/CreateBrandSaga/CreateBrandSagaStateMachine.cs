@@ -6,11 +6,10 @@ namespace DimPos.Orchestrator.SagaState.Brands.CreateBrandSaga;
 
 public class CreateBrandSagaStateMachine : MassTransitStateMachine<CreateBrandSagaState>
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public CreateBrandSagaStateMachine(IServiceProvider serviceProvider)
+    private readonly ILogger _logger;
+    public CreateBrandSagaStateMachine(ILogger logger)
     {
-        _serviceProvider = serviceProvider;
+        _logger = logger;
         InstanceState(x => x.CurrentState);
         
         Event(() => CreateBrandAccount, x =>
@@ -36,11 +35,13 @@ public class CreateBrandSagaStateMachine : MassTransitStateMachine<CreateBrandSa
                 .Then(context =>
                 {
                     Console.WriteLine($"[Saga] Received CreateBrandAccount for {context.CorrelationId!.Value}");
+                    _logger.Information($"[Saga] Received CreateBrandAccount for {context.CorrelationId!.Value}");
                 })
                 .Activity(config => config.OfType<CreateBrandAccountActivity>())
                 .Then(context =>
                 {
                     Console.WriteLine($"[Saga] Published CreateBrandAccount for {context.CorrelationId!.Value}");
+                    _logger.Information($"[Saga] Published CreateBrandAccount for {context.CorrelationId!.Value}");
                 })
                 .TransitionTo(CreateBrandAccountState));
         During(CreateBrandAccountState,
@@ -48,6 +49,7 @@ public class CreateBrandSagaStateMachine : MassTransitStateMachine<CreateBrandSa
                 .Then(context =>
                 {
                     Console.WriteLine($"[Saga] Received CreateBrandAccount for {context.CorrelationId!.Value}");
+                    _logger.Information($"[Saga] Received CreateBrandAccount for {context.CorrelationId!.Value}");
                 })
                 .TransitionTo(CreateBrandAccountSuccess)
                 .Finalize(),
@@ -55,17 +57,20 @@ public class CreateBrandSagaStateMachine : MassTransitStateMachine<CreateBrandSa
                 .Then(context =>
                 {
                     Console.WriteLine($"[Saga] Received CreateBrandAccount for {context.CorrelationId!.Value}");
+                    _logger.Information($"[Saga] Received CreateBrandAccount for {context.CorrelationId!.Value}");
 
                 })
                 .Activity(config => config.OfType<CreateBrandAccountErrorActivity>())
                 .Then(context =>
                 {
                     Console.WriteLine($"[Saga] Published CreateBrandAccount for {context.CorrelationId!.Value}");
+                    _logger.Information($"[Saga] Published CreateBrandAccount for {context.CorrelationId!.Value}");
                 })
                 .Activity(config => config.OfType<SendNotificationForCreateBrandAccountErrorActivity>())
                 .Then(context =>
                 {
                     Console.WriteLine($"[Saga] Sent notification for CreateBrandAccount error for {context.CorrelationId!.Value}");
+                    _logger.Information($"[Saga] Sent notification for CreateBrandAccount error for {context.CorrelationId!.Value}");
                 })
                 .TransitionTo(CreateBrandFailed)
                 .Finalize()

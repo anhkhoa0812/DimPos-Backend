@@ -7,10 +7,10 @@ public class UpdateRecipeItemCommand : IRequest<ApiResponse>
 {
     public Guid ProductVariantId { get; set; }
     public Guid RecipeItemId { get; set; }
-    public int Quantity { get; set; }
+    public decimal Quantity { get; set; }
 }
 
 public class UpdateRecipeItemRequest
 {
-    public int Quantity { get; set; }
+    public decimal Quantity { get; set; }
 }

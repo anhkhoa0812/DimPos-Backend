@@ -30,7 +30,7 @@ public class RollbackStoreConsumer : IConsumer<RollbackStoreRequestModel>
         _unitOfWork.GetRepository<Domain.Entities.Store>().DeleteAsync(store);
         
         var storeAccount = await _unitOfWork.GetRepository<Domain.Entities.StoreAccounts>().SingleOrDefaultAsync(
-            predicate: x => x.Id == context.Message.AccountId && x.StoreId == context.Message.StoreId
+            predicate: x => x.AccountId == context.Message.AccountId && x.StoreId == context.Message.StoreId
         );
         if (storeAccount is null)
         {

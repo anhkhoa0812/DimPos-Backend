@@ -6,6 +6,7 @@ using DimPos.Inventory.Application.Services.Implement;
 using DimPos.Inventory.Application.Services.Interface;
 using DimPos.Inventory.Domain.Models.Settings;
 using DimPos.Order.Application.Common.Protos;
+using DimPos.Store.Application.Common.Protos;
 using FluentValidation;
 using Mediator;
 
@@ -35,6 +36,7 @@ public static class ConfigureServices
         services.AddGrpcServices(configuration);
         services.AddHttpContextAccessor();
         services.AddScoped<IClaimService, ClaimService>();
+        services.AddScoped<IHangfireService, HangfireService>();
         services.AddHealthChecks();
         return services;
     }
@@ -53,6 +55,10 @@ public static class ConfigureServices
         services.AddGrpcClient<CatalogGrpcService.CatalogGrpcServiceClient>(x =>
         {
             x.Address = new Uri(settings.CatalogUrl);
+        });
+        services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.StoreUrl);
         });
         return services;
     }

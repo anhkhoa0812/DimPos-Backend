@@ -1,6 +1,5 @@
 using Confluent.Kafka;
 using MassTransit;
-using SharedProject.Events.Brand;
 using SharedProject.Events.Store.CreateStore;
 
 namespace DimPos.Orchestrator.SagaState.Brands.CreateStoreSaga.Activities;
@@ -25,7 +24,7 @@ public class RollbackBrandActivity : IStateMachineActivity<CreateStoreSagaState,
         {
             CorrelationId = context.Message.CorrelationId,
             StoreId = context.Message.StoreId,
-            AccountId = context.Message.AccountId,
+            AccountId = context.Message.AccountId
         };
         await _producer.Produce(
             key: null,

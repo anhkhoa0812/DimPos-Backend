@@ -58,6 +58,7 @@ public class GetStorePaymentMethodConfigForPosQueryHandler : IRequestHandler<Get
                     Name = systemPaymentMethod.Name,
                     Code = systemPaymentMethod.Code,
                     Description = systemPaymentMethod.Description,
+                    LogoUrl = systemPaymentMethod.LogoUrl != String.Empty ? systemPaymentMethod.LogoUrl : null,
                     PaymentMethod = (EPaymentMethod) systemPaymentMethod.PaymentMethod
                 });
             }
