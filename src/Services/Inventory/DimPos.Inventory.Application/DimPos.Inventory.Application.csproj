@@ -50,6 +50,12 @@
         </Protobuf>
     </ItemGroup>
     <ItemGroup>
+        <Protobuf Include=".\Common\Protos\media.proto" GrpcServices="Client">
+            <Link>Common\Protos\media.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
+    <ItemGroup>
       <ProjectReference Include="..\DimPos.Inventory.Infrastructure\DimPos.Inventory.Infrastructure.csproj" />
     </ItemGroup>
     <ItemGroup>

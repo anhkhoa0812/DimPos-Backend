@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DimPos.Brand.Application.Common.Protos;
 using DimPos.Store.Application.Common.Protos;
 using DimPos.Store.Domain.Entities;
 using DimPos.Store.Domain.Enums;
@@ -15,7 +16,6 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
 {
     private readonly IUnitOfWork<StoreContext> _unitOfWork;
     private readonly ILogger _logger;
-    
     public StoreGrpcService(IUnitOfWork<StoreContext> unitOfWork, ILogger logger)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -481,5 +481,36 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
         {
             Responses = { response }
         };
+    }
+
+    public override async Task<GetStoreDetailByIdResponse> GetStoreDetailById(GetStoreDetailByIdRequest request, ServerCallContext context)
+    {
+        var storeId = Guid.Parse(request.StoreId);
+        
+        var store = await _unitOfWork.GetRepository<Domain.Entities.Store>().SingleOrDefaultAsync(
+            predicate: x => x.Id == storeId
+        );
+        
+        if (store == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cửa hàng"));
+        }
+        
+        var response  = new GetStoreDetailByIdResponse()
+        {
+            Id = store.Id.ToString(),
+            Name = store.Name ?? String.Empty,
+            Description = store.Description ?? String.Empty,
+            Address = store.Address ?? String.Empty,
+            Email = store.Email ?? String.Empty,
+            Phone = store.Phone ?? String.Empty,
+            Latitude = store.Latitude ?? String.Empty,
+            Longitude = store.Longitude ?? String.Empty,
+            Code = store.Code ?? String.Empty,
+            BrandId = store.BrandId.ToString(),
+            ManagerName = store.ManagerName ?? String.Empty,
+            ShortName = store.ShortName ?? String.Empty,
+        };
+        return response;
     }
 }

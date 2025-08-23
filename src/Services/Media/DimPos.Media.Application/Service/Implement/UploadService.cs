@@ -55,4 +55,38 @@ public class UploadService : IUploadService
             throw;
         }
     }
+
+    public async Task<string> UploadExcelAsync(ByteString byteString)
+    {
+        var fileName = $"{Guid.NewGuid()}.xlsx";
+        try
+        {
+            var minio = new MinioClient()
+                .WithEndpoint(_s3CompatibleStorageSettings.EndPoint)
+                .WithCredentials(_s3CompatibleStorageSettings.AccessKey, _s3CompatibleStorageSettings.SecretKey)
+                .Build();
+            var headers = new Dictionary<string, string>
+            {
+                { "x-amz-acl", "public-read" }
+            };
+            // var objectName = $"{Guid.CreateVersion7().ToString()}{extension}";
+            using var stream = new MemoryStream(byteString.ToByteArray());            
+            var result = await minio.PutObjectAsync(new PutObjectArgs()
+                .WithBucket(_s3CompatibleStorageSettings.BucketName)
+                .WithObject(fileName)
+                .WithStreamData(stream)
+                .WithObjectSize(stream.Length)
+                .WithContentType("application/vnd.ms-excel")
+                .WithHeaders(headers)
+            );
+            if (result == null)
+                throw new MinioException("Failed to upload image");
+            return $"https://{_s3CompatibleStorageSettings.EndPoint}/{_s3CompatibleStorageSettings.BucketName}/{fileName}";
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }

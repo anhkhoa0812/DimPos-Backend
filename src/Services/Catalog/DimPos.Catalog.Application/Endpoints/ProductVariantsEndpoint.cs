@@ -1,5 +1,6 @@
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
+using DimPos.Catalog.Application.Features.BrandPrices.Query.GetBrandPriceHistoriesByProductVariantId;
 using DimPos.Catalog.Application.Features.ProductVariants.Command.UpdateProductVariants;
 using DimPos.Catalog.Application.Features.ProductVariants.Query.GetProductProductVariantsById;
 using DimPos.Catalog.Application.Features.ProductVariants.Query.GetProductVariants;
@@ -8,10 +9,13 @@ using DimPos.Catalog.Application.Features.RecipeItems.Command.CreateRecipeItem;
 using DimPos.Catalog.Application.Features.RecipeItems.Command.RemoveRecipeItem;
 using DimPos.Catalog.Application.Features.RecipeItems.Command.UpdateRecipeItem;
 using DimPos.Catalog.Application.Features.RecipeItems.Query.GetRecipeItemByProductVariant;
+using DimPos.Catalog.Application.Features.StorePrices.Query.GetStorePriceHistoriesByProductVariantId;
 using DimPos.Catalog.Domain.Constants;
+using DimPos.Catalog.Domain.Models.BrandPrices;
 using DimPos.Catalog.Domain.Models.Common;
 using DimPos.Catalog.Domain.Models.ProductVariants;
 using DimPos.Catalog.Domain.Models.RecipeItems;
+using DimPos.Catalog.Domain.Models.StorePrices;
 using DimPos.Catalog.Infrastructure.Paginate.Interface;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
@@ -83,6 +87,22 @@ public class ProductVariantsEndpoint : ICarterModule
             .WithName(nameof(GetProductVariantsForMenu))
             .RequireAuthorization("BrandPolicy")
             .Produces<IPaginate<GetProductVariantsResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("{id:guid}/brand-price-histories", GetBrandPriceHistoriesByProductVariantId)
+            .WithName(nameof(GetBrandPriceHistoriesByProductVariantId))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse<IPaginate<GetBrandPriceHistoriesByProductVariantIdResponse>>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("{id:guid}/stores/{storeId:guid}/store-price-histories", GetStorePriceHistoriesByProductVariantId)
+            .WithName(nameof(GetStorePriceHistoriesByProductVariantId))
+            .RequireAuthorization("BrandPolicy")
+            .Produces<ApiResponse<IPaginate<GetStorePriceHistoriesByProductVariantIdResponse>>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -211,5 +231,35 @@ public class ProductVariantsEndpoint : ICarterModule
         };
         var result = await mediator.Send(query);
         return Results.Ok(result);
+    }
+
+    public async Task<IResult> GetBrandPriceHistoriesByProductVariantId(IMediator mediator, [FromRoute] Guid id,
+        [FromQuery] int page = 1, [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var query = new GetBrandPriceHistoriesByProductVariantIdQuery()
+        {
+            ProductVariantId = id,
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+    public async Task<IResult> GetStorePriceHistoriesByProductVariantId(IMediator mediator, [FromRoute] Guid id, [FromRoute] Guid storeId,
+        [FromQuery] int page = 1, [FromQuery] int size = 30, [FromQuery] string? sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var query = new GetStorePriceHistoriesByProductVariantIdQuery()
+        {
+            ProductVariantId = id,
+            StoreId = storeId,
+            Page = page,
+            Size = size,
+            SortBy = sortBy,
+            IsAsc = isAsc
+        };
+        var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
     }
 }

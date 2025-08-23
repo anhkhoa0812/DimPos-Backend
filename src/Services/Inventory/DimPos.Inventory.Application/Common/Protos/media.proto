@@ -24,7 +24,7 @@ message ImageRequest {
   bytes chunk_data = 2;
 }
 message UploadImageResponse {
-    ListImageResponse listImageResponse = 1;
+  ListImageResponse listImageResponse = 1;
 }
 message ListImageResponse {
   repeated ImageResponse imageResponse = 1;

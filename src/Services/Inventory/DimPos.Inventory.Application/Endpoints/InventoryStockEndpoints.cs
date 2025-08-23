@@ -2,6 +2,7 @@ using Carter;
 using DimPos.Inventory.Application.Common.Utils;
 using DimPos.Inventory.Application.Features.InventoryStock.Command.RollbackInventoryForOrder;
 using DimPos.Inventory.Application.Features.InventoryStock.Command.UpdateQuantiyOfInventoryStock;
+using DimPos.Inventory.Application.Features.InventoryStock.Query.ExportInventoryStockExcel;
 using DimPos.Inventory.Application.Features.InventoryStock.Query.GetInventoryStockById;
 using DimPos.Inventory.Application.Features.InventoryStock.Query.GetInventoryStocks;
 using DimPos.Inventory.Application.Features.InventoryTransaction.Query.GetInventoryTransactions;
@@ -57,6 +58,14 @@ public class InventoryStockEndpoints : ICarterModule
             .WithName(nameof(UpdateQuantityOfInventoryStock))
             .RequireAuthorization("StorePolicy")
             .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapGet("export/excel", ExportInventoryStockExcel)
+            .WithName(nameof(ExportInventoryStockExcel))
+            .RequireAuthorization("StorePolicy")
+            .Produces<ApiResponse<string>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
@@ -127,5 +136,12 @@ public class InventoryStockEndpoints : ICarterModule
         }
         var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> ExportInventoryStockExcel(IMediator mediator)
+    {
+        var query = new ExportInventoryStockExcelQuery();
+        var response = await mediator.Send(query);
+        return Results.Ok(response);
     }
 }
