@@ -47,4 +47,19 @@ public class MediaGrpcService : Common.Protos.MediaGrpcService.MediaGrpcServiceB
             }
         };
     }
+
+    public override async Task<UpdateExcelResponse> UploadExcel(IAsyncStreamReader<UpdateExcelRequest> requestStream, ServerCallContext context)
+    {
+        var url = string.Empty;
+        await foreach (var request in requestStream.ReadAllAsync())
+        {
+            url = await _uploadService.UploadExcelAsync(request.ChunkData);
+            if (!string.IsNullOrEmpty(url))
+                break;
+        }
+        return new UpdateExcelResponse
+        {
+            Url = url
+        };
+    }
 }

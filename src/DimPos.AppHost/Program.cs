@@ -10,27 +10,28 @@ var builder = DistributedApplication.CreateBuilder(args);
 //     .WithLifetime(ContainerLifetime.Persistent)
 //     .WithDataVolume();
 //
+var basketApi = builder.AddProject<Projects.DimPos_Basket_Application>("basket-api");
+var brandApi = builder.AddProject<Projects.DimPos_Brand_Application>("brand-api");
 var catalogApi = builder.AddProject<Projects.DimPos_Catalog_Application>("catalog-api");
 var identityApi = builder.AddProject<Projects.DimPos_Identity_Application>("identity-api");
-
-var brandApi = builder.AddProject<Projects.DimPos_Brand_Application>("brand-api");
-
-var storeApi = builder.AddProject<Projects.DimPos_Store_Application>("store-api");
-
-var menuComboApi = builder.AddProject<Projects.DimPos_MenuCombo_Application>("menu-combo-api");
-
+var inventoryApi = builder.AddProject<Projects.DimPos_Inventory_Application>("inventory-api");
 var mediaApi = builder.AddProject<Projects.DimPos_Media_Application>("media-api");
-
-var basketApi = builder.AddProject<Projects.DimPos_Basket_Application>("basket-api");
-var promotionApi = builder.AddProject<Projects.DimPos_Promotion_Application>("promotion-api");
+var menuComboApi = builder.AddProject<Projects.DimPos_MenuCombo_Application>("menu-combo-api");
+var notificationApi = builder.AddProject<Projects.DimPos_Notification_Application>("notification-api");
 var orderApi = builder.AddProject<Projects.DimPos_Order_Application>("order-api");
 var paymentApi = builder.AddProject<Projects.DimPos_Payment_Application>("payment-api");
-var inventoryApi = builder.AddProject<Projects.DimPos_Inventory_Application>("inventory-api");
-var notificationApi = builder.AddProject<Projects.DimPos_Notification_Application>("notification-api");
+var promotionApi = builder.AddProject<Projects.DimPos_Promotion_Application>("promotion-api");
+var storeApi = builder.AddProject<Projects.DimPos_Store_Application>("store-api");
+
 var orchestrator = builder.AddProject<Projects.DimPos_Orchestrator>("orchestrator")
         .WithReference(brandApi)
         .WithReference(catalogApi)
         .WithReference(identityApi)
-        .WithReference(storeApi);
+        .WithReference(storeApi)
+        .WithReference(menuComboApi)
+        .WithReference(inventoryApi)
+        .WithReference(orderApi)
+        .WithReference(paymentApi)
+        .WithReference(notificationApi);
 
 builder.Build().Run();

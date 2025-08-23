@@ -5,6 +5,7 @@ using DimPos.Inventory.Application.Features.InventoryStock.Command.UpdateQuantiy
 using DimPos.Inventory.Application.Services.Implement;
 using DimPos.Inventory.Application.Services.Interface;
 using DimPos.Inventory.Domain.Models.Settings;
+using DimPos.Media.Application.Common.Protos;
 using DimPos.Order.Application.Common.Protos;
 using DimPos.Store.Application.Common.Protos;
 using FluentValidation;
@@ -35,6 +36,7 @@ public static class ConfigureServices
         services.AddGrpc();
         services.AddGrpcServices(configuration);
         services.AddHttpContextAccessor();
+        services.AddHttpClient();
         services.AddScoped<IClaimService, ClaimService>();
         services.AddScoped<IHangfireService, HangfireService>();
         services.AddHealthChecks();
@@ -59,6 +61,10 @@ public static class ConfigureServices
         services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(x =>
         {
             x.Address = new Uri(settings.StoreUrl);
+        });
+        services.AddGrpcClient<MediaGrpcService.MediaGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.MediaUrl);
         });
         return services;
     }
