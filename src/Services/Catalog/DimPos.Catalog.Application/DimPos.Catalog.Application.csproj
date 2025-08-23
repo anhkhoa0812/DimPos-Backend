@@ -48,6 +48,7 @@
       <ProjectReference Include="..\DimPos.Catalog.Infrastructure\DimPos.Catalog.Infrastructure.csproj" />
     </ItemGroup>
     <ItemGroup>
+      <Folder Include="Features\BrandPrices\Command\" />
       <Folder Include="Features\ProductComboItems\Query\" />
       <Folder Include="Features\ProductExtraItems\Query\" />
     </ItemGroup>
