@@ -44,6 +44,7 @@ public class RollbackInventoryForOrderConsumer : IConsumer<RollbackInventoryForO
                 };
                 rollbackTransactions.Add(newInventoryTransaction);
             }
+
             await _unitOfWork.GetRepository<InventoryTransactions>().InsertRangeAsync(rollbackTransactions);
             var isSuccess = await _unitOfWork.CommitAsync() > 0;
             if (!isSuccess)
@@ -51,8 +52,11 @@ public class RollbackInventoryForOrderConsumer : IConsumer<RollbackInventoryForO
                 _logger.Error("Failed to rollback inventory transactions for order {OrderId}", context.Message.OrderId);
                 throw new Exception("Failed to rollback inventory transactions");
             }
-            _logger.Information("Successfully rolled back inventory transactions for order {OrderId}", context.Message.OrderId);
+
+            _logger.Information("Successfully rolled back inventory transactions for order {OrderId}",
+                context.Message.OrderId);
             
+
         }
         else
         {

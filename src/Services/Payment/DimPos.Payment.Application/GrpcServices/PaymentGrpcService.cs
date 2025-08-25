@@ -523,4 +523,21 @@ public class PaymentGrpcService : Common.Protos.PaymentGrpcService.PaymentGrpcSe
             PaymentTransactionId = paymentTransaction.Id.ToString()
         };
     }
+
+    public override async Task<GetAllSystemPaymentMethodsResponse> GetAllSystemPaymentMethods(GetAllSystemPaymentMethodsRequest request, ServerCallContext context)
+    {
+        var systemPaymentMethods = await _unitOfWork.GetRepository<SystemPaymentMethods>().GetListAsync();
+
+
+        var response = systemPaymentMethods.Select(x => new GetSystemPaymentMethod()
+        {
+            PaymentMethod = (PaymentMethod)x.Type,
+            SystemPaymentMethodId = x.Id.ToString()
+        });
+
+        return new GetAllSystemPaymentMethodsResponse()
+        {
+            SystemPaymentMethods = { response }
+        };
+    }
 }

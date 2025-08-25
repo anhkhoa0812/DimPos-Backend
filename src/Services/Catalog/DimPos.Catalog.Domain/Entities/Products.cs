@@ -18,7 +18,6 @@ public class Products : EntityAuditBase<Guid>
     public Guid? CategoryId { get; set; }
     
     public virtual Categories? Category { get; set; }
-    public virtual ICollection<ProductAttributes>? ProductAttributes { get; set; }
     public virtual ICollection<ProductImages>? ProductImages { get; set; }
     public virtual ICollection<ProductVariants> ProductVariants { get; set; } = new List<ProductVariants>();
     public virtual ICollection<ProductModifierGroups>? ProductModifierGroups { get; set; } = new List<ProductModifierGroups>();

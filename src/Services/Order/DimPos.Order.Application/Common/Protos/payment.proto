@@ -11,6 +11,7 @@ service PaymentGrpcService {
   rpc GetPaymentTransactionByOrderId(GetPaymentTransactionByOrderIdRequest) returns (GetPaymentTransactionByOrderIdResponse);
   rpc CheckSuccessPaymentTransaction(CheckSuccessPaymentTransactionRequest) returns (CheckSuccessPaymentTransactionResponse);
   rpc CheckForCancelOrder(CheckForCancelOrderRequest) returns (CheckForCancelOrderResponse);
+  rpc GetAllSystemPaymentMethods(GetAllSystemPaymentMethodsRequest) returns (GetAllSystemPaymentMethodsResponse);
 }
 message CreateB2CPaymentRequest {
   string storeId = 1;
@@ -32,6 +33,7 @@ enum PaymentMethod {
   QR_VIETQR = 1;
   QR_EDC = 2;
   CARD_EDC = 3;
+  QR_PAYOS = 4;
 }
 message CreateB2CPaymentResponse {
   bool isSuccess = 1;
@@ -105,4 +107,14 @@ message CheckForCancelOrderResponse {
   bool isSuccess = 1;
   string message = 2;
   string paymentTransactionId = 3;
+}
+message GetAllSystemPaymentMethodsRequest {
+
+}
+message GetAllSystemPaymentMethodsResponse {
+  repeated GetSystemPaymentMethod systemPaymentMethods = 1;
+}
+message GetSystemPaymentMethod {
+  PaymentMethod paymentMethod = 1;
+  string systemPaymentMethodId = 2;
 }

@@ -715,7 +715,7 @@ public class CartService : ICartService
             throw new BadHttpRequestException("Không tìm thấy giỏ hàng");
         }
         var cart = JsonSerializer.Deserialize<Cart>(cartJson);
-        cart.TakeNumberDineIn = request.TakeNumberDineIn ?? cart.TakeNumberDineIn;
+        cart.TakeNumberDineIn = request.TakeNumberDineIn;
         cart.ServiceMethod = request.ServiceMethod ?? cart.ServiceMethod;
         
         await _redisService.SetHashAsync(cartHashKey, cart.Id.ToString(), JsonSerializer.Serialize(cart));
