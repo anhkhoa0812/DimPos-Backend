@@ -87,6 +87,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         {
             throw new BadHttpRequestException(storeDetailGrpcResponse.ErrorMessage);
         }
+        _logger.Information("Store detail from gRPC: {Unknown}", storeDetailGrpcResponse);
         order.FinancialShiftId = Guid.Parse(storeDetailGrpcResponse.FinancialShiftId);
         if (storeDetailGrpcResponse.Rate != 0)
         {
@@ -353,11 +354,11 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 }).ToList()
         };
         
-        await _topicProducer.Produce(
-            null,
-            createOrderResponseModel,
-            cancellationToken: cancellationToken
-        ).ConfigureAwait(false);
+        // await _topicProducer.Produce(
+        //     null,
+        //     createOrderResponseModel,
+        //     cancellationToken: cancellationToken
+        // ).ConfigureAwait(false);
         
         return new ApiResponse()
         {

@@ -18,7 +18,7 @@ public class SystemPaymentMethodEndpoints : ICarterModule
             .WithTags("System Payment Methods");
         group.MapGet("", GetSystemPaymentMethods)
             .WithName(nameof(GetSystemPaymentMethods))
-            .RequireAuthorization("SystemAdminPolicy")
+            .RequireAuthorization("AdminBrandStorePolicy")
             .Produces<ApiResponse<IPaginate<GetSystemPaymentMethodsResponse>>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
@@ -26,7 +26,7 @@ public class SystemPaymentMethodEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
         group.MapGet("{id:guid}", GetSystemPaymentMethodById)
             .WithName(nameof(GetSystemPaymentMethodById))
-            .RequireAuthorization("SystemAdminPolicy")
+            .RequireAuthorization("AdminBrandStorePolicy")
             .Produces<ApiResponse<GetSystemPaymentMethodByIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)

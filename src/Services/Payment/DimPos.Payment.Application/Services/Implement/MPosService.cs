@@ -43,9 +43,9 @@ public class MPosService : IMPosService
         _httpClient = httpClient;
         _settings = settings.Value;
         _storeGrpcService = storeGrpcService ?? throw new ArgumentNullException(nameof(storeGrpcService));
-        _qrUrl = _settings.DevDomain + "/orderQR";
-        _edcPaymentUrl = _settings.DevDomain + "/order";
-        _refundEdcUrl = _settings.DevDomain + "/transaction";
+        _qrUrl = _settings.Domain + "/orderQR";
+        _edcPaymentUrl = _settings.Domain + "/order";
+        _refundEdcUrl = _settings.Domain + "/transaction";
         _logger = logger ?? throw new ArgumentNullException(nameof(logger)); 
         _topicProducer = topicProducer ?? throw new ArgumentNullException(nameof(topicProducer));
         _qrSettings = qrSettings.Value ?? throw new ArgumentNullException(nameof(qrSettings));
@@ -76,6 +76,8 @@ public class MPosService : IMPosService
             throw new Exception("Failed to deserialize MPosResponse");
         }
         var responseData = DecodeData<CreateQrResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
+        
+        _logger.Information("CreateQrResponseData: {@ResponseData}", responseData);
         
         var qr = QrCode.EncodeText(responseData.QrCode, QrCode.Ecc.Medium);
         // string svg = qr.ToSvgString(4);
@@ -120,6 +122,7 @@ public class MPosService : IMPosService
             throw new Exception("Failed to deserialize MPosResponse");
         }
         var responseData = DecodeData<EDCPaymentResponseData>(mPosResponse.ResData, decodeCredentialsConfig);
+        _logger.Information("CreateEDCPayment: {@ResponseData}", responseData);
         return responseData;
     }
 

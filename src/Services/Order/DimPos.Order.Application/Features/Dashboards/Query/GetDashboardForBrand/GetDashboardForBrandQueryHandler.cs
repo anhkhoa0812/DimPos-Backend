@@ -52,6 +52,7 @@ public class GetDashboardForBrandQueryHandler : IRequestHandler<GetDashboardForB
         
         var orders = await _unitOfWork.GetRepository<Orders>().GetListAsync(
             predicate: x => x.BrandId == brandId
+                            && (request.StoreId == null || x.StoreId == request.StoreId)
                             && DateOnly.FromDateTime(x.CreatedDate) >= request.FromDate
                             && DateOnly.FromDateTime(x.CreatedDate) <= request.ToDate
                             && x.Status == EOrderStatus.Completed,

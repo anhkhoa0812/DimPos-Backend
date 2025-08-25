@@ -13,5 +13,4 @@ public class Ingredients : EntityAuditBase<Guid>
     public bool IsActive { get; set; }
     
     public virtual ICollection<RecipeItems>? RecipeItems { get; set; } = new List<RecipeItems>();
-    public virtual ICollection<UnitConversions>? UnitConversions { get; set; } = new List<UnitConversions>();
 }

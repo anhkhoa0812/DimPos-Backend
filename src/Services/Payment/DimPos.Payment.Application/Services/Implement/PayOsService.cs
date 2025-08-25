@@ -80,27 +80,40 @@ public class PayOsService : IPayOsService
     {
         _logger.Information("BEGIN: {HandlePayOsCallbackName} - {CurrentSeaTime}", nameof(HandlePayOsCallback), TimeUtil.GetCurrentSEATime());
         _logger.Information("Received PayOS callback with data: {RequestData}", request);
-        var payOs = new PayOS("", "", "");
-        var data = payOs.verifyPaymentWebhookData(request);
-        
-        Guid original = new Guid(Convert.FromBase64String(
-            data.description.Replace("_", "/").Replace("-", "+") + "=="
-        ));
-        if (request.code.Equals("00"))
+        try
         {
-            var callbackPaymentResponseModel = new CallbackPaymentResponseModel()
+            var payOs = new PayOS("b4ae3049-5aba-4531-b448-80619fede323", 
+                "d82b49b3-bba0-422e-8037-0f1baafb4840", 
+                "d00dc8ac124f6cd36ada7017c102094a02e24189ff5955a36095d04b390bbe6f");
+            var data = payOs.verifyPaymentWebhookData(request);
+        
+            string base64 = data.description.Replace("_", "/").Replace("-", "+");
+            int paddingNeeded = (4 - (base64.Length % 4)) % 4;
+            base64 += new string('=', paddingNeeded);
+            
+            byte[] bytes = Convert.FromBase64String(base64);
+            
+            if (request.code.Equals("00"))
             {
-                CorrelationId = Guid.CreateVersion7(),
-                OrderId = original,
-                TransCode = String.Empty,
-                TransAmount = request.data.amount,
-                TransStatus = MPosTransStatus.Settled,
-                Type = PaymentCallbackType.MPos
-            };
-            await _topicProducer.Produce(
-                null,
-                callbackPaymentResponseModel
-            ).ConfigureAwait(false);
+                var callbackPaymentResponseModel = new CallbackPaymentResponseModel()
+                {
+                    CorrelationId = Guid.CreateVersion7(),
+                    OrderId = new Guid(bytes),
+                    TransCode = String.Empty,
+                    TransAmount = request.data.amount,
+                    TransStatus = MPosTransStatus.Settled,
+                    Type = PaymentCallbackType.MPos
+                };
+                await _topicProducer.Produce(
+                    null,
+                    callbackPaymentResponseModel
+                ).ConfigureAwait(false);
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Error processing PayOS callback: {ErrorMessage}", e.Message);
+            throw new Exception("Lỗi khi xử lý callback từ PayOS. Vui lòng thử lại sau.");
         }
     }
 
