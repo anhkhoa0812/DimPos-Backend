@@ -49,14 +49,22 @@ public class CreateCampaignStoreCommandHandler : IRequestHandler<CreateCampaignS
         {
             throw new BadHttpRequestException("Một hoặc nhiều cửa hàng không hợp lệ hoặc không thuộc thương hiệu này.");
         }
+
+        var existingCampaign = await _unitOfWork.GetRepository<Campaigns>().SingleOrDefaultAsync(
+            predicate: x => x.Id == request.CampaignId && x.BrandId == brandId
+        );
+        if (existingCampaign == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy chiến dịch hoặc chiến dịch không thuộc thương hiệu này");
+        }
         var newCampaignStores = new List<CampaignStores>();
         foreach (var storeId in request.StoreIds)
         {
             var campaignStore = new CampaignStores()
             {
                 Id = Guid.CreateVersion7(),
-                CampaignId = request.CampaignId,
-                StoreId = storeId,
+                CampaignId = existingCampaign.Id,
+                StoreId = storeId
             };
             newCampaignStores.Add(campaignStore);
         }
