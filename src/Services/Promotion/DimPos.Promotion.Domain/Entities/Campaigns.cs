@@ -17,5 +17,5 @@ public class Campaigns : EntityAuditBase<Guid>
     public int? MaxUsagePerCustomerLimit { get; set; }
     
     public virtual ICollection<CampaignStores>? CampaignStores { get; set; }
-    public virtual ICollection<CampaignRuleLinks>? CampaignRuleLinks { get; set; } = new List<CampaignRuleLinks>();
+    public virtual ICollection<CampaignRuleLinks>? CampaignRuleLinks { get; set; }
 }

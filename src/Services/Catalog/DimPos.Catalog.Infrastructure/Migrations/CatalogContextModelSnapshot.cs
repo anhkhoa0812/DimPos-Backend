@@ -51,7 +51,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BasePrice");
+                    b.ToTable("BasePrice", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.BrandPriceHistory", b =>
@@ -89,7 +89,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasIndex("BrandPriceId");
 
-                    b.ToTable("BrandPriceHistory");
+                    b.ToTable("BrandPriceHistory", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Categories", b =>
@@ -150,7 +150,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Ingredients", b =>
@@ -202,7 +202,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[Sku] IS NOT NULL");
 
-                    b.ToTable("Ingredients");
+                    b.ToTable("Ingredients", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ModifierGroups", b =>
@@ -241,7 +241,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ModifierGroups");
+                    b.ToTable("ModifierGroups", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ModifierOptions", b =>
@@ -275,7 +275,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasIndex("ModifierGroupId");
 
-                    b.ToTable("ModifierOptions");
+                    b.ToTable("ModifierOptions", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductComboItems", b =>
@@ -308,7 +308,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductComboItems");
+                    b.ToTable("ProductComboItems", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductExtraItems", b =>
@@ -335,7 +335,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductExtraItems");
+                    b.ToTable("ProductExtraItems", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductImages", b =>
@@ -363,7 +363,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages");
+                    b.ToTable("ProductImages", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductModifierGroups", b =>
@@ -390,7 +390,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductModifierGroups");
+                    b.ToTable("ProductModifierGroups", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.ProductVariants", b =>
@@ -440,7 +440,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductVariants");
+                    b.ToTable("ProductVariants", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.Products", b =>
@@ -501,7 +501,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.RecipeItems", b =>
@@ -535,7 +535,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
                     b.HasIndex("ProductVariantId", "IngredientId")
                         .IsUnique();
 
-                    b.ToTable("RecipeItems");
+                    b.ToTable("RecipeItems", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.StorePrice", b =>
@@ -570,7 +570,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StorePrice");
+                    b.ToTable("StorePrice", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.StorePriceHistory", b =>
@@ -611,7 +611,7 @@ namespace DimPos.Catalog.Infrastructure.Migrations
 
                     b.HasIndex("StorePriceId");
 
-                    b.ToTable("StorePriceHistory");
+                    b.ToTable("StorePriceHistory", (string)null);
                 });
 
             modelBuilder.Entity("DimPos.Catalog.Domain.Entities.BrandPriceHistory", b =>
