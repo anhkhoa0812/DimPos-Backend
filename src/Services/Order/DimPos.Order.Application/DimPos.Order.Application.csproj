@@ -72,5 +72,16 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Protobuf>
     </ItemGroup>
-    
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\brand.proto" GrpcServices="Client">
+            <Link>Common\Protos\brand.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
+    <ItemGroup>
+        <Protobuf Include=".\Common\Protos\media.proto" GrpcServices="Client">
+            <Link>Common\Protos\media.proto</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Protobuf>
+    </ItemGroup>
 </Project>

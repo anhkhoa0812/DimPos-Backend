@@ -5,6 +5,7 @@ service StoreGrpcService {
   rpc GetStoresByBrandPaging (GetStoresByBrandPagingRequest) returns (GetStoresByBrandPagingResponse);
   rpc CheckStoresInBrand (CheckStoresInBrandRequest) returns (CheckStoresInBrandResponse);
   rpc GetStoreIdByAccountId (GetStoreIdByAccountIdRequest) returns (GetStoreIdByAccountIdResponse);
+  rpc GetAccountIdsByStoreIds (GetAccountIdsByStoreIdsRequest) returns (GetAccountIdsByStoreIdsResponse);
   rpc GetStoresByBrandId (GetStoresByBrandIdRequest) returns (GetStoresByBrandIdResponse);
   rpc GetTaxRateByStoreId (GetTaxRateForStoreMenuRequest) returns (GetTaxRateForStoreMenuResponse);
   rpc GetTaxRateAndPaymentMethodConfig(GetTaxRateAndPaymentMethodConfigRequest) returns (GetTaxRateAndPaymentMethodConfigResponse);
@@ -13,6 +14,8 @@ service StoreGrpcService {
   rpc GetListStoreByStoreIds(GetListStoreByStoreIdsRequest) returns (GetListStoreByStoreIdsResponse);
   rpc GetPaymentMethodConfigForUpdatePaymentMethod(GetPaymentMethodConfigForUpdatePaymentMethodRequest) returns (GetPaymentMethodConfigForUpdatePaymentMethodResponse);
   rpc GetCredentialsConfigBySystemPaymentMethodId(GetCredentialsConfigBySystemPaymentMethodIdRequest) returns (GetCredentialsConfigBySystemPaymentMethodIdResponse);
+  rpc GetCredentialsConfigForPayOs(GetCredentialsConfigForPayOsRequest) returns (GetCredentialsConfigForPayOsResponse);
+  rpc GetStoreDetailById(GetStoreDetailByIdRequest) returns (GetStoreDetailByIdResponse);
 }
 message GetStoresByBrandPagingRequest {
   int32 page = 1;
@@ -134,4 +137,41 @@ message GetCredentialsConfigBySystemPaymentMethodIdResponse  {
   string errorMessage = 2;
   string systemPaymentMethodId = 3;
   string credentialsConfigAtStore = 4;
+}
+message GetCredentialsConfigForPayOsRequest {
+  string systemPaymentMethodId = 1;
+  string storeId = 2;
+}
+message GetCredentialsConfigForPayOsResponse {
+  bool isSuccess = 1;
+  string errorMessage = 2;
+  string systemPaymentMethodId = 3;
+  string credentialsConfigAtStore = 4;
+}
+message GetAccountIdsByStoreIdsRequest {
+  repeated string storeIds = 1;
+}
+message GetAccountIdsByStoreIdsResponse {
+  repeated GetAccountIdsByStoreIds responses = 1;
+}
+message  GetAccountIdsByStoreIds {
+  string storeId = 1;
+  string accountId = 2;
+}
+message GetStoreDetailByIdRequest {
+  string storeId = 1;
+}
+message GetStoreDetailByIdResponse {
+  string id = 1;
+  string name = 2;
+  string code = 3;
+  string phone = 4;
+  string email = 5;
+  string description = 6;
+  string shortName = 7;
+  string address = 8;
+  string latitude = 9;
+  string longitude = 10;
+  string managerName = 11;
+  string brandId = 12;
 }

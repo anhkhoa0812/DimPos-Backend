@@ -50,7 +50,8 @@ public class UpdateStoreForBrandCommandHandler : IRequestHandler<UpdateStoreForB
             CorrelationId = Guid.CreateVersion7(),
             BrandAccountId = accountId
         };
-        if (request.Status != null && request.Status != store.Status)
+        var storeStatus = store.Status;
+        if (request.Status != null && request.Status != storeStatus)
         {
             if (request.Status == EStoreStatus.Active)
             {
@@ -80,7 +81,7 @@ public class UpdateStoreForBrandCommandHandler : IRequestHandler<UpdateStoreForB
             throw new Exception("Cập nhật cửa hàng không thành công");
         }
         
-        if( request.Status != null && request.Status != store.Status)
+        if( request.Status != null && request.Status != storeStatus)
         {
             await _topicProducer.Produce(
                 null,

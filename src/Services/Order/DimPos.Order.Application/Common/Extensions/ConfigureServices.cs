@@ -1,6 +1,8 @@
+using DimPos.Brand.Application.Common.Protos;
 using DimPos.Catalog.Application.Common.Protos;
 using DimPos.Identity.Application.Common.Protos;
 using DimPos.Inventory.Application.Common.Protos;
+using DimPos.Media.Application.Common.Protos;
 using DimPos.Order.Application.Common.Behaviours;
 using DimPos.Order.Application.Common.Utils;
 using DimPos.Order.Application.Features.Order.Command.CancelOrder;
@@ -82,7 +84,14 @@ public static class ConfigureServices
         {
             x.Address = new Uri(settings.IdentityUrl);
         });
-            
+        services.AddGrpcClient<BrandGrpcService.BrandGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.BrandUrl);
+        });
+        services.AddGrpcClient<MediaGrpcService.MediaGrpcServiceClient>(x =>
+        {
+            x.Address = new Uri(settings.MediaUrl);
+        });
         return services;
     }
 }
