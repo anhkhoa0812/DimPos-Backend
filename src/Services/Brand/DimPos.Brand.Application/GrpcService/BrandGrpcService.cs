@@ -61,4 +61,30 @@ public class BrandGrpcService : Common.Protos.BrandGrpcService.BrandGrpcServiceB
             PictureUrl = brand.PictureUrl ?? String.Empty
         };
     }
+
+    public override async Task<GetBrandDetailByIdResponse> GetBrandDetailById(GetBrandDetailByIdRequest request, ServerCallContext context)
+    {
+        var brandId = Guid.Parse(request.BrandId);
+        _logger.Information("BEGIN: {GetBrandDetailByIdName} - {CurrentSeaTime}", nameof(GetBrandDetailById), TimeUtil.GetCurrentSEATime());
+        
+        var brand = await _unitOfWork.GetRepository<Brands>().SingleOrDefaultAsync(
+            predicate: x => x.Id == brandId
+        );
+        if (brand == null)
+        {
+            _logger.Warning("Brand with ID {BrandId} not found.", brandId);
+            throw new RpcException(new Status(StatusCode.NotFound, "Brand not found"));
+        }
+        _logger.Information("END: {GetBrandDetailByIdName} - {CurrentSeaTime}", nameof(GetBrandDetailById), TimeUtil.GetCurrentSEATime());
+        return new GetBrandDetailByIdResponse()
+        {
+            Id = brand.Id.ToString(),
+            Code = brand.Code,
+            Name = brand.Name,
+            Address = brand.Address,
+            Phone = brand.Phone,
+            Email = brand.Email ?? String.Empty,
+            PictureUrl = brand.PictureUrl ?? String.Empty
+        };
+    }
 }

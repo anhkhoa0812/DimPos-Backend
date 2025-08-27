@@ -16,7 +16,7 @@ message GetBrandIdByAccountIdResponse {
 message GetBrandImageByBrandIdRequest {
   string brandId = 1;
 }
-message GetBrandImageByBrandIdResponse { 
+message GetBrandImageByBrandIdResponse {
   string pictureUrl = 1;
 }
 message GetBrandDetailByIdRequest {
