@@ -13,5 +13,5 @@ public class CreateCategoriesCommand : IRequest<ApiResponse>
     public int? DisplayOrder { get; set; }
     public IFormFile? Image { get; set; }
     public ECategoryStatus Status { get; set; }
-    public Guid? ParentId { get; set; }
+    public Guid? ParentCategoryId { get; set; }
 }

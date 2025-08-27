@@ -50,10 +50,10 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
         category.BrandId = brandId;
         if (request.Type == ECategoryType.Child)
         {
-            if(request.ParentId == Guid.Empty)
+            if(request.ParentCategoryId == Guid.Empty)
                 throw new BadHttpRequestException("Danh mục cha không được để trống");
             var parentCategory = await _unitOfWork.GetRepository<Domain.Entities.Categories>().SingleOrDefaultAsync(
-                predicate: c => c.Id == request.ParentId
+                predicate: c => c.Id == request.ParentCategoryId
             );
             if (parentCategory == null)
             {
