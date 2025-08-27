@@ -1,9 +1,11 @@
 using DimPos.Payment.Application.Common.Behaviours;
 using DimPos.Payment.Application.Common.Utils;
+using DimPos.Payment.Application.Features.SystemPaymentMethod.Command.UpdateSystemPaymentMethod;
 using DimPos.Payment.Application.Services.Implement;
 using DimPos.Payment.Application.Services.Interface;
 using DimPos.Payment.Domain.Settings;
 using DimPos.Store.Application.Common.Protos;
+using FluentValidation;
 using Mediator;
 
 namespace DimPos.Payment.Application.Common.Extensions;
@@ -25,6 +27,7 @@ public static class ConfigureServices
         services.AddScoped<IClaimService, ClaimService>();
         services.AddScoped<IPayOsService, PayOsService>();
         services.AddHttpClient();
+        services.AddScoped<IValidator<UpdateSystemPaymentMethodCommand>, UpdateSystemPaymentMethodCommandValidator>();
         services.Configure<RouteHandlerOptions>(options =>
         {
             options.ThrowOnBadRequest = true;

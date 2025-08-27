@@ -1,4 +1,6 @@
 using Carter;
+using DimPos.Payment.Application.Common.Utils;
+using DimPos.Payment.Application.Features.SystemPaymentMethod.Command.UpdateSystemPaymentMethod;
 using DimPos.Payment.Application.Features.SystemPaymentMethod.Query.GetSystemPaymentMethodById;
 using DimPos.Payment.Application.Features.SystemPaymentMethod.Query.GetSystemPaymentMethods;
 using DimPos.Payment.Domain.Constants;
@@ -32,6 +34,15 @@ public class SystemPaymentMethodEndpoints : ICarterModule
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
+        group.MapPatch("{id:guid}", UpdateSystemPaymentMethod)
+            .DisableAntiforgery()
+            .WithName(nameof(UpdateSystemPaymentMethod))
+            .RequireAuthorization("SystemAdminPolicy")
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ApiResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiResponse>(StatusCodes.Status500InternalServerError);
     }
 
     public async Task<IResult> GetSystemPaymentMethods(IMediator mediator, [FromQuery] int page = 1,
@@ -56,6 +67,28 @@ public class SystemPaymentMethodEndpoints : ICarterModule
             SystemPaymentMethodId = id
         };
         var apiResponse = await mediator.Send(query);
+        return Results.Ok(apiResponse);
+    }
+
+    public async Task<IResult> UpdateSystemPaymentMethod(IMediator mediator, [FromRoute] Guid id,
+        [FromBody] UpdateSystemPaymentMethodRequest request,
+        ValidationUtil<UpdateSystemPaymentMethodCommand> validationUtil)
+    {
+        var command = new UpdateSystemPaymentMethodCommand()
+        {
+            SystemPaymentMethodId = id,
+            Name = request.Name,
+            Description = request.Description,
+            IsGloballyActive = request.IsGloballyActive
+        };
+        
+        var (isValid, response) = await validationUtil.ValidateAsync(command);
+        if (!isValid)
+        {
+            return Results.BadRequest(response);
+        }
+        
+        var apiResponse = await mediator.Send(command);
         return Results.Ok(apiResponse);
     }
 }
