@@ -274,6 +274,10 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                     })
                 }
             });
+            if (!promotionRules.IsSuccess)
+            {
+                throw new BadHttpRequestException(promotionRules.ErrorMessage);
+            }
             foreach (var promotionRule in promotionRules.Promotions)
             {
                 var appliedOrderPromotion = new AppliedOrderPromotions()
@@ -354,11 +358,11 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 }).ToList()
         };
         
-        // await _topicProducer.Produce(
-        //     null,
-        //     createOrderResponseModel,
-        //     cancellationToken: cancellationToken
-        // ).ConfigureAwait(false);
+        await _topicProducer.Produce(
+            null,
+            createOrderResponseModel,
+            cancellationToken: cancellationToken
+        ).ConfigureAwait(false);
         
         return new ApiResponse()
         {

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace DimPos.Payment.Domain.Models.MPos.Base;
 
 public class MPosModel
@@ -13,7 +15,10 @@ public class MPosModelRequest
 
 public class MPosSettingDetails
 {
+    [JsonPropertyName("secretKey")]
     public string SecretKey { get; set; }
+    [JsonPropertyName("muid")]
     public string Muid {get; set;}
+    [JsonPropertyName("posId")]
     public string PosId {get; set;}
 }

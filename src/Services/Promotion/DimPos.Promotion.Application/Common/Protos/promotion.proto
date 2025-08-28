@@ -19,7 +19,9 @@ message OrderItemRequest {
   float unitPrice = 3;
 }
 message GetPromotionForOrderResponse {
-  repeated PromotionForOrderResponse promotions = 2;
+  bool isSuccess = 1;
+  string errorMessage = 2;
+  repeated PromotionForOrderResponse promotions = 3;
 }
 message PromotionForOrderResponse {
   string id = 1;

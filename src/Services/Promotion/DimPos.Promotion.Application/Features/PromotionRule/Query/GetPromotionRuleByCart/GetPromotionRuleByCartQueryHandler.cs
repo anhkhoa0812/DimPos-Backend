@@ -7,6 +7,7 @@ using DimPos.Promotion.Domain.Models.Common;
 using DimPos.Promotion.Domain.Models.PromotionRules;
 using DimPos.Promotion.Infrastructure.Persistence;
 using DimPos.Promotion.Infrastructure.Repositories.Interface;
+using DimPos.Promotion.Infrastructure.Utils;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,7 +54,9 @@ public class GetPromotionRuleByCartQueryHandler : IRequestHandler<GetPromotionRu
 
         var promotionRules = await _unitOfWork.GetRepository<PromotionRules>().GetListAsync(
             predicate: x => x.CampaignRuleLinks.Any(x => x.Campaign.IsActive
-                            && x.Campaign.CampaignStores.Any(cs => cs.StoreId == storeId))
+                            && x.Campaign.CampaignStores.Any(cs => cs.StoreId == storeId)
+                            && x.Campaign.StartDate <= TimeUtil.GetCurrentSEATime()
+                            && x.Campaign.EndDate >= TimeUtil.GetCurrentSEATime())
             && x.BrandId == Guid.Parse(cart.BrandId),
             include: x => x.Include(pr => pr.CampaignRuleLinks)
                 .ThenInclude(crl => crl.Campaign)
