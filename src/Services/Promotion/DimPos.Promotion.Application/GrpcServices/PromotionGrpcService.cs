@@ -28,7 +28,9 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
         
         var promotionRules = await _unitOfWork.GetRepository<PromotionRules>().GetListAsync(
             predicate: x => x.CampaignRuleLinks.Any(x => x.Campaign.IsActive
-                                                         && x.Campaign.CampaignStores.Any(cs => cs.StoreId == Guid.Parse(request.StoreId)))
+                                                         && x.Campaign.CampaignStores.Any(cs => cs.StoreId == Guid.Parse(request.StoreId))
+                                                         && x.Campaign.StartDate <= TimeUtil.GetCurrentSEATime()
+                                                         && x.Campaign.EndDate >= TimeUtil.GetCurrentSEATime())
                             && x.BrandId == Guid.Parse(request.BrandId),
             include: x => x.Include(pr => pr.CampaignRuleLinks)
                 .ThenInclude(crl => crl.Campaign)
@@ -39,11 +41,18 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
         var missingPromotionRuleIds = promotionRuleIds.Except(promotionRules.Select(x => x.Id)).ToList();
         if (missingPromotionRuleIds.Any())
         {
-            _logger.Warning($"Missing promotion rules: {string.Join(", ", missingPromotionRuleIds)}");
-            throw new BadHttpRequestException("Một số mã khuyến mãi không hợp lệ hoặc không tồn tại.");
+            _logger.Warning("Missing promotion rules: {Join}", string.Join(", ", missingPromotionRuleIds));
+            return new GetPromotionForOrderResponse()
+            {
+                IsSuccess = false,
+                ErrorMessage = "Một số mã khuyến mãi không hợp lệ hoặc không tồn tại.",
+                Promotions = { new PromotionForOrderResponse() }
+            };
         }
         var subtotalAmount = (decimal) request.SubtotalAmount;
         var response = new GetPromotionForOrderResponse();
+        response.IsSuccess = true;
+        response.ErrorMessage = string.Empty;
         foreach (var promotionRuleId in promotionRuleIds)
         {
             var promotionRule = promotionRules.First(x => x.Id == promotionRuleId);
@@ -66,22 +75,38 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                         {
                             if (subtotalAmount < conditionValueDecimal)
                             {
-                                throw new RpcException(new Status(StatusCode.FailedPrecondition,
-                                    $"Giá trị giỏ hàng hiện tại ({subtotalAmount}) không đủ điều kiện tối thiểu ({conditionValueDecimal}) cho mã khuyến mãi {promotionRule.Name}"));
+                                return new GetPromotionForOrderResponse()
+                                {
+                                    IsSuccess = false,
+                                    ErrorMessage =
+                                        $"Giá trị giỏ hàng hiện tại ({subtotalAmount}) không đủ điều kiện tối thiểu ({conditionValueDecimal}) cho mã khuyến mãi {promotionRule.Name}",
+                                    Promotions = { new PromotionForOrderResponse() }
+                                };
                             }
                         }
                         else if (conditionRule.Operator == EOperator.GreaterThan)
                         {
                             if (subtotalAmount <= conditionValueDecimal)
                             {
-                                throw new RpcException(new Status(StatusCode.FailedPrecondition,
-                                    $"Giá trị giỏ hàng hiện tại ({subtotalAmount}) không đủ điều kiện tối thiểu ({conditionValueDecimal}) cho mã khuyến mãi {promotionRule.Name}"));
+                                return new GetPromotionForOrderResponse()
+                                {
+                                    IsSuccess = false,
+                                    ErrorMessage =
+                                        $"Giá trị giỏ hàng hiện tại ({subtotalAmount}) không đủ điều kiện tối thiểu ({conditionValueDecimal}) cho mã khuyến mãi {promotionRule.Name}",
+                                    Promotions = { new PromotionForOrderResponse() }
+                                };
+
                             }
                         }
                         else
                         {
-                            throw new RpcException(new Status(StatusCode.InvalidArgument,
-                                $"Toán tử không hợp lệ: {conditionRule.Operator} cho điều kiện {conditionRule.ConditionType} trong mã khuyến mãi {promotionRule.Name}"));
+                            return new GetPromotionForOrderResponse()
+                            {
+                                IsSuccess = false,
+                                ErrorMessage =
+                                    $"Toán tử không hợp lệ: {conditionRule.Operator} cho điều kiện {conditionRule.ConditionType} trong mã khuyến mãi {promotionRule.Name}",
+                                Promotions = { new PromotionForOrderResponse() }
+                            };
                         } 
                         break;
                     case EConditionType.CartContainsProductVariant: 
@@ -92,16 +117,26 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                         { 
                             if (!request.OrderItems.Any(ci => productVariantIds.Contains(Guid.Parse(ci.ProductVariantId)))) 
                             { 
-                                throw new RpcException(new Status(StatusCode.FailedPrecondition,
-                                    $"Giỏ hàng không chứa bất kỳ sản phẩm nào trong danh sách: {string.Join(", ", productVariantIds)} cho mã khuyến mãi {promotionRule.Name}"));
+                                return new GetPromotionForOrderResponse()
+                                {
+                                    IsSuccess = false,
+                                    ErrorMessage =
+                                        $"Giỏ hàng không chứa bất kỳ sản phẩm nào trong danh sách: {string.Join(", ", productVariantIds)} cho mã khuyến mãi {promotionRule.Name}",
+                                    Promotions = { new PromotionForOrderResponse() }
+                                };
                             } 
                         }
                         else if (conditionRule.Operator == EOperator.ContainsAllInList) 
                         { 
                             if (!productVariantIds.All(pvId => request.OrderItems.Any(ci => Guid.Parse(ci.ProductVariantId) == pvId))) 
                             { 
-                                throw new RpcException(new Status(StatusCode.FailedPrecondition,
-                                    $"Giỏ hàng không chứa tất cả sản phẩm trong danh sách: {string.Join(", ", productVariantIds)} cho mã khuyến mãi {promotionRule.Name}"));
+                                return new GetPromotionForOrderResponse()
+                                {
+                                    IsSuccess = false,
+                                    ErrorMessage = 
+                                        $"Giỏ hàng không chứa tất cả sản phẩm trong danh sách: {string.Join(", ", productVariantIds)} cho mã khuyến mãi {promotionRule.Name}",
+                                    Promotions = { new PromotionForOrderResponse() }
+                                };
                             } 
                         }
                         else if(conditionRule.Operator == EOperator.ContainsExactList) 
@@ -109,14 +144,24 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                             if (request.OrderItems.Count != productVariantIds.Count || 
                                 !productVariantIds.All(pvId => request.OrderItems.Any(ci => Guid.Parse(ci.ProductVariantId) == pvId)))
                             {
-                                throw new RpcException(new Status(StatusCode.FailedPrecondition,
-                                    $"Giỏ hàng không chứa đúng danh sách sản phẩm: {string.Join(", ", productVariantIds)} cho mã khuyến mãi {promotionRule.Name}"));
+                                return new GetPromotionForOrderResponse()
+                                {
+                                    IsSuccess = false,
+                                    ErrorMessage =
+                                        $"Giỏ hàng không chứa đúng danh sách sản phẩm: {string.Join(", ", productVariantIds)} cho mã khuyến mãi {promotionRule.Name}",
+                                    Promotions = { new PromotionForOrderResponse() }
+                                };
                             }
                         }
                         else 
                         { 
-                            throw new RpcException(new Status(StatusCode.InvalidArgument,
-                                $"Toán tử không hợp lệ: {conditionRule.Operator} cho điều kiện {conditionRule.ConditionType} trong mã khuyến mãi {promotionRule.Name}"));
+                            return new GetPromotionForOrderResponse()
+                            {
+                                IsSuccess = false,
+                                ErrorMessage =
+                                    $"Toán tử không hợp lệ: {conditionRule.Operator} cho điều kiện {conditionRule.ConditionType} trong mã khuyến mãi {promotionRule.Name}",
+                                Promotions = { new PromotionForOrderResponse() }
+                            };
                         }
                         break;
                     case EConditionType.QuantityOfSpecificProductVariant: 
@@ -127,8 +172,13 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                             if(!request.OrderItems.Any(ci => Guid.Parse(ci.ProductVariantId) == quantityOfSpecificProductVariantModel.ProductVariantId 
                                                              && ci.Quantity >= quantityOfSpecificProductVariantModel.Quantity)) 
                             { 
-                                throw new RpcException(new Status(StatusCode.FailedPrecondition,
-                                    $"Số lượng sản phẩm cụ thể trong giỏ hàng không đủ: {quantityOfSpecificProductVariantModel.ProductVariantId}, Số lượng yêu cầu: {quantityOfSpecificProductVariantModel.Quantity} cho mã khuyến mãi {promotionRule.Name}"));
+                                return new GetPromotionForOrderResponse()
+                                {
+                                    IsSuccess = false,
+                                    ErrorMessage =
+                                        $"Số lượng sản phẩm cụ thể trong giỏ hàng không đủ: {quantityOfSpecificProductVariantModel.ProductVariantId}, Số lượng yêu cầu: {quantityOfSpecificProductVariantModel.Quantity} cho mã khuyến mãi {promotionRule.Name}",
+                                    Promotions = { new PromotionForOrderResponse() }
+                                };
                             } 
                         }
                         else if (conditionRule.Operator == EOperator.Equals) 
@@ -137,19 +187,34 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                                     Guid.Parse(oi.ProductVariantId) == quantityOfSpecificProductVariantModel.ProductVariantId
                                     && oi.Quantity == quantityOfSpecificProductVariantModel.Quantity)) 
                             { 
-                                throw new RpcException(new Status(StatusCode.FailedPrecondition,
-                                    $"Số lượng sản phẩm cụ thể trong giỏ hàng không đúng: {quantityOfSpecificProductVariantModel.ProductVariantId}, Số lượng yêu cầu: {quantityOfSpecificProductVariantModel.Quantity} cho mã khuyến mãi {promotionRule.Name}"));
+                                return new GetPromotionForOrderResponse()
+                                {
+                                    IsSuccess = false,
+                                    ErrorMessage =
+                                        $"Số lượng sản phẩm cụ thể trong giỏ hàng không đúng: {quantityOfSpecificProductVariantModel.ProductVariantId}, Số lượng yêu cầu: {quantityOfSpecificProductVariantModel.Quantity} cho mã khuyến mãi {promotionRule.Name}",
+                                    Promotions = { new PromotionForOrderResponse() }
+                                };
                             } 
                         }
                         else 
-                        { 
-                            throw new RpcException(new Status(StatusCode.InvalidArgument,
-                                $"Toán tử không hợp lệ: {conditionRule.Operator} cho điều kiện {conditionRule.ConditionType} trong mã khuyến mãi {promotionRule.Name}"));
+                        {
+                            return new GetPromotionForOrderResponse()
+                            {
+                                IsSuccess = false,
+                                ErrorMessage =
+                                    $"Toán tử không hợp lệ: {conditionRule.Operator} cho điều kiện {conditionRule.ConditionType} trong mã khuyến mãi {promotionRule.Name}",
+                                Promotions = { new PromotionForOrderResponse() }
+                            };
                         } 
                         break; 
-                    default: 
-                        throw new RpcException(new Status(StatusCode.InvalidArgument, 
-                            $"Điều kiện không hợp lệ: {conditionRule.ConditionType} trong mã khuyến mãi {promotionRule.Name}"));
+                    default:
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage =
+                                $"Điều kiện không hợp lệ: {conditionRule.ConditionType} trong mã khuyến mãi {promotionRule.Name}",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                 }
             }
 
@@ -159,7 +224,12 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                     var percentageDiscount = Decimal.Parse(promotionRule.RuleActions.Value);
                     if (percentageDiscount < 0 || percentageDiscount > 100)
                     {
-                        throw new BadHttpRequestException("Giá trị giảm giá phần trăm không hợp lệ");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = $"Giá trị giảm giá phần trăm không hợp lệ",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
                     appliedPromotionDetail.DiscountAmountApplied = (float) (subtotalAmount * (percentageDiscount / 100));
                     if( (decimal) appliedPromotionDetail.DiscountAmountApplied > promotionRule.RuleActions.MaxDiscountAmountForPercentage)
@@ -171,7 +241,12 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                 case EActionType.CartFixedDiscount:
                     var fixedDiscount = Decimal.Parse(promotionRule.RuleActions.Value);
                     if (fixedDiscount < 0)
-                        throw new BadHttpRequestException("Giá trị giảm giá cố định không hợp lệ");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = $"Giá trị giảm giá cố định không hợp lệ",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
 
                     appliedPromotionDetail.DiscountAmountApplied = (float) fixedDiscount;
                     break;
@@ -179,18 +254,33 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                     var percentageItemDiscount = Decimal.Parse(promotionRule.RuleActions.Value);
                     if(percentageItemDiscount < 0 || percentageItemDiscount > 100)
                     {
-                        throw new BadHttpRequestException("Giá trị giảm giá phần trăm cho sản phẩm không hợp lệ");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Giá trị giảm giá phần trăm cho sản phẩm không hợp lệ",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
 
                     if (promotionRule.RuleActions.TargetCriteriaForItemAction == null)
                     {
-                        throw new BadHttpRequestException("Không tìm thấy sản phẩm để áp dụng giảm giá phần trăm");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Không tìm thấy sản phẩm để áp dụng giảm giá phần trăm",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
                     var targetCriteriaForItemActionForItemPercentage =
                         JsonSerializer.Deserialize<List<Guid>>(promotionRule.RuleActions.TargetCriteriaForItemAction);
                     if (targetCriteriaForItemActionForItemPercentage == null)
                     {
-                        throw new BadHttpRequestException("Không tìm thấy danh sách sản phẩm để áp dụng giảm giá phần trăm");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Không tìm thấy danh sách sản phẩm để áp dụng giảm giá phần trăm",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
                     
                     var itemForActionList = request.OrderItems
@@ -206,12 +296,22 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                     var percentageFixedItemDiscount = Decimal.Parse(promotionRule.RuleActions.Value);
                     if(percentageFixedItemDiscount < 0 || percentageFixedItemDiscount > 100)
                     {
-                        throw new BadHttpRequestException("Giá trị giảm giá phần trăm cố định cho sản phẩm không hợp lệ");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Giá trị giảm giá phần trăm cố định cho sản phẩm không hợp lệ",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
 
                     if (promotionRule.RuleActions.TargetCriteriaForItemAction == null)
                     {
-                        throw new BadHttpRequestException("Không tìm thấy sản phẩm để áp dụng giảm giá phần trăm cố định");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Không tìm thấy sản phẩm để áp dụng giảm giá phần trăm cố định",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
                     List<Guid>? targetCriteriaForItemActionForOneItemPercentage =
                         JsonSerializer.Deserialize<List<Guid>>(
@@ -219,7 +319,12 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
 
                     if (targetCriteriaForItemActionForOneItemPercentage == null || targetCriteriaForItemActionForOneItemPercentage.Count != 1)
                     {
-                        throw new BadHttpRequestException("Chỉ có thể áp dụng giảm giá phần trăm cố định cho một sản phẩm");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Chỉ có thể áp dụng giảm giá phần trăm cố định cho một sản phẩm",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
                 
                     var targetOrderItem = request.OrderItems
@@ -231,17 +336,32 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                     var amountDiscount = Decimal.Parse(promotionRule.RuleActions.Value);
                     if (amountDiscount < 0)
                     {
-                        throw new BadHttpRequestException("Giá trị giảm giá cố định cho sản phẩm không hợp lệ");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Giá trị giảm giá cố định cho sản phẩm không hợp lệ",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
                     if (promotionRule.RuleActions.TargetCriteriaForItemAction == null)
                     {
-                        throw new BadHttpRequestException("Không tìm thấy sản phẩm để áp dụng giảm giá cố định");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Không tìm thấy sản phẩm để áp dụng giảm giá cố định",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
                     List<Guid>? targetCriteriaForItemActionForItemFixed =
                         JsonSerializer.Deserialize<List<Guid>>(promotionRule.RuleActions.TargetCriteriaForItemAction);
                     if (targetCriteriaForItemActionForItemFixed == null)
                     {
-                        throw new BadHttpRequestException("Không tìm thấy danh sách sản phẩm để áp dụng giảm giá cố định");
+                        return new GetPromotionForOrderResponse()
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Không tìm thấy danh sách sản phẩm để áp dụng giảm giá cố định",
+                            Promotions = { new PromotionForOrderResponse() }
+                        };
                     }
                     var orderItemForFixedActionList = request.OrderItems
                         .Where(ci => targetCriteriaForItemActionForItemFixed.Contains(Guid.Parse(ci.ProductVariantId)))
@@ -256,7 +376,12 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                 var amountDiscountForOne = Decimal.Parse(promotionRule.RuleActions.Value);
                 if(amountDiscountForOne < 0)
                 {
-                    throw new BadHttpRequestException("Giá trị giảm giá cố định cho một sản phẩm không hợp lệ");
+                    return new GetPromotionForOrderResponse()
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Giá trị giảm giá cố định cho một sản phẩm không hợp lệ",
+                        Promotions = { new PromotionForOrderResponse() }
+                    };
                 }
                 if(promotionRule.RuleActions.TargetCriteriaForItemAction == null)
                 {
@@ -266,13 +391,23 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                     JsonSerializer.Deserialize<List<Guid>>(promotionRule.RuleActions.TargetCriteriaForItemAction);
                 if(targetCriteriaForItemActionForOneItemFixed == null || targetCriteriaForItemActionForOneItemFixed.Count != 1)
                 {
-                    throw new BadHttpRequestException("Chỉ có thể áp dụng giảm giá cố định cho một sản phẩm");
+                    return new GetPromotionForOrderResponse()
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Chỉ có thể áp dụng giảm giá cố định cho một sản phẩm",
+                        Promotions = { new PromotionForOrderResponse() }
+                    };
                 }
                 var targetOrderItemForFixed = request.OrderItems
                     .FirstOrDefault(ci => Guid.Parse(ci.ProductVariantId) == targetCriteriaForItemActionForOneItemFixed.FirstOrDefault());
                 if (targetOrderItemForFixed == null)
                 {
-                    throw new BadHttpRequestException("Không tìm thấy sản phẩm để áp dụng giảm giá cố định");
+                    return new GetPromotionForOrderResponse()
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Không tìm thấy sản phẩm để áp dụng giảm giá cố định",
+                        Promotions = { new PromotionForOrderResponse() }
+                    };
                 }
                 appliedPromotionDetail.DiscountAmountApplied = (float) amountDiscountForOne;
                 break;
@@ -280,24 +415,44 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                 var quantityFree = int.Parse(promotionRule.RuleActions.Value);
                 if (quantityFree < 0)
                 {
-                    throw new BadHttpRequestException("Số lượng sản phẩm miễn phí không hợp lệ");
+                    return new GetPromotionForOrderResponse()
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Số lượng sản phẩm miễn phí không hợp lệ",
+                        Promotions = { new PromotionForOrderResponse() }
+                    };
                 }
 
                 if (promotionRule.RuleActions.TargetCriteriaForItemAction == null)
                 {
-                    throw new BadHttpRequestException("Không tìm thấy sản phẩm để áp dụng miễn phí");
+                    return new GetPromotionForOrderResponse()
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Không tìm thấy sản phẩm để áp dụng miễn phí",
+                        Promotions = { new PromotionForOrderResponse() }
+                    };
                 }
                 var targetCriteriaForItemActionForFree =
                     JsonSerializer.Deserialize<List<Guid>>(promotionRule.RuleActions.TargetCriteriaForItemAction);
                 if(targetCriteriaForItemActionForFree == null || targetCriteriaForItemActionForFree.Count != 1)
                 {
-                    throw new BadHttpRequestException("Chỉ có thể áp dụng sản phẩm miễn phí cho một sản phẩm");
+                    return new GetPromotionForOrderResponse()
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Chỉ có thể áp dụng sản phẩm miễn phí cho một sản phẩm",
+                        Promotions = { new PromotionForOrderResponse() }
+                    };
                 }
                 var targetOrderItemForFree = request.OrderItems
                     .FirstOrDefault(ci => targetCriteriaForItemActionForFree.Contains(Guid.Parse(ci.ProductVariantId)));
                 if (targetOrderItemForFree == null)
                 {
-                    throw new BadHttpRequestException("Không tìm thấy sản phẩm để áp dụng miễn phí");
+                    return new GetPromotionForOrderResponse()
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Không tìm thấy sản phẩm để áp dụng miễn phí",
+                        Promotions = { new PromotionForOrderResponse() }
+                    };
                 }
                 
                 targetOrderItemForFree.Quantity += quantityFree;

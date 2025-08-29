@@ -254,7 +254,7 @@ public class CreatePromotionRuleCommandHandler : IRequestHandler<CreatePromotion
         {
             Status = StatusCodes.Status201Created,
             Message = "Tạo luật khuyến mãi thành công",
-            Data = null
+            Data = promotionRule.Id
         };
     }
 }

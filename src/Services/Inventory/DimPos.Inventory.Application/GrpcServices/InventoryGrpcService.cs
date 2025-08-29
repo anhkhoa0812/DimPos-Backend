@@ -27,10 +27,15 @@ public class InventoryGrpcService : Common.Protos.InventoryGrpcService.Inventory
         var inventoryStocks = await _unitOfWork.GetRepository<InventoryStock>().GetListAsync(
             predicate: x => ingredientIds.Contains(x.IngredientId) && x.StoreId == Guid.Parse(request.StoreId)
         );
-        if(inventoryStocks.Count != request.IngredientInventory.Count)
+        var missingIngredientIds = ingredientIds.Except(inventoryStocks.Select(x => x.IngredientId)).ToList();
+        if (missingIngredientIds.Any())
         {
-            _logger.Error("Not all ingredients found in inventory for order");
-            throw new RpcException(new Status(StatusCode.NotFound, "Loại nguyên liệu không tồn tại trong kho hoặc không đủ số lượng"));
+            _logger.Error("Missing inventory stock for ingredients: {MissingIngredientIds}", string.Join(", ", missingIngredientIds));
+            return new CheckInventoryForOrderResponse()
+            {
+                IsValid = false,
+                InsufficientIngredientIds = { missingIngredientIds.Select(x => x.ToString()) }
+            };
         }
 
         var response = new CheckInventoryForOrderResponse()

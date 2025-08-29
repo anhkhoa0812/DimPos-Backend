@@ -191,25 +191,6 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             IngredientInventory =
             {
                 ingredientInventoryRequest
-                // // orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
-                // //     .GroupBy(y => y.Ingredient.Id)
-                // //     .Select(group => new IngredientInventory()
-                // // {
-                // //     IngredientId = group.Key,
-                // //     Quantity = group.Sum(item => item.Quantity)
-                // // })
-                // orderItemsFromGrpc.ProductForOrders
-                //     .SelectMany(product => product.RecipeItems.Select(recipe => new
-                //     {
-                //         IngredientId = recipe.Ingredient.Id,
-                //         Quantity = recipe.Quantity * product.Quantity
-                //     }))
-                //     .GroupBy(x => x.IngredientId)
-                //     .Select(group => new IngredientInventory()
-                //     {
-                //         IngredientId = group.Key,
-                //         Quantity = group.Sum(item => item.Quantity)
-                //     }).ToList()
             }
         });
 
@@ -274,6 +255,10 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                     })
                 }
             });
+            if (!promotionRules.IsSuccess)
+            {
+                throw new BadHttpRequestException(promotionRules.ErrorMessage);
+            }
             foreach (var promotionRule in promotionRules.Promotions)
             {
                 var appliedOrderPromotion = new AppliedOrderPromotions()
@@ -354,11 +339,11 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 }).ToList()
         };
         
-        // await _topicProducer.Produce(
-        //     null,
-        //     createOrderResponseModel,
-        //     cancellationToken: cancellationToken
-        // ).ConfigureAwait(false);
+        await _topicProducer.Produce(
+            null,
+            createOrderResponseModel,
+            cancellationToken: cancellationToken
+        ).ConfigureAwait(false);
         
         return new ApiResponse()
         {
