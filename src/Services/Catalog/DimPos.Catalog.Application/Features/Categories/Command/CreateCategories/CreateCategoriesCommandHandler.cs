@@ -103,13 +103,13 @@ public class CreateCategoriesCommandHandler : IRequestHandler<CreateCategoriesCo
             {
                 Status = (int) HttpStatusCode.Created,
                 Message = "Tạo danh mục thành công",
+                Data = category.Id
             };
         }
         return new ApiResponse()
         {
             Status = (int) HttpStatusCode.InternalServerError,
-            Message = "Tạo danh mục thất bại",
-            Data = category.Id
+            Message = "Tạo danh mục thất bại"
         };
     }
 }

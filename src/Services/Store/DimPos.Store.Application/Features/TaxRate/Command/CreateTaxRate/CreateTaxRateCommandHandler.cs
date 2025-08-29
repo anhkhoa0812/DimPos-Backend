@@ -28,6 +28,10 @@ public class CreateTaxRateCommandHandler : IRequestHandler<CreateTaxRateCommand,
             throw new BadHttpRequestException("Không tìm thấy thông tin thương hiệu.");
         }
 
+        var existingTaxRates = await _unitOfWork.GetRepository<TaxRates>().GetListAsync(
+            predicate: x => x.StoreId == request.StoreId
+        );
+        
         var taxRate = new TaxRates()
         {
             Id = Guid.CreateVersion7(),
@@ -35,7 +39,7 @@ public class CreateTaxRateCommandHandler : IRequestHandler<CreateTaxRateCommand,
             StoreId = request.StoreId,
             Name = request.Name,
             Rate = request.Rate,
-            IsActive = false
+            IsActive = !existingTaxRates.Any()
         };
         await _unitOfWork.GetRepository<TaxRates>().InsertAsync(taxRate);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

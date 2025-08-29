@@ -191,25 +191,6 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             IngredientInventory =
             {
                 ingredientInventoryRequest
-                // // orderItemsFromGrpc.ProductForOrders.SelectMany(x => x.RecipeItems)
-                // //     .GroupBy(y => y.Ingredient.Id)
-                // //     .Select(group => new IngredientInventory()
-                // // {
-                // //     IngredientId = group.Key,
-                // //     Quantity = group.Sum(item => item.Quantity)
-                // // })
-                // orderItemsFromGrpc.ProductForOrders
-                //     .SelectMany(product => product.RecipeItems.Select(recipe => new
-                //     {
-                //         IngredientId = recipe.Ingredient.Id,
-                //         Quantity = recipe.Quantity * product.Quantity
-                //     }))
-                //     .GroupBy(x => x.IngredientId)
-                //     .Select(group => new IngredientInventory()
-                //     {
-                //         IngredientId = group.Key,
-                //         Quantity = group.Sum(item => item.Quantity)
-                //     }).ToList()
             }
         });
 

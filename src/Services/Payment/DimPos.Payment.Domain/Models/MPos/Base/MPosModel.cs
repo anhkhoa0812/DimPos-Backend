@@ -10,6 +10,7 @@ public class MPosModel
 public class MPosModelRequest
 {
     public long MerchantId { get; set; }
+    [JsonPropertyName("settings")]
     public MPosSettingDetails Settings { get; set; } = new MPosSettingDetails();
 }
 

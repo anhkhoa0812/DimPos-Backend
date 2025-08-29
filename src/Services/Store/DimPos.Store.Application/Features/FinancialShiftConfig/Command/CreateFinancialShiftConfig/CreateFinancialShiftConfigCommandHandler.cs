@@ -4,6 +4,7 @@ using DimPos.Store.Domain.Models.Common;
 using DimPos.Store.Infrastructure.Persistence;
 using DimPos.Store.Infrastructure.Repositories.Interface;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace DimPos.Store.Application.Features.FinancialShiftConfig.Command.CreateFinancialShiftConfig;
 
@@ -29,7 +30,8 @@ public class CreateFinancialShiftConfigCommandHandler : IRequestHandler<CreateFi
         }
 
         var store = await _unitOfWork.GetRepository<Domain.Entities.Store>().SingleOrDefaultAsync(
-            predicate: x => x.Id == storeId
+            predicate: x => x.Id == storeId,
+            include: x => x.Include(s => s.FinancialShiftConfigs)
         );
         if (store == null)
         {
@@ -49,7 +51,7 @@ public class CreateFinancialShiftConfigCommandHandler : IRequestHandler<CreateFi
             OpeningTime = request.OpeningTime,
             ClosingTime = request.ClosingTime,
             CreatedByAccountId = accountId,
-            IsActive = false,
+            IsActive = store.FinancialShiftConfigs == null
         };
         await _unitOfWork.GetRepository<FinancialShiftConfigs>().InsertAsync(financialShiftConfig);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
