@@ -10,6 +10,7 @@ public class Cart
     public Guid? PosDeviceId { get; set; }
     public Guid? StaffAccountIdCreating { get; set; }
     public Guid? CustomerIdLinked { get; set; }
+    public string? CustomerNameSnapshot { get; set; }
     public EServiceMethod ServiceMethod { get; set; }
     public int? TakeNumberDineIn { get; set; }
     public DateTime? PickupTimeRequested { get; set; }

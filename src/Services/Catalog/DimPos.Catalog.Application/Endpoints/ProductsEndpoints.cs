@@ -1,7 +1,7 @@
 using Carter;
 using DimPos.Catalog.Application.Common.Utils;
 using DimPos.Catalog.Application.Features.ModifierGroups.Command.UpdateModifierGroupForProduct;
-using DimPos.Catalog.Application.Features.ProductExtraItems.Command.CreateProductExtraItem;
+using DimPos.Catalog.Application.Features.ProductExtraItems.Command.UpdateProductExtraItem;
 using DimPos.Catalog.Application.Features.Products.Commands.CreateProducts;
 using DimPos.Catalog.Application.Features.Products.Commands.UpdateProducts;
 using DimPos.Catalog.Application.Features.Products.Query.GetAllProducts;

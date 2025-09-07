@@ -8,5 +8,5 @@ public enum EActionType
     OneItemPercentageDiscount = 3,
     ItemFixedAmountDiscount = 4,
     OneItemFixedAmountDiscount = 5,
-    GiveFreeItemSku = 6
+    // GiveFreeItemSku = 6
 }

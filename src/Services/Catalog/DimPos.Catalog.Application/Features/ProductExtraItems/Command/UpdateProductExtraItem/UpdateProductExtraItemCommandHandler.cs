@@ -1,4 +1,3 @@
-using DimPos.Catalog.Application.Features.ProductExtraItems.Command.CreateProductExtraItem;
 using DimPos.Catalog.Application.Services.Interface;
 using DimPos.Catalog.Domain.Enums;
 using DimPos.Catalog.Domain.Models.Common;

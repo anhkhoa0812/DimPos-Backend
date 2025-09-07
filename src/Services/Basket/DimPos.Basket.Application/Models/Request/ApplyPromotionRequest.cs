@@ -12,6 +12,7 @@ public class ApplyPromotionRequest
     public List<Guid>? TargetCriteriaForItemAction { get; set; }
     public decimal MaxDiscountAmountForPercentage { get; set; }
     public List<Guid>? ApplicableCartItemIds { get; set; }
+    public TargetCriteriaDetailForGiveItem? TargetCriteriaDetailForGiveItem { get; set; }
 }
 
 public class ConditionRuleRequest
@@ -19,4 +20,13 @@ public class ConditionRuleRequest
     public EConditionType ConditionType { get; set; }
     public EOperator Operator { get; set; }
     public string ConditionValue { get; set; } = string.Empty;
+}
+
+public class TargetCriteriaDetailForGiveItem
+{
+    public Guid ProductVariantId { get; set; }
+    public string ProductNameSnapshot { get; set; } = string.Empty;
+    public string ProductVariantNameSnapshot { get; set; } = string.Empty;
+    public string? ProductImageUrlSnapshot { get; set; }
+    public decimal UnitPriceAtAdditionSnapshot { get; set; }
 }

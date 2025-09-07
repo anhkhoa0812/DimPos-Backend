@@ -8,6 +8,7 @@ public class CreateOrderCommand : IRequest<ApiResponse>
 {
     public Guid BrandId { get; set; }
     public Guid? CustomerId { get; set; }
+    public string? CustomerNameSnapshot { get; set; }
     public DateTime? PickupTime { get; set; }
     public string? Note { get; set; }
     public EOrderType Type { get; set; }
