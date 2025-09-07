@@ -58,7 +58,7 @@ public class MPosService : IMPosService
             ServiceName = nameof(EServiceName.CREATE_QR),
             OrderId = request.OrderId.ToString(),
             Amount = request.Amount.ToString(),
-            Description = "Mã QR thanh toán đơn haàng",
+            Description = "Mã QR thanh toán đơn hàng",
             Muid = decodeCredentialsConfig.Settings.Muid,
             QrType = nameof(EQrType.VAQR)
         };
@@ -69,7 +69,7 @@ public class MPosService : IMPosService
         var response = await _httpClient.PostAsync(_qrUrl, content);
         
         var responseString = await response.Content.ReadAsStringAsync();
-
+        _logger.Information("CreateQrResponse: {@ResponseString}", responseString);
         var mPosResponse = JsonSerializer.Deserialize<MPosResponse>(responseString);
         if (mPosResponse != null && mPosResponse.ResCode != 200)
         {

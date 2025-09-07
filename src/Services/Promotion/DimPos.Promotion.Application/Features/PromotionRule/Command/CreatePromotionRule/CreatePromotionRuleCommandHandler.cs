@@ -191,25 +191,25 @@ public class CreatePromotionRuleCommandHandler : IRequestHandler<CreatePromotion
                     throw new BadHttpRequestException("Đối với hành động giảm giá một sản phẩm, TargetCriteriaForItemAction chỉ có thể chứa một sản phẩm.");
                 }
                 break;
-            case EActionType.GiveFreeItemSku:
-                if(!int.TryParse(request.RuleActions.Value, out var freeItemCount))
-                {
-                    throw new BadHttpRequestException("Giá trị của GiveFreeItemSku không hợp lệ");
-                }
-
-                if (freeItemCount < 0)
-                {
-                    throw new BadHttpRequestException("Giá trị của GiveFreeItemSku phải lớn hơn hoặc bằng 0.");
-                }
-                if (request.RuleActions.TargetCriteriaForItemAction == null)
-                {
-                    throw new BadHttpRequestException("Đối với các hành động liên quan đến sản phẩm, cần cung cấp TargetCriteriaForItemAction.");
-                }
-                if (request.RuleActions.TargetCriteriaForItemAction.Count != 1)
-                {
-                    throw new BadHttpRequestException("Đối với hành động GiveFreeItemSku, TargetCriteriaForItemAction chỉ có thể chứa một sản phẩm.");
-                }
-                break;
+            // case EActionType.GiveFreeItemSku:
+            //     if(!int.TryParse(request.RuleActions.Value, out var freeItemCount))
+            //     {
+            //         throw new BadHttpRequestException("Giá trị của GiveFreeItemSku không hợp lệ");
+            //     }
+            //
+            //     if (freeItemCount < 0)
+            //     {
+            //         throw new BadHttpRequestException("Giá trị của GiveFreeItemSku phải lớn hơn hoặc bằng 0.");
+            //     }
+            //     if (request.RuleActions.TargetCriteriaForItemAction == null)
+            //     {
+            //         throw new BadHttpRequestException("Đối với các hành động liên quan đến sản phẩm, cần cung cấp TargetCriteriaForItemAction.");
+            //     }
+            //     if (request.RuleActions.TargetCriteriaForItemAction.Count != 1)
+            //     {
+            //         throw new BadHttpRequestException("Đối với hành động GiveFreeItemSku, TargetCriteriaForItemAction chỉ có thể chứa một sản phẩm.");
+            //     }
+            //     break;
             default:
                 throw new BadHttpRequestException("Loại hành động không hợp lệ");
         }

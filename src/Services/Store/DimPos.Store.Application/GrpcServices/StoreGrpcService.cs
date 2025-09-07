@@ -297,7 +297,7 @@ public class StoreGrpcService : Common.Protos.StoreGrpcService.StoreGrpcServiceB
 
         var storePaymentMethodConfig = storePaymentMethodConfigs
             .FirstOrDefault(x =>
-                JsonSerializer.Deserialize<MPosModelRequest>(x.CredentialsConfigAtStore)?.MerchantId ==
+                JsonSerializer.Deserialize<MPosModelRequestForGrpc>(x.CredentialsConfigAtStore)?.MerchantId ==
                 request.MerchantId);
         if (storePaymentMethodConfig == null)
         {

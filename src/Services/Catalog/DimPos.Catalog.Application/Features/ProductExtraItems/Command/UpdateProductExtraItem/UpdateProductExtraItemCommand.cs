@@ -1,7 +1,7 @@
 using DimPos.Catalog.Domain.Models.Common;
 using Mediator;
 
-namespace DimPos.Catalog.Application.Features.ProductExtraItems.Command.CreateProductExtraItem;
+namespace DimPos.Catalog.Application.Features.ProductExtraItems.Command.UpdateProductExtraItem;
 
 public class UpdateProductExtraItemCommand : IRequest<ApiResponse>
 {

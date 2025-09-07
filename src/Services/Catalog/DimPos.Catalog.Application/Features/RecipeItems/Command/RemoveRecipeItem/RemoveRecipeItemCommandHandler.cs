@@ -26,10 +26,20 @@ public class RemoveRecipeItemCommandHandler : IRequestHandler<RemoveRecipeItemCo
         if (brandId == Guid.Empty)
             throw new BadHttpRequestException("Không tìm thấy thông tin thương hiệu trong yêu cầu.");
 
-        var recipeItem = await _unitOfWork.GetRepository<Domain.Entities.RecipeItems>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.RecipeItemId 
-            && x.ProductVariantId == request.ProductVariantId && x.ProductVariant.Product.BrandId == brandId
+        var recipeItems = await _unitOfWork.GetRepository<Domain.Entities.RecipeItems>().GetListAsync(
+            predicate: x => x.ProductVariantId == request.ProductVariantId && x.ProductVariant.Product.BrandId == brandId
         );
+        
+        if (recipeItems.Count <= 1)
+        {
+            throw new BadHttpRequestException("Không thể xóa thành phần công thức cuối cùng");
+        }
+
+        var recipeItem = recipeItems.FirstOrDefault(x => x.Id == request.RecipeItemId);
+        // var recipeItem = await _unitOfWork.GetRepository<Domain.Entities.RecipeItems>().SingleOrDefaultAsync(
+        //     predicate: x => x.Id == request.RecipeItemId 
+        //     && x.ProductVariantId == request.ProductVariantId && x.ProductVariant.Product.BrandId == brandId
+        // );
         if(recipeItem == null)
             throw new BadHttpRequestException("Không tìm thấy thành phần công thức với ID đã cung cấp.");
 

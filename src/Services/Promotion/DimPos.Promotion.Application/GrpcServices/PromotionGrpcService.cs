@@ -411,56 +411,56 @@ public class PromotionGrpcService : Common.Protos.PromotionGrpcService.Promotion
                 }
                 appliedPromotionDetail.DiscountAmountApplied = (float) amountDiscountForOne;
                 break;
-            case EActionType.GiveFreeItemSku:
-                var quantityFree = int.Parse(promotionRule.RuleActions.Value);
-                if (quantityFree < 0)
-                {
-                    return new GetPromotionForOrderResponse()
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = "Số lượng sản phẩm miễn phí không hợp lệ",
-                        Promotions = { new PromotionForOrderResponse() }
-                    };
-                }
-
-                if (promotionRule.RuleActions.TargetCriteriaForItemAction == null)
-                {
-                    return new GetPromotionForOrderResponse()
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = "Không tìm thấy sản phẩm để áp dụng miễn phí",
-                        Promotions = { new PromotionForOrderResponse() }
-                    };
-                }
-                var targetCriteriaForItemActionForFree =
-                    JsonSerializer.Deserialize<List<Guid>>(promotionRule.RuleActions.TargetCriteriaForItemAction);
-                if(targetCriteriaForItemActionForFree == null || targetCriteriaForItemActionForFree.Count != 1)
-                {
-                    return new GetPromotionForOrderResponse()
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = "Chỉ có thể áp dụng sản phẩm miễn phí cho một sản phẩm",
-                        Promotions = { new PromotionForOrderResponse() }
-                    };
-                }
-                var targetOrderItemForFree = request.OrderItems
-                    .FirstOrDefault(ci => targetCriteriaForItemActionForFree.Contains(Guid.Parse(ci.ProductVariantId)));
-                if (targetOrderItemForFree == null)
-                {
-                    return new GetPromotionForOrderResponse()
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = "Không tìm thấy sản phẩm để áp dụng miễn phí",
-                        Promotions = { new PromotionForOrderResponse() }
-                    };
-                }
-                
-                targetOrderItemForFree.Quantity += quantityFree;
-                appliedPromotionDetail.DiscountAmountApplied += targetOrderItemForFree.UnitPrice * quantityFree;
-                appliedPromotionDetail.IsGiveFreeItemSku = true;
-                appliedPromotionDetail.OrderItemFree = targetOrderItemForFree;
-                
-                break;
+            // case EActionType.GiveFreeItemSku:
+            //     var quantityFree = int.Parse(promotionRule.RuleActions.Value);
+            //     if (quantityFree < 0)
+            //     {
+            //         return new GetPromotionForOrderResponse()
+            //         {
+            //             IsSuccess = false,
+            //             ErrorMessage = "Số lượng sản phẩm miễn phí không hợp lệ",
+            //             Promotions = { new PromotionForOrderResponse() }
+            //         };
+            //     }
+            //
+            //     if (promotionRule.RuleActions.TargetCriteriaForItemAction == null)
+            //     {
+            //         return new GetPromotionForOrderResponse()
+            //         {
+            //             IsSuccess = false,
+            //             ErrorMessage = "Không tìm thấy sản phẩm để áp dụng miễn phí",
+            //             Promotions = { new PromotionForOrderResponse() }
+            //         };
+            //     }
+            //     var targetCriteriaForItemActionForFree =
+            //         JsonSerializer.Deserialize<List<Guid>>(promotionRule.RuleActions.TargetCriteriaForItemAction);
+            //     if(targetCriteriaForItemActionForFree == null || targetCriteriaForItemActionForFree.Count != 1)
+            //     {
+            //         return new GetPromotionForOrderResponse()
+            //         {
+            //             IsSuccess = false,
+            //             ErrorMessage = "Chỉ có thể áp dụng sản phẩm miễn phí cho một sản phẩm",
+            //             Promotions = { new PromotionForOrderResponse() }
+            //         };
+            //     }
+            //     var targetOrderItemForFree = request.OrderItems
+            //         .FirstOrDefault(ci => targetCriteriaForItemActionForFree.Contains(Guid.Parse(ci.ProductVariantId)));
+            //     if (targetOrderItemForFree == null)
+            //     {
+            //         return new GetPromotionForOrderResponse()
+            //         {
+            //             IsSuccess = false,
+            //             ErrorMessage = "Không tìm thấy sản phẩm để áp dụng miễn phí",
+            //             Promotions = { new PromotionForOrderResponse() }
+            //         };
+            //     }
+            //     
+            //     targetOrderItemForFree.Quantity += quantityFree;
+            //     appliedPromotionDetail.DiscountAmountApplied += targetOrderItemForFree.UnitPrice * quantityFree;
+            //     appliedPromotionDetail.IsGiveFreeItemSku = true;
+            //     appliedPromotionDetail.OrderItemFree = targetOrderItemForFree;
+            //     
+            //     break;
             }
             response.Promotions.Add(appliedPromotionDetail);
         }
